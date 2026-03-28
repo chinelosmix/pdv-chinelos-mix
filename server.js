@@ -2,30 +2,16 @@ const express = require('express');
 const path = require('path');
 
 const app = express();
+
+// 👉 ESSENCIAL
 app.use(express.json());
 
-const PORT = process.env.PORT || 3001;
-
-// 🔐 usuários simples (depois podemos melhorar)
-let usuarios = [
-  { user: "admin", senha: "123" }
-];
-
-// login
+// 👉 LOGIN FUNCIONANDO
 app.post('/login', (req, res) => {
   const { user, senha } = req.body;
 
-  const encontrado = usuarios.find(u => u.user === user && u.senha === senha);
+  console.log("Recebido:", user, senha);
 
-  if (encontrado) {
+  if (user === "admin" && senha === "123") {
     return res.json({ ok: true });
   } else {
-    return res.status(401).json({ ok: false });
-  }
-});
-
-app.use(express.static(path.join(__dirname)));
-
-app.listen(PORT, () => {
-  console.log("Servidor rodando na porta " + PORT);
-});
