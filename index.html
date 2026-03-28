@@ -18,76 +18,53 @@ input,select{padding:8px;margin:5px}
 <!-- LOGIN -->
 <div id="login">
 <h2>Login</h2>
-
-<input id="user" placeholder="Usuário"><br>
-<input id="senha" type="password" placeholder="Senha"><br>
-
-<button onclick="fazerLogin()">Entrar</button>
-
-<h3>Cadastrar Funcionário</h3>
-<input id="novoUser"><br>
-<input id="novaSenha" type="password"><br>
-<button onclick="cadUser()">Cadastrar</button>
+<input id="user"><br>
+<input id="senha" type="password"><br>
+<button onclick="login()">Entrar</button>
 </div>
 
 <!-- APP -->
 <div id="app" style="display:none">
 
-<h1>PDV PRO</h1>
+<h1>PDV CHINELOS MIX</h1>
 
 <button onclick="mostrar('prod')">Produtos</button>
 <button onclick="mostrar('venda')">Venda</button>
-<button onclick="mostrar('rel')">Relatório</button>
 <button onclick="logout()">Sair</button>
 
 <!-- PRODUTOS -->
-<div id="prod" class="tela ativa">
-<h2>Cadastro Produto</h2>
-
-<input id="cod" placeholder="Código de Barras"><br>
-<input id="nome" placeholder="Nome"><br>
-<input id="cor" placeholder="Cor"><br>
-<input id="num" placeholder="Numeração"><br>
-<input id="estoque" placeholder="Quantidade"><br>
-
-<button onclick="salvarProd()">Salvar Produto</button>
-
+<div id="prod" class="tela">
+<input id="nome" placeholder="Produto">
+<input id="preco" placeholder="Preço">
+<button onclick="salvarProd()">Salvar</button>
 <ul id="listaProd"></ul>
 </div>
 
 <!-- VENDA -->
-<div id="venda" class="tela">
+<div id="venda" class="tela ativa">
 
 <h2>Venda</h2>
 
 <select id="selectProd"></select>
 <input id="qtd" value="1">
 
-<button onclick="addVenda()">Adicionar</button>
+<br>
 
-<ul id="listaVenda"></ul>
+<h3>Pagamento</h3>
+<button onclick="setPagamento('Dinheiro')">Dinheiro</button>
+<button onclick="setPagamento('Cartão')">Cartão</button>
+<button onclick="setPagamento('Pix')">Pix</button>
+
+<p id="pag"></p>
+
+<button onclick="add()">Adicionar</button>
+
+<ul id="lista"></ul>
 
 <h3>Total: R$ <span id="total">0</span></h3>
 
-<button onclick="finalizar()">Finalizar Venda</button>
-
-</div>
-
-<!-- RELATORIO -->
-<div id="rel" class="tela">
-
-<h2>Relatório</h2>
-
-<h3>Vendas do Dia</h3>
-<ul id="dia"></ul>
-
-<h3>Vendas do Mês</h3>
-<ul id="mes"></ul>
-
-<h3>Ranking Produtos</h3>
-<ul id="rank"></ul>
-
-<button onclick="carregarRel()">Atualizar</button>
+<button onclick="finalizar()">Finalizar</button>
+<button onclick="cupom()">🧾 Cupom</button>
 
 </div>
 
@@ -95,77 +72,46 @@ input,select{padding:8px;margin:5px}
 
 <script>
 
-// LOGIN CORRIGIDO
-function fazerLogin(){
-  fetch('/login',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      user:document.getElementById('user').value,
-      senha:document.getElementById('senha').value
-    })
-  })
-  .then(res=>{
-    if(res.ok){
-      document.getElementById('login').style.display='none';
-      document.getElementById('app').style.display='block';
-      carregarProd();
-    }else{
-      alert("Login inválido");
-    }
-  });
+// LOGIN
+function login(){
+fetch('/login',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({user:user.value,senha:senha.value})
+})
+.then(r=>{
+if(r.ok){
+login.style.display='none';
+app.style.display='block';
+carregar();
+}else alert("Erro");
+});
 }
 
 // LOGOUT
-function logout(){
-  location.reload();
-}
+function logout(){location.reload()}
 
-// CADASTRAR USUARIO
-function cadUser(){
-fetch('/cadastrar',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-user:novoUser.value,
-senha:novaSenha.value
-})
-}).then(()=>alert("Cadastrado"));
-}
-
-// TROCAR TELA
+// TELA
 function mostrar(t){
 document.querySelectorAll('.tela').forEach(e=>e.classList.remove('ativa'));
 document.getElementById(t).classList.add('ativa');
 }
 
-// PRODUTOS
+// PRODUTO
 function salvarProd(){
 fetch('/produto',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-cod:cod.value,
-nome:nome.value,
-cor:cor.value,
-num:num.value,
-estoque:estoque.value
-})
-}).then(()=>carregarProd());
+body:JSON.stringify({nome:nome.value,preco:preco.value})
+}).then(()=>carregar());
 }
 
-function carregarProd(){
+function carregar(){
 fetch('/produtos')
 .then(r=>r.json())
-.then(lista=>{
-listaProd.innerHTML='';
+.then(d=>{
 selectProd.innerHTML='';
-
-lista.forEach(p=>{
-let li=document.createElement('li');
-li.innerText=p.nome;
-listaProd.appendChild(li);
-
+d.forEach(p=>{
 let op=document.createElement('option');
 op.value=p.nome;
 op.innerText=p.nome;
@@ -175,36 +121,55 @@ selectProd.appendChild(op);
 }
 
 // VENDA
-let vendaItens=[];
+let itens=[];
 let total=0;
+let pagamento="";
 
-function addVenda(){
+function setPagamento(p){
+pagamento=p;
+pag.innerText="Pagamento: "+p;
+}
+
+function add(){
 let nome=selectProd.value;
 let qtd=parseInt(document.getElementById('qtd').value);
 
-let item=vendaItens.find(i=>i.nome===nome);
+let item=itens.find(i=>i.nome===nome);
 
-if(item){
-item.qtd+=qtd;
-}else{
-vendaItens.push({nome,qtd});
-}
+if(item){item.qtd+=qtd}
+else itens.push({nome,qtd});
 
 total+=qtd*10;
 
-renderVenda();
+render();
 }
 
-function renderVenda(){
-listaVenda.innerHTML='';
-
-vendaItens.forEach(i=>{
+function render(){
+lista.innerHTML='';
+itens.forEach(i=>{
 let li=document.createElement('li');
 li.innerText=i.nome+" x"+i.qtd;
-listaVenda.appendChild(li);
+lista.appendChild(li);
+});
+document.getElementById('total').innerText=total;
+}
+
+// CUPOM PROFISSIONAL
+function cupom(){
+
+let txt="*** CHINELOS MIX ***\n\n";
+
+itens.forEach(i=>{
+txt+=i.nome+" x"+i.qtd+"\n";
 });
 
-document.getElementById('total').innerText=total;
+txt+="\nTOTAL: R$ "+total+"\n";
+txt+="PAGAMENTO: "+pagamento+"\n";
+txt+="OBRIGADO!";
+
+let w=window.open('');
+w.document.write("<pre>"+txt+"</pre>");
+w.print();
 }
 
 // FINALIZAR
@@ -212,46 +177,12 @@ function finalizar(){
 fetch('/venda',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-itens:vendaItens,
-total:total
-})
+body:JSON.stringify({itens,total,pagamento})
 });
 
-vendaItens=[];
+itens=[];
 total=0;
-renderVenda();
-}
-
-// RELATORIO
-function carregarRel(){
-fetch('/relatorio')
-.then(r=>r.json())
-.then(d=>{
-
-dia.innerHTML='';
-mes.innerHTML='';
-rank.innerHTML='';
-
-d.dia.forEach(v=>{
-let li=document.createElement('li');
-li.innerText="R$ "+v.total;
-dia.appendChild(li);
-});
-
-d.mes.forEach(v=>{
-let li=document.createElement('li');
-li.innerText="R$ "+v.total;
-mes.appendChild(li);
-});
-
-Object.entries(d.ranking).forEach(([k,v])=>{
-let li=document.createElement('li');
-li.innerText=k+" : "+v;
-rank.appendChild(li);
-});
-
-});
+render();
 }
 
 </script>
