@@ -1,14 +1,10 @@
+
 const express = require('express');
 const path = require('path');
 
 const app = express();
 
 app.use(express.json());
-
-// ROTA TESTE
-app.get('/', (req, res) => {
-  res.send('Servidor funcionando 🚀');
-});
 
 // LOGIN
 app.post('/login', (req, res) => {
@@ -21,12 +17,17 @@ app.post('/login', (req, res) => {
   }
 });
 
-// SERVIR ARQUIVOS
+// SERVIR FRONT
 app.use(express.static(__dirname));
 
-// PORTA DO RAILWAY (ESSENCIAL)
+// HOME → INDEX
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// PORTA RAILWAY
 const PORT = process.env.PORT;
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log("Rodando na porta " + PORT);
+  console.log("Servidor rodando na porta " + PORT);
 });
