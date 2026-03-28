@@ -2,36 +2,64 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDV</title>
+<title>PDV COMPLETO</title>
 
 <style>
 body{background:#111;color:#fff;text-align:center;font-family:Arial}
 button{padding:10px;margin:5px;background:green;color:#fff}
 input,select{padding:8px;margin:5px}
+.tela{display:none}
+.ativa{display:block}
 </style>
 </head>
 
 <body>
 
 <!-- LOGIN -->
-<div id="telaLogin">
+<div id="login">
 <h2>Login</h2>
+<input id="user"><br>
+<input id="senha" type="password"><br>
+<button onclick="login()">Entrar</button>
 
-<input id="user" placeholder="Usuário"><br>
-<input id="senha" type="password" placeholder="Senha"><br>
-
-<button onclick="fazerLogin()">Entrar</button>
+<h3>Cadastrar Funcionário</h3>
+<input id="novoUser"><br>
+<input id="novaSenha"><br>
+<button onclick="cadUser()">Cadastrar</button>
 </div>
 
 <!-- APP -->
 <div id="app" style="display:none">
 
-<h1>CHINELOS MIX</h1>
+<h1>PDV CHINELOS MIX</h1>
+
+<button onclick="mostrar('prod')">Produtos</button>
+<button onclick="mostrar('venda')">Venda</button>
+<button onclick="mostrar('rel')">Relatório</button>
+<button onclick="logout()">Sair</button>
+
+<!-- PRODUTO -->
+<div id="prod" class="tela">
+
+<h2>Cadastro Produto</h2>
+
+<input id="cod" placeholder="Código"><br>
+<input id="nome" placeholder="Nome"><br>
+<input id="cor" placeholder="Cor"><br>
+<input id="num" placeholder="Numeração"><br>
+<input id="estoque" placeholder="Quantidade"><br>
+
+<button onclick="salvarProd()">Salvar</button>
+
+<ul id="listaProd"></ul>
+
+</div>
+
+<!-- VENDA -->
+<div id="venda" class="tela ativa">
 
 <select id="selectProd"></select>
 <input id="qtd" value="1">
-
-<br>
 
 <button onclick="add()">Adicionar</button>
 
@@ -40,51 +68,103 @@ input,select{padding:8px;margin:5px}
 <h3>Total: R$ <span id="total">0</span></h3>
 
 <h3>Pagamento</h3>
-<button onclick="pagamento='Dinheiro'">Dinheiro</button>
-<button onclick="pagamento='Cartão'">Cartão</button>
-<button onclick="pagamento='Pix'">Pix</button>
+<button onclick="pag='Dinheiro'">Dinheiro</button>
+<button onclick="pag='Cartão'">Cartão</button>
+<button onclick="pag='Pix'">Pix</button>
 
-<br><br>
+<br>
 
-<button onclick="cupom()">🧾 Cupom</button>
+<button onclick="cupom()">Cupom</button>
+<button onclick="emitirNF()">Nota Fiscal</button>
+
 <button onclick="finalizar()">Finalizar</button>
+
+</div>
+
+<!-- RELATORIO -->
+<div id="rel" class="tela">
+
+<h3>Vendas do Dia</h3>
+<ul id="dia"></ul>
+
+<h3>Vendas do Mês</h3>
+<ul id="mes"></ul>
+
+<h3>Ranking</h3>
+<ul id="rank"></ul>
+
+<button onclick="carregarRel()">Atualizar</button>
+
+</div>
 
 </div>
 
 <script>
 
-// LOGIN CORRIGIDO
-function fazerLogin(){
+// LOGIN
+function login(){
 fetch('/login',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-user:document.getElementById('user').value,
-senha:document.getElementById('senha').value
+body:JSON.stringify({user:user.value,senha:senha.value})
 })
-})
-.then(res=>{
-if(res.ok){
-document.getElementById('telaLogin').style.display='none';
-document.getElementById('app').style.display='block';
-carregar();
-}else{
-alert("Login errado");
-}
+.then(r=>{
+if(r.ok){
+login.style.display='none';
+app.style.display='block';
+carregarProd();
+}else alert("Erro");
 });
 }
 
-// PRODUTOS
-function carregar(){
+// LOGOUT
+function logout(){location.reload()}
+
+// CADASTRAR FUNC
+function cadUser(){
+fetch('/cadastrar',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({user:novoUser.value,senha:novaSenha.value})
+});
+}
+
+// TELAS
+function mostrar(t){
+document.querySelectorAll('.tela').forEach(e=>e.classList.remove('ativa'));
+document.getElementById(t).classList.add('ativa');
+}
+
+// PRODUTO
+function salvarProd(){
+fetch('/produto',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+nome:nome.value,
+cor:cor.value,
+num:num.value,
+estoque:parseInt(estoque.value)
+})
+}).then(()=>carregarProd());
+}
+
+function carregarProd(){
 fetch('/produtos')
 .then(r=>r.json())
 .then(d=>{
 selectProd.innerHTML='';
+listaProd.innerHTML='';
+
 d.forEach(p=>{
 let op=document.createElement('option');
 op.value=p.nome;
 op.innerText=p.nome;
 selectProd.appendChild(op);
+
+let li=document.createElement('li');
+li.innerText=p.nome+" | estoque:"+p.estoque;
+listaProd.appendChild(li);
 });
 });
 }
@@ -92,7 +172,7 @@ selectProd.appendChild(op);
 // VENDA
 let itens=[];
 let total=0;
-let pagamento="";
+let pag="";
 
 function add(){
 let nome=selectProd.value;
@@ -100,7 +180,7 @@ let qtd=parseInt(document.getElementById('qtd').value);
 
 let item=itens.find(i=>i.nome===nome);
 
-if(item){item.qtd+=qtd}
+if(item) item.qtd+=qtd;
 else itens.push({nome,qtd});
 
 total+=qtd*10;
@@ -110,28 +190,37 @@ render();
 
 function render(){
 lista.innerHTML='';
-itens.forEach(i=>{
+itens.forEach((i,index)=>{
 let li=document.createElement('li');
-li.innerText=i.nome+" x"+i.qtd;
+li.innerHTML=i.nome+" x"+i.qtd+" <button onclick='remover("+index+")'>X</button>";
 lista.appendChild(li);
 });
-document.getElementById('total').innerText=total;
+total.innerText=total;
+}
+
+function remover(i){
+total-=itens[i].qtd*10;
+itens.splice(i,1);
+render();
 }
 
 // CUPOM
 function cupom(){
-let txt="*** CHINELOS MIX ***\n\n";
-
+let txt="CHINELOS MIX\n\n";
 itens.forEach(i=>{
 txt+=i.nome+" x"+i.qtd+"\n";
 });
-
-txt+="\nTOTAL: "+total+"\n";
-txt+="PAGAMENTO: "+pagamento;
+txt+="TOTAL: "+total+"\n";
+txt+="PAG: "+pag;
 
 let w=window.open('');
 w.document.write("<pre>"+txt+"</pre>");
 w.print();
+}
+
+// NF (placeholder)
+function emitirNF(){
+alert("NF integrada depois com SEFAZ");
 }
 
 // FINALIZAR
@@ -139,12 +228,41 @@ function finalizar(){
 fetch('/venda',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
-body:JSON.stringify({itens,total,pagamento})
+body:JSON.stringify({itens,total})
 });
 
 itens=[];
 total=0;
 render();
+}
+
+// RELATORIO
+function carregarRel(){
+fetch('/relatorio')
+.then(r=>r.json())
+.then(d=>{
+dia.innerHTML='';
+mes.innerHTML='';
+rank.innerHTML='';
+
+d.dia.forEach(v=>{
+let li=document.createElement('li');
+li.innerText="R$ "+v.total;
+dia.appendChild(li);
+});
+
+d.mes.forEach(v=>{
+let li=document.createElement('li');
+li.innerText="R$ "+v.total;
+mes.appendChild(li);
+});
+
+Object.entries(d.ranking).forEach(([k,v])=>{
+let li=document.createElement('li');
+li.innerText=k+" : "+v;
+rank.appendChild(li);
+});
+});
 }
 
 </script>
