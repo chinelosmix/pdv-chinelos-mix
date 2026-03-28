@@ -5,37 +5,11 @@
 <title>PDV Chinelos Mix</title>
 
 <style>
-body {
-  font-family: Arial;
-  background: #111;
-  color: white;
-  text-align: center;
-}
-
-input, button {
-  padding: 10px;
-  margin: 5px;
-  font-size: 16px;
-}
-
-button {
-  background: green;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-#app {
-  display: none;
-}
-
-#login {
-  margin-top: 100px;
-}
-
-.container {
-  margin-top: 20px;
-}
+body { font-family: Arial; background:#111; color:#fff; text-align:center; }
+button { padding:10px; margin:5px; background:green; color:white; border:none; cursor:pointer; }
+input { padding:10px; margin:5px; }
+.tela { display:none; }
+.ativa { display:block; }
 </style>
 </head>
 
@@ -47,31 +21,53 @@ button {
   <input id="user" placeholder="Usuário"><br>
   <input id="senha" type="password" placeholder="Senha"><br>
   <button onclick="entrar()">Entrar</button>
+
+  <hr>
+
+  <h3>Cadastrar Funcionário</h3>
+  <input id="novoUser" placeholder="Usuário"><br>
+  <input id="novaSenha" type="password" placeholder="Senha"><br>
+  <button onclick="cadastrar()">Cadastrar</button>
 </div>
 
-<!-- SISTEMA -->
-<div id="app">
+<!-- APP -->
+<div id="app" style="display:none">
 
-  <h1>🛒 PDV Chinelos Mix</h1>
+<h1>🛒 PDV Chinelos Mix</h1>
 
-  <button onclick="sair()">🚪 Sair</button>
+<button onclick="mostrar('vendas')">Vendas</button>
+<button onclick="mostrar('relatorio')">Relatório</button>
 
-  <div class="container">
+<!-- VENDAS -->
+<div id="vendas" class="tela ativa">
 
-    <h3>Produto</h3>
-    <input id="produto" placeholder="Nome do produto">
-    <input id="preco" placeholder="Preço">
+<input id="produto" placeholder="Produto">
+<input id="preco" placeholder="Preço">
 
-    <br>
+<br>
+<button onclick="adicionar()">Adicionar</button>
 
-    <button onclick="adicionar()">Adicionar</button>
+<ul id="lista"></ul>
 
-    <h3>Lista</h3>
-    <ul id="lista"></ul>
+<h3>Total: R$ <span id="total">0</span></h3>
 
-    <h3>Total: R$ <span id="total">0</span></h3>
+<h3>Pagamento</h3>
+<button onclick="pagar('Dinheiro')">Dinheiro</button>
+<button onclick="pagar('Cartão')">Cartão</button>
+<button onclick="pagar('Pix')">Pix</button>
 
-  </div>
+<p id="formaPagamento"></p>
+
+<button onclick="finalizar()">Finalizar</button>
+
+</div>
+
+<!-- RELATORIO -->
+<div id="relatorio" class="tela">
+<h2>Relatório</h2>
+<ul id="historico"></ul>
+<h3>Total vendido: R$ <span id="totalVendido">0</span></h3>
+</div>
 
 </div>
 
@@ -80,60 +76,145 @@ button {
 // LOGIN
 function entrar() {
   fetch('/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      user: document.getElementById('user').value,
-      senha: document.getElementById('senha').value
-    })
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ user:user.value, senha:senha.value })
   })
-  .then(res => {
-    if (res.ok) {
-      document.getElementById('login').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
+  .then(res=>{
+    if(res.ok){
+      login.style.display='none';
+      app.style.display='block';
     } else {
-      alert('Login inválido');
+      alert("Login inválido");
     }
   });
 }
 
-// SAIR
-function sair() {
-  location.reload();
+// CADASTRAR
+function cadastrar() {
+  fetch('/cadastrar', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ user:novoUser.value, senha:novaSenha.value })
+  })
+  .then(res=>res.json())
+  .then(d=>{
+    if(d.ok) alert("Funcionário cadastrado");
+    else alert(d.msg);
+  });
 }
 
-// PDV SIMPLES
+// TELAS
+function mostrar(t){
+  document.querySelectorAll('.tela').forEach(e=>e.classList.remove('ativa'));
+  document.getElementById(t).classList.add('ativa');
+}
+
+// PDV
 let total = 0;
+let itens = [];
+let vendas = [];
+let forma = "";
 
-function adicionar() {
-  let nome = document.getElementById('produto').value;
-  let preco = parseFloat(document.getElementById('preco').value);
+// ADD PRODUTO
+function adicionar(){
+  let nome = produto.value;
+  let preco = parseFloat(preco.value);
 
-  if (!nome || isNaN(preco)) {
-    alert('Preencha corretamente');
-    return;
-  }
+  if(!nome || isNaN(preco)){ alert("Erro"); return; }
 
   total += preco;
 
-  let li = document.createElement('li');
-  li.innerHTML = `${nome} - R$ ${preco.toFixed(2)} 
-  <button onclick="remover(this, ${preco})">❌</button>`;
+  let item = itens.find(i=>i.nome===nome);
 
-  document.getElementById('lista').appendChild(li);
+  if(item){
+    item.qtd++;
+    item.total += preco;
+  } else {
+    itens.push({ nome, preco, qtd:1, total:preco });
+  }
 
-  document.getElementById('total').innerText = total.toFixed(2);
+  atualizarLista();
 
-  document.getElementById('produto').value = '';
-  document.getElementById('preco').value = '';
+  produto.value="";
+  preco.value="";
 }
 
-function remover(btn, preco) {
-  btn.parentElement.remove();
-  total -= preco;
-  document.getElementById('total').innerText = total.toFixed(2);
+// LISTA
+function atualizarLista(){
+  lista.innerHTML="";
+
+  itens.forEach((i,index)=>{
+    let li=document.createElement('li');
+    li.innerHTML=`${i.nome} | ${i.qtd}x | R$ ${i.total.toFixed(2)}
+    <button onclick="remover(${index})">❌</button>`;
+    lista.appendChild(li);
+  });
+
+  totalSpan = document.getElementById('total');
+  totalSpan.innerText = total.toFixed(2);
+}
+
+// REMOVER
+function remover(i){
+  total -= itens[i].preco;
+  itens[i].qtd--;
+  itens[i].total -= itens[i].preco;
+
+  if(itens[i].qtd<=0) itens.splice(i,1);
+
+  atualizarLista();
+}
+
+// PAGAMENTO
+function pagar(t){
+  forma=t;
+  formaPagamento.innerText="Pagamento: "+t;
+}
+
+// FINALIZAR
+function finalizar(){
+  if(total===0) return alert("Sem produtos");
+  if(!forma) return alert("Escolha pagamento");
+
+  imprimir();
+
+  vendas.push(total);
+
+  let li=document.createElement('li');
+  li.innerText="Venda: R$ "+total.toFixed(2);
+  historico.appendChild(li);
+
+  total=0;
+  itens=[];
+  forma="";
+  lista.innerHTML="";
+  totalSpan.innerText="0";
+  formaPagamento.innerText="";
+
+  atualizarRelatorio();
+}
+
+// RELATORIO
+function atualizarRelatorio(){
+  let soma=vendas.reduce((a,b)=>a+b,0);
+  totalVendido.innerText=soma.toFixed(2);
+}
+
+// CUPOM
+function imprimir(){
+  let texto="CUPOM\n\n";
+
+  itens.forEach(i=>{
+    texto+=`${i.nome} | ${i.qtd}x | R$ ${i.total.toFixed(2)}\n`;
+  });
+
+  texto+="\nTOTAL: "+total.toFixed(2);
+  texto+="\nPAGAMENTO: "+forma;
+
+  let w=window.open('');
+  w.document.write("<pre>"+texto+"</pre>");
+  w.print();
 }
 
 </script>
