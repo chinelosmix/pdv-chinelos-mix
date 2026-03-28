@@ -1,15 +1,13 @@
-
 const express = require('express');
 const path = require('path');
 
 const app = express();
 
-// ESSENCIAL
 app.use(express.json());
 
-// TESTE RÁPIDO (pra ver se tá vivo)
-app.get('/teste', (req, res) => {
-  res.send('Servidor OK');
+// ROTA TESTE
+app.get('/', (req, res) => {
+  res.send('Servidor funcionando 🚀');
 });
 
 // LOGIN
@@ -23,16 +21,12 @@ app.post('/login', (req, res) => {
   }
 });
 
-// SERVIR FRONT
-app.use(express.static(path.join(__dirname)));
+// SERVIR ARQUIVOS
+app.use(express.static(__dirname));
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+// PORTA DO RAILWAY (ESSENCIAL)
+const PORT = process.env.PORT;
 
-// PORTA CORRETA DO RAILWAY
-const PORT = process.env.PORT || 3001;
-
-app.listen(PORT, () => {
-  console.log("Servidor rodando na porta " + PORT);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log("Rodando na porta " + PORT);
 });
