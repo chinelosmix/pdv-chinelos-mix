@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>PDV Chinelos Mix PRO</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
+
+<style>
+body{font-family:Arial;background:#0f172a;color:white;margin:0;}
+header{background:#020617;padding:15px;text-align:center;}
+nav button{margin:5px;padding:10px;border:none;border-radius:8px;}
+.container{padding:15px;}
+.hidden{display:none;}
+input,select,button{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none;}
+.card{background:#1e293b;padding:10px;margin-top:10px;border-radius:10px;}
+.btnExcluir{background:red;color:white;margin-top:5px;}
+</style>
+</head>
+
+<body>
+
+<header>
+<h2>👟 CHINELOS MIX</h2>
+<img src="logo.png" style="width:120px;display:block;margin:auto;">
+<button onclick="backupDados()">💾 Backup</button>
+
+<nav>
+<button onclick="trocarTela('produtos')">📦 Produtos</button>
+<button onclick="trocarTela('venda')">🛒 Venda</button>
+<button onclick="trocarTela('relatorio')">📊 Relatório</button>
+<button onclick="trocarTela('funcionario')">👨‍💼 Funcionários</button>
+</nav>
+</header>
+
+<div class="container">
+
+<!-- PRODUTOS -->
+<div id="produtos">
+<h3>Cadastro Produto</h3>
+<input id="codigo" placeholder="Código de barras">
+<input id="nome" placeholder="Produto">
+<input id="cor" placeholder="Cor">
+<input id="numero" placeholder="Numeração">
+<input id="preco" type="number" placeholder="Preço">
+<input id="estoque" type="number" placeholder="Estoque">
+<button onclick="salvarProduto()">Salvar Produto</button>
+<div id="listaProdutos"></div>
+</div>
+
+<!-- VENDA -->
+<div id="venda" class="hidden">
+
+<select id="funcionarioAtivo"></select>
+<select id="prodVenda"></select>
+<input id="qtdVenda" type="number" placeholder="Quantidade">
+
+<button onclick="setPagamento('Dinheiro')">💵 Dinheiro</button>
+<button onclick="setPagamento('PIX')">📱 PIX</button>
+<button onclick="setPagamento('Cartão')">💳 Cartão</button>
+
+<button onclick="addItem()">➕ Adicionar</button>
+<button onclick="fecharVenda()">✅ Fechar Venda</button>
+
+<button onclick="abrirScanner()">📷 Scanner</button>
+
+<button onclick="cupom()">🧾 Cupom</button>
+<button onclick="notaVenda()">📄 Nota</button>
+
+<div id="itensVenda"></div>
+
+</div>
+
+<!-- RELATORIO -->
+<div id="relatorio" class="hidden">
+<div id="relatorioDetalhado"></div>
+</div>
+
+<!-- FUNCIONARIOS -->
+<div id="funcionario" class="hidden">
+<input id="nomeFunc" placeholder="Nome">
+<button onclick="salvarFuncionario()">Salvar</button>
+<div id="listaFunc"></div>
+</div>
+
+</div>
+
+<script>
+
+// DADOS
+let produtos=JSON.parse(localStorage.getItem("produtos"))||[];
+let vendas=JSON.parse(localStorage.getItem("vendas"))||[];
+let funcionarios=JSON.parse(localStorage.getItem("func"))||[];
+
+let vendaAtual=[];
+let pagamentoAtual="";
+
+// SALVAR
+function salvarTudo(){
+localStorage.setItem("produtos",JSON.stringify(produtos));
+localStorage.setItem("vendas",JSON.stringify(vendas));
+localStorage.setItem("func",JSON.stringify(funcionarios));
+}
+
+// TELAS
+function trocarTela(t){
+["produtos","venda","relatorio","funcionario"].forEach(x=>{
+document.getElementById(x).classList.add("hidden");
+});
+document.getElementById(t).classList.remove("hidden");
+atualizar();
+}
+
+// PRODUTO
+function salvarProduto(){
+produtos.push({
+codigo:codigo.value,
+nome:nome.value,
+cor:cor.value,
+numero:numero.value,
+preco:parseFloat(preco.value),
+estoque:parseInt(estoque.value)
+});
+salvarTudo();atualizar();
+}
+
+// FUNCIONARIO
+function salvarFuncionario(){
+funcionarios.push(nomeFunc.value);
+salvarTudo();atualizar();
+}
+
+// VENDA
+function setPagamento(p){pagamentoAtual=p;}
+
+function addItem(){
+let i=prodVenda.value;
+let qtd=parseInt(qtdVenda.value);
+
+if(!pagamentoAtual){alert("Escolha pagamento");return;}
+
+produtos[i].estoque-=qtd;
+
+let item={
+produto:produtos[i].nome,
+total:produtos[i].preco*qtd,
+pagamento:pagamentoAtual,
+funcionario:funcionarioAtivo.value,
+data:new Date().toLocaleDateString(),
+hora:new Date().toLocaleTimeString()
+};
+
+vendaAtual.push(item);
+renderItens();
+salvarTudo();
+}
+
+function renderItens(){
+itensVenda.innerHTML="";
+vendaAtual.forEach(v=>{
+itensVenda.innerHTML+=`
+<div class="card">${v.produto} - R$ ${v.total}</div>`;
+});
+}
+
+function fecharVenda(){
+vendas.push(...vendaAtual);
+vendaAtual=[];
+renderItens();
+salvarTudo();
+alert("Venda finalizada");
+}
+
+// CUPOM
+function cupom(){
+let win=window.open();
+let total=0;
+
+let html=`<div style="text-align:center;font-family:monospace;">
+<img src="logo.png" width="100"><br>
+CHINELOS MIX<hr>`;
+
+vendaAtual.forEach(v=>{
+html+=`${v.produto}<br>R$ ${v.total}<br>`;
+total+=v.total;
+});
+
+html+=`<hr>Total: ${total}<br>${pagamentoAtual}</div>`;
+
+win.document.write(html);
+win.print();
+}
+
+// NOTA
+function notaVenda(){
+let win=window.open();
+let total=0;
+
+let html=`<h2>CHINELOS MIX</h2><hr>`;
+
+vendaAtual.forEach(v=>{
+html+=`${v.produto} - R$ ${v.total}<br>`;
+total+=v.total;
+});
+
+html+=`<hr>Total: ${total}`;
+win.document.write(html);
+win.print();
+}
+
+// RELATORIO COMPLETO
+function atualizar(){
+
+listaProdutos.innerHTML="";
+prodVenda.innerHTML="";
+listaFunc.innerHTML="";
+funcionarioAtivo.innerHTML="";
+
+produtos.forEach((p,i)=>{
+listaProdutos.innerHTML+=`
+<div class="card">
+${p.nome} (${p.cor}) - ${p.estoque}
+</div>`;
+prodVenda.innerHTML+=`<option value="${i}">${p.nome}</option>`;
+});
+
+funcionarios.forEach(f=>{
+listaFunc.innerHTML+=`<div class="card">${f}</div>`;
+funcionarioAtivo.innerHTML+=`<option>${f}</option>`;
+});
+
+// RELATORIO AVANÇADO
+let hoje=new Date().toLocaleDateString();
+
+let totalDia=0;
+let totalMes=0;
+
+let produtosVendidos={};
+let pagamentos={Dinheiro:0,PIX:0,Cartão:0};
+
+vendas.forEach(v=>{
+
+if(v.data===hoje){totalDia+=v.total;}
+totalMes+=v.total;
+
+if(!produtosVendidos[v.produto]){
+produtosVendidos[v.produto]=0;
+}
+produtosVendidos[v.produto]++;
+
+pagamentos[v.pagamento]+=v.total;
+
+});
+
+// MAIS VENDIDO
+let mais="";
+let qtd=0;
+
+for(let p in produtosVendidos){
+if(produtosVendidos[p]>qtd){
+qtd=produtosVendidos[p];
+mais=p;
+}
+}
+
+// GRAFICO
+let grafico="<h3>📊 Vendas por Produto</h3>";
+
+for(let p in produtosVendidos){
+let barra=produtosVendidos[p]*20;
+grafico+=`${p}<div style="background:lime;height:10px;width:${barra}px"></div>`;
+}
+
+// MONTAR RELATORIO
+let rel=`
+<h3>Hoje: R$ ${totalDia.toFixed(2)}</h3>
+<h3>Mês: R$ ${totalMes.toFixed(2)}</h3>
+<h3>Mais vendido: ${mais}</h3>
+
+<h3>Pagamentos</h3>
+Dinheiro: ${pagamentos.Dinheiro.toFixed(2)}<br>
+PIX: ${pagamentos.PIX.toFixed(2)}<br>
+Cartão: ${pagamentos.Cartão.toFixed(2)}<br>
+
+<hr>${grafico}<hr>
+`;
+
+relatorioDetalhado.innerHTML=rel;
+
+}
+
+// SCANNER REAL
+function abrirScanner(){
+Quagga.init({
+inputStream:{type:"LiveStream",target:document.body},
+decoder:{readers:["code_128_reader","ean_reader"]}
+},()=>Quagga.start());
+
+Quagga.onDetected(r=>{
+let c=r.codeResult.code;
+let i=produtos.findIndex(p=>p.codigo==c);
+if(i>=0){
+prodVenda.value=i;
+alert("Produto encontrado");
+Quagga.stop();
+}
+});
+}
+
+// BACKUP
+function backupDados(){
+let blob=new Blob([JSON.stringify({produtos,vendas,funcionarios})]);
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="backup.json";
+a.click();
+}
+
+atualizar();
+
+</script>
+
+</body>
+</html>
