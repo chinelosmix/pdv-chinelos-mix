@@ -3,23 +3,18 @@ const path = require('path');
 
 const app = express();
 
-// JSON
-app.use(express.json());
+// 👉 PORTA AUTOMÁTICA (ESSENCIAL PRO RAILWAY)
+const PORT = process.env.PORT || 3001;
 
-// SERVIR INDEX
+// 👉 SERVIR ARQUIVOS (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname)));
+
+// 👉 ROTA PRINCIPAL
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// SERVIR ARQUIVOS
-app.use(express.static(__dirname));
-
-// TESTE
-app.get('/teste', (req, res) => {
-  res.send("Servidor OK");
-});
-
-// PORTA
-app.listen(3001, '0.0.0.0', () => {
-  console.log("Servidor rodando na porta 3001");
+// 👉 INICIAR SERVIDOR
+app.listen(PORT, () => {
+  console.log('Servidor rodando na porta ' + PORT);
 });
