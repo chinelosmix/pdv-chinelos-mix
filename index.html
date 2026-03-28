@@ -36,9 +36,10 @@ input { padding:10px; margin:5px; }
 <button onclick="mostrar('vendas')">Vendas</button>
 <button onclick="mostrar('relatorio')">Relatório</button>
 
+<!-- VENDAS -->
 <div id="vendas" class="tela ativa">
 
-<button onclick="abrirScanner()">📷 Código de Barras</button>
+<button onclick="abrirScanner()">📷 Código</button>
 
 <div id="scanner" style="display:none">
 <video id="video" width="300"></video><br>
@@ -49,6 +50,7 @@ input { padding:10px; margin:5px; }
 
 <input id="produto" placeholder="Produto">
 <input id="preco" placeholder="Preço">
+<input id="qtd" placeholder="Qtd" value="1">
 
 <button onclick="adicionar()">Adicionar</button>
 
@@ -66,10 +68,11 @@ input { padding:10px; margin:5px; }
 <button onclick="imprimir()">🧾 Cupom</button>
 <button onclick="emitirNF()">📄 Nota Fiscal</button>
 
-<button onclick="finalizar()">Finalizar Venda</button>
+<button onclick="finalizar()">Finalizar</button>
 
 </div>
 
+<!-- RELATORIO -->
 <div id="relatorio" class="tela">
 <ul id="historico"></ul>
 <h3>Total vendido: R$ <span id="totalVendido">0</span></h3>
@@ -100,27 +103,34 @@ document.querySelectorAll('.tela').forEach(e=>e.classList.remove('ativa'));
 document.getElementById(t).classList.add('ativa');
 }
 
-// PDV
+// VARIÁVEIS
 let total=0,itens=[],vendas=[],forma="";
 
-// ADD
+// ADD PRODUTO COM QUANTIDADE
 function adicionar(){
 let nome=produto.value;
-let preco=parseFloat(preco.value);
+let valor=parseFloat(preco.value);
+let quantidade=parseInt(qtd.value);
 
-if(!nome||isNaN(preco)) return alert("Erro");
+if(!nome||isNaN(valor)||isNaN(quantidade)) return alert("Erro");
 
-total+=preco;
+let totalItem=valor*quantidade;
+total+=totalItem;
 
-let i=itens.find(x=>x.nome===nome);
+let item=itens.find(i=>i.nome===nome);
 
-if(i){i.qtd++;i.total+=preco;}
-else itens.push({nome,preco,qtd:1,total:preco});
+if(item){
+item.qtd+=quantidade;
+item.total+=totalItem;
+} else {
+itens.push({nome,preco:valor,qtd:quantidade,total:totalItem});
+}
 
 atualizar();
 
 produto.value="";
 preco.value="";
+qtd.value="1";
 }
 
 // LISTA
@@ -128,12 +138,11 @@ function atualizar(){
 lista.innerHTML="";
 itens.forEach((i,idx)=>{
 let li=document.createElement('li');
-li.innerHTML=`${i.nome} | ${i.qtd}x | ${i.total.toFixed(2)}
+li.innerHTML=`${i.nome} | ${i.qtd}x | ${i.preco.toFixed(2)} = ${i.total.toFixed(2)}
 <button onclick="remover(${idx})">❌</button>`;
 lista.appendChild(li);
 });
-totalSpan=document.getElementById('total');
-totalSpan.innerText=total.toFixed(2);
+document.getElementById('total').innerText=total.toFixed(2);
 }
 
 // REMOVER
@@ -141,7 +150,9 @@ function remover(i){
 total-=itens[i].preco;
 itens[i].qtd--;
 itens[i].total-=itens[i].preco;
+
 if(itens[i].qtd<=0) itens.splice(i,1);
+
 atualizar();
 }
 
@@ -151,14 +162,18 @@ forma=t;
 formaPagamento.innerText="Pagamento: "+t;
 }
 
-// CUPOM
+// CUPOM PROFISSIONAL
 function imprimir(){
-let txt="CUPOM\n\n";
+let txt="===== CUPOM DE VENDA =====\n\n";
+
 itens.forEach(i=>{
-txt+=`${i.nome} | ${i.qtd}x | ${i.total.toFixed(2)}\n`;
+txt+=`${i.nome}\n`;
+txt+=`${i.qtd} x ${i.preco.toFixed(2)} = ${i.total.toFixed(2)}\n\n`;
 });
-txt+="\nTOTAL: "+total.toFixed(2);
-txt+="\nPAGAMENTO: "+forma;
+
+txt+="-------------------------\n";
+txt+="TOTAL: R$ "+total.toFixed(2)+"\n";
+txt+="PAGAMENTO: "+forma;
 
 let w=window.open('');
 w.document.write("<pre>"+txt+"</pre>");
@@ -188,7 +203,7 @@ historico.appendChild(li);
 
 total=0;itens=[];forma="";
 lista.innerHTML="";
-totalSpan.innerText="0";
+document.getElementById('total').innerText="0";
 formaPagamento.innerText="";
 
 atualizarRelatorio();
@@ -200,7 +215,7 @@ let soma=vendas.reduce((a,b)=>a+b,0);
 totalVendido.innerText=soma.toFixed(2);
 }
 
-// SCANNER
+// SCANNER SIMPLES
 let stream;
 function abrirScanner(){
 scanner.style.display="block";

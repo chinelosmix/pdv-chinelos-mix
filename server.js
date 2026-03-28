@@ -33,9 +33,9 @@ app.post('/login', (req, res) => {
   else res.status(401).json({ ok: false });
 });
 
-// NF-e (SIMULAÇÃO PRONTA PRA API REAL)
+// NF (simulação pronta pra API real)
 app.post('/nf', (req, res) => {
-  console.log("Emitir NF:", req.body);
+  console.log("NF:", req.body);
   res.json({ ok: true, msg: "NF enviada (simulação)" });
 });
 
