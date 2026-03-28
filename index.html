@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>PDV Chinelos Mix</title>
+<title>PDV PRO</title>
 
 <style>
-body { font-family: Arial; background:#111; color:#fff; text-align:center; }
-button { padding:10px; margin:5px; background:green; color:white; border:none; }
-input { padding:10px; margin:5px; }
-.tela { display:none; }
-.ativa { display:block; }
+body{background:#111;color:#fff;text-align:center;font-family:Arial}
+button{padding:10px;margin:5px;background:green;color:#fff}
+input{padding:8px;margin:5px}
+.tela{display:none}
+.ativa{display:block}
 </style>
 </head>
 
@@ -18,64 +18,67 @@ input { padding:10px; margin:5px; }
 <!-- LOGIN -->
 <div id="login">
 <h2>Login</h2>
-<input id="user" placeholder="Usuário"><br>
-<input id="senha" type="password" placeholder="Senha"><br>
-<button onclick="entrar()">Entrar</button>
+<input id="user"><br>
+<input id="senha" type="password"><br>
+<button onclick="login()">Entrar</button>
 
 <h3>Cadastrar</h3>
-<input id="novoUser" placeholder="Usuário"><br>
-<input id="novaSenha" type="password" placeholder="Senha"><br>
-<button onclick="cadastrar()">Cadastrar</button>
+<input id="novoUser"><br>
+<input id="novaSenha"><br>
+<button onclick="cadUser()">Cadastrar</button>
 </div>
 
 <!-- APP -->
 <div id="app" style="display:none">
 
-<h1>PDV Chinelos Mix</h1>
+<h1>PDV PRO</h1>
 
-<button onclick="mostrar('vendas')">Vendas</button>
-<button onclick="mostrar('relatorio')">Relatório</button>
+<button onclick="mostrar('prod')">Produtos</button>
+<button onclick="mostrar('venda')">Venda</button>
+<button onclick="mostrar('rel')">Relatório</button>
+<button onclick="logout()">Sair</button>
 
-<!-- VENDAS -->
-<div id="vendas" class="tela ativa">
-
-<button onclick="abrirScanner()">📷 Código</button>
-
-<div id="scanner" style="display:none">
-<video id="video" width="300"></video><br>
-<button onclick="fecharScanner()">Fechar</button>
+<!-- PRODUTO -->
+<div id="prod" class="tela ativa">
+<h2>Cadastro Produto</h2>
+<input id="cod" placeholder="Código"><br>
+<input id="nome" placeholder="Nome"><br>
+<input id="cor" placeholder="Cor"><br>
+<input id="num" placeholder="Numeração"><br>
+<input id="estoque" placeholder="Qtd"><br>
+<button onclick="salvarProd()">Salvar</button>
+<ul id="listaProd"></ul>
 </div>
 
-<br>
+<!-- VENDA -->
+<div id="venda" class="tela">
+<h2>Venda</h2>
 
-<input id="produto" placeholder="Produto">
-<input id="preco" placeholder="Preço">
+<select id="selectProd"></select>
 <input id="qtd" placeholder="Qtd" value="1">
+<button onclick="addVenda()">Adicionar</button>
 
-<button onclick="adicionar()">Adicionar</button>
+<ul id="listaVenda"></ul>
 
-<ul id="lista"></ul>
-
-<h3>Total: R$ <span id="total">0</span></h3>
-
-<h3>Pagamento</h3>
-<button onclick="pagar('Dinheiro')">Dinheiro</button>
-<button onclick="pagar('Cartão')">Cartão</button>
-<button onclick="pagar('Pix')">Pix</button>
-
-<p id="formaPagamento"></p>
-
-<button onclick="imprimir()">🧾 Cupom</button>
-<button onclick="emitirNF()">📄 Nota Fiscal</button>
+<h3>Total: <span id="total">0</span></h3>
 
 <button onclick="finalizar()">Finalizar</button>
-
 </div>
 
 <!-- RELATORIO -->
-<div id="relatorio" class="tela">
-<ul id="historico"></ul>
-<h3>Total vendido: R$ <span id="totalVendido">0</span></h3>
+<div id="rel" class="tela">
+<h2>Relatório</h2>
+
+<h3>Dia</h3>
+<ul id="dia"></ul>
+
+<h3>Mês</h3>
+<ul id="mes"></ul>
+
+<h3>Ranking</h3>
+<ul id="rank"></ul>
+
+<button onclick="carregarRel()">Atualizar</button>
 </div>
 
 </div>
@@ -83,157 +86,125 @@ input { padding:10px; margin:5px; }
 <script>
 
 // LOGIN
-function entrar(){
+function login(){
 fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({user:user.value,senha:senha.value})})
-.then(r=>{ if(r.ok){login.style.display='none';app.style.display='block';}
-else alert("Erro login");});
+.then(r=>{
+if(r.ok){loginDiv();carregarProd()}
+else alert("Erro")
+})
 }
-
-// CADASTRO
-function cadastrar(){
+function loginDiv(){
+login.style.display='none';app.style.display='block'
+}
+function logout(){
+location.reload()
+}
+function cadUser(){
 fetch('/cadastrar',{method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({user:novoUser.value,senha:novaSenha.value})})
-.then(r=>r.json()).then(d=>alert(d.ok?"Cadastrado":d.msg));
+.then(r=>alert("OK"))
 }
 
 // TELAS
 function mostrar(t){
-document.querySelectorAll('.tela').forEach(e=>e.classList.remove('ativa'));
-document.getElementById(t).classList.add('ativa');
+document.querySelectorAll('.tela').forEach(e=>e.classList.remove('ativa'))
+document.getElementById(t).classList.add('ativa')
 }
 
-// VARIÁVEIS
-let total=0,itens=[],vendas=[],forma="";
-
-// ADD PRODUTO COM QUANTIDADE
-function adicionar(){
-let nome=produto.value;
-let valor=parseFloat(preco.value);
-let quantidade=parseInt(qtd.value);
-
-if(!nome||isNaN(valor)||isNaN(quantidade)) return alert("Erro");
-
-let totalItem=valor*quantidade;
-total+=totalItem;
-
-let item=itens.find(i=>i.nome===nome);
-
-if(item){
-item.qtd+=quantidade;
-item.total+=totalItem;
-} else {
-itens.push({nome,preco:valor,qtd:quantidade,total:totalItem});
+// PRODUTOS
+function salvarProd(){
+fetch('/produto',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+cod:cod.value,nome:nome.value,cor:cor.value,
+num:num.value,estoque:estoque.value
+})}).then(()=>carregarProd())
 }
 
-atualizar();
-
-produto.value="";
-preco.value="";
-qtd.value="1";
-}
-
-// LISTA
-function atualizar(){
-lista.innerHTML="";
-itens.forEach((i,idx)=>{
-let li=document.createElement('li');
-li.innerHTML=`${i.nome} | ${i.qtd}x | ${i.preco.toFixed(2)} = ${i.total.toFixed(2)}
-<button onclick="remover(${idx})">❌</button>`;
-lista.appendChild(li);
-});
-document.getElementById('total').innerText=total.toFixed(2);
-}
-
-// REMOVER
-function remover(i){
-total-=itens[i].preco;
-itens[i].qtd--;
-itens[i].total-=itens[i].preco;
-
-if(itens[i].qtd<=0) itens.splice(i,1);
-
-atualizar();
-}
-
-// PAGAMENTO
-function pagar(t){
-forma=t;
-formaPagamento.innerText="Pagamento: "+t;
-}
-
-// CUPOM PROFISSIONAL
-function imprimir(){
-let txt="===== CUPOM DE VENDA =====\n\n";
-
-itens.forEach(i=>{
-txt+=`${i.nome}\n`;
-txt+=`${i.qtd} x ${i.preco.toFixed(2)} = ${i.total.toFixed(2)}\n\n`;
-});
-
-txt+="-------------------------\n";
-txt+="TOTAL: R$ "+total.toFixed(2)+"\n";
-txt+="PAGAMENTO: "+forma;
-
-let w=window.open('');
-w.document.write("<pre>"+txt+"</pre>");
-w.print();
-}
-
-// NF
-function emitirNF(){
-fetch('/nf',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({itens,total})
-})
+function carregarProd(){
+fetch('/produtos')
 .then(r=>r.json())
-.then(d=>alert(d.msg));
+.then(d=>{
+listaProd.innerHTML=''
+selectProd.innerHTML=''
+
+d.forEach(p=>{
+let li=document.createElement('li')
+li.innerText=p.nome
+listaProd.appendChild(li)
+
+let op=document.createElement('option')
+op.value=p.nome
+op.innerText=p.nome
+selectProd.appendChild(op)
+})
+})
 }
 
-// FINALIZAR
+// VENDA
+let vendaItens=[]
+let total=0
+
+function addVenda(){
+let nome=selectProd.value
+let qtd=parseInt(document.getElementById('qtd').value)
+
+let item=vendaItens.find(i=>i.nome===nome)
+
+if(item){item.qtd+=qtd}
+else vendaItens.push({nome,qtd})
+
+total+=qtd*10
+
+renderVenda()
+}
+
+function renderVenda(){
+listaVenda.innerHTML=''
+vendaItens.forEach(i=>{
+let li=document.createElement('li')
+li.innerText=i.nome+" x"+i.qtd
+listaVenda.appendChild(li)
+})
+document.getElementById('total').innerText=total
+}
+
 function finalizar(){
-if(total===0||!forma) return alert("Erro");
+fetch('/venda',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({itens:vendaItens,total})})
 
-vendas.push(total);
-
-let li=document.createElement('li');
-li.innerText="Venda: "+total.toFixed(2);
-historico.appendChild(li);
-
-total=0;itens=[];forma="";
-lista.innerHTML="";
-document.getElementById('total').innerText="0";
-formaPagamento.innerText="";
-
-atualizarRelatorio();
+vendaItens=[]
+total=0
+renderVenda()
 }
 
 // RELATORIO
-function atualizarRelatorio(){
-let soma=vendas.reduce((a,b)=>a+b,0);
-totalVendido.innerText=soma.toFixed(2);
-}
+function carregarRel(){
+fetch('/relatorio')
+.then(r=>r.json())
+.then(d=>{
+dia.innerHTML=''
+mes.innerHTML=''
+rank.innerHTML=''
 
-// SCANNER SIMPLES
-let stream;
-function abrirScanner(){
-scanner.style.display="block";
-navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}})
-.then(s=>{
-stream=s;
-video.srcObject=s;
-video.play();
-setTimeout(()=>{
-produto.value="Produto Código";
-preco.value="25";
-fecharScanner();
-},2000);
-});
-}
-function fecharScanner(){
-scanner.style.display="none";
-if(stream) stream.getTracks().forEach(t=>t.stop());
+d.dia.forEach(v=>{
+let li=document.createElement('li')
+li.innerText="R$ "+v.total
+dia.appendChild(li)
+})
+
+d.mes.forEach(v=>{
+let li=document.createElement('li')
+li.innerText="R$ "+v.total
+mes.appendChild(li)
+})
+
+Object.entries(d.ranking).forEach(([k,v])=>{
+let li=document.createElement('li')
+li.innerText=k+" : "+v
+rank.appendChild(li)
+})
+})
 }
 
 </script>
