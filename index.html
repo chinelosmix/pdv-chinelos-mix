@@ -2,60 +2,36 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDV PRO</title>
+<title>PDV</title>
 
 <style>
 body{background:#111;color:#fff;text-align:center;font-family:Arial}
 button{padding:10px;margin:5px;background:green;color:#fff}
 input,select{padding:8px;margin:5px}
-.tela{display:none}
-.ativa{display:block}
 </style>
 </head>
 
 <body>
 
 <!-- LOGIN -->
-<div id="login">
+<div id="telaLogin">
 <h2>Login</h2>
-<input id="user"><br>
-<input id="senha" type="password"><br>
-<button onclick="login()">Entrar</button>
+
+<input id="user" placeholder="Usuário"><br>
+<input id="senha" type="password" placeholder="Senha"><br>
+
+<button onclick="fazerLogin()">Entrar</button>
 </div>
 
 <!-- APP -->
 <div id="app" style="display:none">
 
-<h1>PDV CHINELOS MIX</h1>
-
-<button onclick="mostrar('prod')">Produtos</button>
-<button onclick="mostrar('venda')">Venda</button>
-<button onclick="logout()">Sair</button>
-
-<!-- PRODUTOS -->
-<div id="prod" class="tela">
-<input id="nome" placeholder="Produto">
-<input id="preco" placeholder="Preço">
-<button onclick="salvarProd()">Salvar</button>
-<ul id="listaProd"></ul>
-</div>
-
-<!-- VENDA -->
-<div id="venda" class="tela ativa">
-
-<h2>Venda</h2>
+<h1>CHINELOS MIX</h1>
 
 <select id="selectProd"></select>
 <input id="qtd" value="1">
 
 <br>
-
-<h3>Pagamento</h3>
-<button onclick="setPagamento('Dinheiro')">Dinheiro</button>
-<button onclick="setPagamento('Cartão')">Cartão</button>
-<button onclick="setPagamento('Pix')">Pix</button>
-
-<p id="pag"></p>
 
 <button onclick="add()">Adicionar</button>
 
@@ -63,49 +39,42 @@ input,select{padding:8px;margin:5px}
 
 <h3>Total: R$ <span id="total">0</span></h3>
 
-<button onclick="finalizar()">Finalizar</button>
-<button onclick="cupom()">🧾 Cupom</button>
+<h3>Pagamento</h3>
+<button onclick="pagamento='Dinheiro'">Dinheiro</button>
+<button onclick="pagamento='Cartão'">Cartão</button>
+<button onclick="pagamento='Pix'">Pix</button>
 
-</div>
+<br><br>
+
+<button onclick="cupom()">🧾 Cupom</button>
+<button onclick="finalizar()">Finalizar</button>
 
 </div>
 
 <script>
 
-// LOGIN
-function login(){
+// LOGIN CORRIGIDO
+function fazerLogin(){
 fetch('/login',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
-body:JSON.stringify({user:user.value,senha:senha.value})
+body:JSON.stringify({
+user:document.getElementById('user').value,
+senha:document.getElementById('senha').value
 })
-.then(r=>{
-if(r.ok){
-login.style.display='none';
-app.style.display='block';
+})
+.then(res=>{
+if(res.ok){
+document.getElementById('telaLogin').style.display='none';
+document.getElementById('app').style.display='block';
 carregar();
-}else alert("Erro");
+}else{
+alert("Login errado");
+}
 });
 }
 
-// LOGOUT
-function logout(){location.reload()}
-
-// TELA
-function mostrar(t){
-document.querySelectorAll('.tela').forEach(e=>e.classList.remove('ativa'));
-document.getElementById(t).classList.add('ativa');
-}
-
-// PRODUTO
-function salvarProd(){
-fetch('/produto',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({nome:nome.value,preco:preco.value})
-}).then(()=>carregar());
-}
-
+// PRODUTOS
 function carregar(){
 fetch('/produtos')
 .then(r=>r.json())
@@ -124,11 +93,6 @@ selectProd.appendChild(op);
 let itens=[];
 let total=0;
 let pagamento="";
-
-function setPagamento(p){
-pagamento=p;
-pag.innerText="Pagamento: "+p;
-}
 
 function add(){
 let nome=selectProd.value;
@@ -154,18 +118,16 @@ lista.appendChild(li);
 document.getElementById('total').innerText=total;
 }
 
-// CUPOM PROFISSIONAL
+// CUPOM
 function cupom(){
-
 let txt="*** CHINELOS MIX ***\n\n";
 
 itens.forEach(i=>{
 txt+=i.nome+" x"+i.qtd+"\n";
 });
 
-txt+="\nTOTAL: R$ "+total+"\n";
-txt+="PAGAMENTO: "+pagamento+"\n";
-txt+="OBRIGADO!";
+txt+="\nTOTAL: "+total+"\n";
+txt+="PAGAMENTO: "+pagamento;
 
 let w=window.open('');
 w.document.write("<pre>"+txt+"</pre>");
