@@ -4,27 +4,22 @@ const path = require('path');
 const app = express();
 app.use(express.json());
 
-// 👇 banco simples (memória)
+// USUÁRIOS
 let usuarios = [
   { user: "admin", senha: "123" }
 ];
 
-// CADASTRAR
+// CADASTRO
 app.post('/cadastrar', (req, res) => {
   const { user, senha } = req.body;
 
-  if (!user || !senha) {
-    return res.status(400).json({ msg: "Preencha tudo" });
-  }
+  if (!user || !senha) return res.status(400).json({ msg: "Preencha tudo" });
 
-  const existe = usuarios.find(u => u.user === user);
-
-  if (existe) {
+  if (usuarios.find(u => u.user === user)) {
     return res.status(400).json({ msg: "Usuário já existe" });
   }
 
   usuarios.push({ user, senha });
-
   res.json({ ok: true });
 });
 
@@ -32,13 +27,16 @@ app.post('/cadastrar', (req, res) => {
 app.post('/login', (req, res) => {
   const { user, senha } = req.body;
 
-  const encontrado = usuarios.find(u => u.user === user && u.senha === senha);
+  const ok = usuarios.find(u => u.user === user && u.senha === senha);
 
-  if (encontrado) {
-    return res.json({ ok: true });
-  } else {
-    return res.status(401).json({ ok: false });
-  }
+  if (ok) res.json({ ok: true });
+  else res.status(401).json({ ok: false });
+});
+
+// NF-e (SIMULAÇÃO PRONTA PRA API REAL)
+app.post('/nf', (req, res) => {
+  console.log("Emitir NF:", req.body);
+  res.json({ ok: true, msg: "NF enviada (simulação)" });
 });
 
 // FRONT

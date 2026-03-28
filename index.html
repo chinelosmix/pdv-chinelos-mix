@@ -6,7 +6,7 @@
 
 <style>
 body { font-family: Arial; background:#111; color:#fff; text-align:center; }
-button { padding:10px; margin:5px; background:green; color:white; border:none; cursor:pointer; }
+button { padding:10px; margin:5px; background:green; color:white; border:none; }
 input { padding:10px; margin:5px; }
 .tela { display:none; }
 .ativa { display:block; }
@@ -17,34 +17,39 @@ input { padding:10px; margin:5px; }
 
 <!-- LOGIN -->
 <div id="login">
-  <h2>🔐 Login</h2>
-  <input id="user" placeholder="Usuário"><br>
-  <input id="senha" type="password" placeholder="Senha"><br>
-  <button onclick="entrar()">Entrar</button>
+<h2>Login</h2>
+<input id="user" placeholder="Usuário"><br>
+<input id="senha" type="password" placeholder="Senha"><br>
+<button onclick="entrar()">Entrar</button>
 
-  <hr>
-
-  <h3>Cadastrar Funcionário</h3>
-  <input id="novoUser" placeholder="Usuário"><br>
-  <input id="novaSenha" type="password" placeholder="Senha"><br>
-  <button onclick="cadastrar()">Cadastrar</button>
+<h3>Cadastrar</h3>
+<input id="novoUser" placeholder="Usuário"><br>
+<input id="novaSenha" type="password" placeholder="Senha"><br>
+<button onclick="cadastrar()">Cadastrar</button>
 </div>
 
 <!-- APP -->
 <div id="app" style="display:none">
 
-<h1>🛒 PDV Chinelos Mix</h1>
+<h1>PDV Chinelos Mix</h1>
 
 <button onclick="mostrar('vendas')">Vendas</button>
 <button onclick="mostrar('relatorio')">Relatório</button>
 
-<!-- VENDAS -->
 <div id="vendas" class="tela ativa">
+
+<button onclick="abrirScanner()">📷 Código de Barras</button>
+
+<div id="scanner" style="display:none">
+<video id="video" width="300"></video><br>
+<button onclick="fecharScanner()">Fechar</button>
+</div>
+
+<br>
 
 <input id="produto" placeholder="Produto">
 <input id="preco" placeholder="Preço">
 
-<br>
 <button onclick="adicionar()">Adicionar</button>
 
 <ul id="lista"></ul>
@@ -58,13 +63,14 @@ input { padding:10px; margin:5px; }
 
 <p id="formaPagamento"></p>
 
-<button onclick="finalizar()">Finalizar</button>
+<button onclick="imprimir()">🧾 Cupom</button>
+<button onclick="emitirNF()">📄 Nota Fiscal</button>
+
+<button onclick="finalizar()">Finalizar Venda</button>
 
 </div>
 
-<!-- RELATORIO -->
 <div id="relatorio" class="tela">
-<h2>Relatório</h2>
 <ul id="historico"></ul>
 <h3>Total vendido: R$ <span id="totalVendido">0</span></h3>
 </div>
@@ -74,147 +80,145 @@ input { padding:10px; margin:5px; }
 <script>
 
 // LOGIN
-function entrar() {
-  fetch('/login', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ user:user.value, senha:senha.value })
-  })
-  .then(res=>{
-    if(res.ok){
-      login.style.display='none';
-      app.style.display='block';
-    } else {
-      alert("Login inválido");
-    }
-  });
+function entrar(){
+fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({user:user.value,senha:senha.value})})
+.then(r=>{ if(r.ok){login.style.display='none';app.style.display='block';}
+else alert("Erro login");});
 }
 
-// CADASTRAR
-function cadastrar() {
-  fetch('/cadastrar', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ user:novoUser.value, senha:novaSenha.value })
-  })
-  .then(res=>res.json())
-  .then(d=>{
-    if(d.ok) alert("Funcionário cadastrado");
-    else alert(d.msg);
-  });
+// CADASTRO
+function cadastrar(){
+fetch('/cadastrar',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({user:novoUser.value,senha:novaSenha.value})})
+.then(r=>r.json()).then(d=>alert(d.ok?"Cadastrado":d.msg));
 }
 
 // TELAS
 function mostrar(t){
-  document.querySelectorAll('.tela').forEach(e=>e.classList.remove('ativa'));
-  document.getElementById(t).classList.add('ativa');
+document.querySelectorAll('.tela').forEach(e=>e.classList.remove('ativa'));
+document.getElementById(t).classList.add('ativa');
 }
 
 // PDV
-let total = 0;
-let itens = [];
-let vendas = [];
-let forma = "";
+let total=0,itens=[],vendas=[],forma="";
 
-// ADD PRODUTO
+// ADD
 function adicionar(){
-  let nome = produto.value;
-  let preco = parseFloat(preco.value);
+let nome=produto.value;
+let preco=parseFloat(preco.value);
 
-  if(!nome || isNaN(preco)){ alert("Erro"); return; }
+if(!nome||isNaN(preco)) return alert("Erro");
 
-  total += preco;
+total+=preco;
 
-  let item = itens.find(i=>i.nome===nome);
+let i=itens.find(x=>x.nome===nome);
 
-  if(item){
-    item.qtd++;
-    item.total += preco;
-  } else {
-    itens.push({ nome, preco, qtd:1, total:preco });
-  }
+if(i){i.qtd++;i.total+=preco;}
+else itens.push({nome,preco,qtd:1,total:preco});
 
-  atualizarLista();
+atualizar();
 
-  produto.value="";
-  preco.value="";
+produto.value="";
+preco.value="";
 }
 
 // LISTA
-function atualizarLista(){
-  lista.innerHTML="";
-
-  itens.forEach((i,index)=>{
-    let li=document.createElement('li');
-    li.innerHTML=`${i.nome} | ${i.qtd}x | R$ ${i.total.toFixed(2)}
-    <button onclick="remover(${index})">❌</button>`;
-    lista.appendChild(li);
-  });
-
-  totalSpan = document.getElementById('total');
-  totalSpan.innerText = total.toFixed(2);
+function atualizar(){
+lista.innerHTML="";
+itens.forEach((i,idx)=>{
+let li=document.createElement('li');
+li.innerHTML=`${i.nome} | ${i.qtd}x | ${i.total.toFixed(2)}
+<button onclick="remover(${idx})">❌</button>`;
+lista.appendChild(li);
+});
+totalSpan=document.getElementById('total');
+totalSpan.innerText=total.toFixed(2);
 }
 
 // REMOVER
 function remover(i){
-  total -= itens[i].preco;
-  itens[i].qtd--;
-  itens[i].total -= itens[i].preco;
-
-  if(itens[i].qtd<=0) itens.splice(i,1);
-
-  atualizarLista();
+total-=itens[i].preco;
+itens[i].qtd--;
+itens[i].total-=itens[i].preco;
+if(itens[i].qtd<=0) itens.splice(i,1);
+atualizar();
 }
 
 // PAGAMENTO
 function pagar(t){
-  forma=t;
-  formaPagamento.innerText="Pagamento: "+t;
-}
-
-// FINALIZAR
-function finalizar(){
-  if(total===0) return alert("Sem produtos");
-  if(!forma) return alert("Escolha pagamento");
-
-  imprimir();
-
-  vendas.push(total);
-
-  let li=document.createElement('li');
-  li.innerText="Venda: R$ "+total.toFixed(2);
-  historico.appendChild(li);
-
-  total=0;
-  itens=[];
-  forma="";
-  lista.innerHTML="";
-  totalSpan.innerText="0";
-  formaPagamento.innerText="";
-
-  atualizarRelatorio();
-}
-
-// RELATORIO
-function atualizarRelatorio(){
-  let soma=vendas.reduce((a,b)=>a+b,0);
-  totalVendido.innerText=soma.toFixed(2);
+forma=t;
+formaPagamento.innerText="Pagamento: "+t;
 }
 
 // CUPOM
 function imprimir(){
-  let texto="CUPOM\n\n";
+let txt="CUPOM\n\n";
+itens.forEach(i=>{
+txt+=`${i.nome} | ${i.qtd}x | ${i.total.toFixed(2)}\n`;
+});
+txt+="\nTOTAL: "+total.toFixed(2);
+txt+="\nPAGAMENTO: "+forma;
 
-  itens.forEach(i=>{
-    texto+=`${i.nome} | ${i.qtd}x | R$ ${i.total.toFixed(2)}\n`;
-  });
+let w=window.open('');
+w.document.write("<pre>"+txt+"</pre>");
+w.print();
+}
 
-  texto+="\nTOTAL: "+total.toFixed(2);
-  texto+="\nPAGAMENTO: "+forma;
+// NF
+function emitirNF(){
+fetch('/nf',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({itens,total})
+})
+.then(r=>r.json())
+.then(d=>alert(d.msg));
+}
 
-  let w=window.open('');
-  w.document.write("<pre>"+texto+"</pre>");
-  w.print();
+// FINALIZAR
+function finalizar(){
+if(total===0||!forma) return alert("Erro");
+
+vendas.push(total);
+
+let li=document.createElement('li');
+li.innerText="Venda: "+total.toFixed(2);
+historico.appendChild(li);
+
+total=0;itens=[];forma="";
+lista.innerHTML="";
+totalSpan.innerText="0";
+formaPagamento.innerText="";
+
+atualizarRelatorio();
+}
+
+// RELATORIO
+function atualizarRelatorio(){
+let soma=vendas.reduce((a,b)=>a+b,0);
+totalVendido.innerText=soma.toFixed(2);
+}
+
+// SCANNER
+let stream;
+function abrirScanner(){
+scanner.style.display="block";
+navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}})
+.then(s=>{
+stream=s;
+video.srcObject=s;
+video.play();
+setTimeout(()=>{
+produto.value="Produto Código";
+preco.value="25";
+fecharScanner();
+},2000);
+});
+}
+function fecharScanner(){
+scanner.style.display="none";
+if(stream) stream.getTracks().forEach(t=>t.stop());
 }
 
 </script>
