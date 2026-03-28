@@ -4,20 +4,27 @@ const path = require('path');
 const app = express();
 app.use(express.json());
 
-// USUÁRIOS
+// 👤 USUÁRIOS
 let usuarios = [{ user: "admin", senha: "123" }];
 
-// PRODUTOS
+// 📦 PRODUTOS
 let produtos = [];
 
-// VENDAS
+// 🧾 VENDAS
 let vendas = [];
 
-// CADASTRO FUNCIONARIO
+// CADASTRAR USUÁRIO
 app.post('/cadastrar', (req,res)=>{
   const {user,senha}=req.body;
-  if(usuarios.find(u=>u.user===user))
-    return res.status(400).json({msg:"Já existe"});
+
+  if(!user || !senha){
+    return res.status(400).json({msg:"Preencha tudo"});
+  }
+
+  if(usuarios.find(u=>u.user===user)){
+    return res.status(400).json({msg:"Usuário já existe"});
+  }
+
   usuarios.push({user,senha});
   res.json({ok:true});
 });
@@ -25,9 +32,14 @@ app.post('/cadastrar', (req,res)=>{
 // LOGIN
 app.post('/login',(req,res)=>{
   const {user,senha}=req.body;
-  if(usuarios.find(u=>u.user===user&&u.senha===senha))
+
+  const encontrado = usuarios.find(u=>u.user===user && u.senha===senha);
+
+  if(encontrado){
     res.json({ok:true});
-  else res.status(401).json({ok:false});
+  }else{
+    res.status(401).json({ok:false});
+  }
 });
 
 // CADASTRAR PRODUTO
@@ -36,38 +48,47 @@ app.post('/produto',(req,res)=>{
   res.json({ok:true});
 });
 
-// LISTAR PRODUTO
+// LISTAR PRODUTOS
 app.get('/produtos',(req,res)=>{
   res.json(produtos);
 });
 
-// REGISTRAR VENDA
+// SALVAR VENDA
 app.post('/venda',(req,res)=>{
-  vendas.push({...req.body, data:new Date()});
+  vendas.push({
+    ...req.body,
+    data:new Date()
+  });
   res.json({ok:true});
 });
 
-// RELATORIO
+// RELATÓRIO
 app.get('/relatorio',(req,res)=>{
-  const hoje=new Date().toDateString();
-  const mes=new Date().getMonth();
+  const hoje = new Date().toDateString();
+  const mesAtual = new Date().getMonth();
 
-  let dia= vendas.filter(v=> new Date(v.data).toDateString()===hoje);
-  let mesV= vendas.filter(v=> new Date(v.data).getMonth()===mes);
+  let dia = vendas.filter(v=> new Date(v.data).toDateString() === hoje);
+  let mes = vendas.filter(v=> new Date(v.data).getMonth() === mesAtual);
 
-  let ranking={};
+  let ranking = {};
 
   vendas.forEach(v=>{
     v.itens.forEach(i=>{
-      ranking[i.nome]=(ranking[i.nome]||0)+i.qtd;
+      ranking[i.nome] = (ranking[i.nome] || 0) + i.qtd;
     });
   });
 
-  res.json({dia,mes:mesV,ranking});
+  res.json({dia,mes,ranking});
 });
 
+// FRONT
 app.use(express.static(__dirname));
-app.get('/',(req,res)=>res.sendFile(path.join(__dirname,'index.html')));
 
-const PORT=process.env.PORT;
-app.listen(PORT,'0.0.0.0');
+app.get('/',(req,res)=>{
+  res.sendFile(path.join(__dirname,'index.html'));
+});
+
+const PORT = process.env.PORT;
+app.listen(PORT,'0.0.0.0',()=>{
+  console.log("Servidor rodando");
+});

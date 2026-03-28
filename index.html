@@ -7,7 +7,7 @@
 <style>
 body{background:#111;color:#fff;text-align:center;font-family:Arial}
 button{padding:10px;margin:5px;background:green;color:#fff}
-input{padding:8px;margin:5px}
+input,select{padding:8px;margin:5px}
 .tela{display:none}
 .ativa{display:block}
 </style>
@@ -18,13 +18,15 @@ input{padding:8px;margin:5px}
 <!-- LOGIN -->
 <div id="login">
 <h2>Login</h2>
-<input id="user"><br>
-<input id="senha" type="password"><br>
-<button onclick="login()">Entrar</button>
 
-<h3>Cadastrar</h3>
+<input id="user" placeholder="Usuário"><br>
+<input id="senha" type="password" placeholder="Senha"><br>
+
+<button onclick="fazerLogin()">Entrar</button>
+
+<h3>Cadastrar Funcionário</h3>
 <input id="novoUser"><br>
-<input id="novaSenha"><br>
+<input id="novaSenha" type="password"><br>
 <button onclick="cadUser()">Cadastrar</button>
 </div>
 
@@ -38,144 +40,187 @@ input{padding:8px;margin:5px}
 <button onclick="mostrar('rel')">Relatório</button>
 <button onclick="logout()">Sair</button>
 
-<!-- PRODUTO -->
+<!-- PRODUTOS -->
 <div id="prod" class="tela ativa">
 <h2>Cadastro Produto</h2>
-<input id="cod" placeholder="Código"><br>
+
+<input id="cod" placeholder="Código de Barras"><br>
 <input id="nome" placeholder="Nome"><br>
 <input id="cor" placeholder="Cor"><br>
 <input id="num" placeholder="Numeração"><br>
-<input id="estoque" placeholder="Qtd"><br>
-<button onclick="salvarProd()">Salvar</button>
+<input id="estoque" placeholder="Quantidade"><br>
+
+<button onclick="salvarProd()">Salvar Produto</button>
+
 <ul id="listaProd"></ul>
 </div>
 
 <!-- VENDA -->
 <div id="venda" class="tela">
+
 <h2>Venda</h2>
 
 <select id="selectProd"></select>
-<input id="qtd" placeholder="Qtd" value="1">
+<input id="qtd" value="1">
+
 <button onclick="addVenda()">Adicionar</button>
 
 <ul id="listaVenda"></ul>
 
-<h3>Total: <span id="total">0</span></h3>
+<h3>Total: R$ <span id="total">0</span></h3>
 
-<button onclick="finalizar()">Finalizar</button>
+<button onclick="finalizar()">Finalizar Venda</button>
+
 </div>
 
 <!-- RELATORIO -->
 <div id="rel" class="tela">
+
 <h2>Relatório</h2>
 
-<h3>Dia</h3>
+<h3>Vendas do Dia</h3>
 <ul id="dia"></ul>
 
-<h3>Mês</h3>
+<h3>Vendas do Mês</h3>
 <ul id="mes"></ul>
 
-<h3>Ranking</h3>
+<h3>Ranking Produtos</h3>
 <ul id="rank"></ul>
 
 <button onclick="carregarRel()">Atualizar</button>
+
 </div>
 
 </div>
 
 <script>
 
-// LOGIN
-function login(){
-fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({user:user.value,senha:senha.value})})
-.then(r=>{
-if(r.ok){loginDiv();carregarProd()}
-else alert("Erro")
-})
-}
-function loginDiv(){
-login.style.display='none';app.style.display='block'
-}
-function logout(){
-location.reload()
-}
-function cadUser(){
-fetch('/cadastrar',{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({user:novoUser.value,senha:novaSenha.value})})
-.then(r=>alert("OK"))
+// LOGIN CORRIGIDO
+function fazerLogin(){
+  fetch('/login',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      user:document.getElementById('user').value,
+      senha:document.getElementById('senha').value
+    })
+  })
+  .then(res=>{
+    if(res.ok){
+      document.getElementById('login').style.display='none';
+      document.getElementById('app').style.display='block';
+      carregarProd();
+    }else{
+      alert("Login inválido");
+    }
+  });
 }
 
-// TELAS
+// LOGOUT
+function logout(){
+  location.reload();
+}
+
+// CADASTRAR USUARIO
+function cadUser(){
+fetch('/cadastrar',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+user:novoUser.value,
+senha:novaSenha.value
+})
+}).then(()=>alert("Cadastrado"));
+}
+
+// TROCAR TELA
 function mostrar(t){
-document.querySelectorAll('.tela').forEach(e=>e.classList.remove('ativa'))
-document.getElementById(t).classList.add('ativa')
+document.querySelectorAll('.tela').forEach(e=>e.classList.remove('ativa'));
+document.getElementById(t).classList.add('ativa');
 }
 
 // PRODUTOS
 function salvarProd(){
-fetch('/produto',{method:'POST',headers:{'Content-Type':'application/json'},
+fetch('/produto',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
 body:JSON.stringify({
-cod:cod.value,nome:nome.value,cor:cor.value,
-num:num.value,estoque:estoque.value
-})}).then(()=>carregarProd())
+cod:cod.value,
+nome:nome.value,
+cor:cor.value,
+num:num.value,
+estoque:estoque.value
+})
+}).then(()=>carregarProd());
 }
 
 function carregarProd(){
 fetch('/produtos')
 .then(r=>r.json())
-.then(d=>{
-listaProd.innerHTML=''
-selectProd.innerHTML=''
+.then(lista=>{
+listaProd.innerHTML='';
+selectProd.innerHTML='';
 
-d.forEach(p=>{
-let li=document.createElement('li')
-li.innerText=p.nome
-listaProd.appendChild(li)
+lista.forEach(p=>{
+let li=document.createElement('li');
+li.innerText=p.nome;
+listaProd.appendChild(li);
 
-let op=document.createElement('option')
-op.value=p.nome
-op.innerText=p.nome
-selectProd.appendChild(op)
-})
-})
+let op=document.createElement('option');
+op.value=p.nome;
+op.innerText=p.nome;
+selectProd.appendChild(op);
+});
+});
 }
 
 // VENDA
-let vendaItens=[]
-let total=0
+let vendaItens=[];
+let total=0;
 
 function addVenda(){
-let nome=selectProd.value
-let qtd=parseInt(document.getElementById('qtd').value)
+let nome=selectProd.value;
+let qtd=parseInt(document.getElementById('qtd').value);
 
-let item=vendaItens.find(i=>i.nome===nome)
+let item=vendaItens.find(i=>i.nome===nome);
 
-if(item){item.qtd+=qtd}
-else vendaItens.push({nome,qtd})
+if(item){
+item.qtd+=qtd;
+}else{
+vendaItens.push({nome,qtd});
+}
 
-total+=qtd*10
+total+=qtd*10;
 
-renderVenda()
+renderVenda();
 }
 
 function renderVenda(){
-listaVenda.innerHTML=''
+listaVenda.innerHTML='';
+
 vendaItens.forEach(i=>{
-let li=document.createElement('li')
-li.innerText=i.nome+" x"+i.qtd
-listaVenda.appendChild(li)
-})
-document.getElementById('total').innerText=total
+let li=document.createElement('li');
+li.innerText=i.nome+" x"+i.qtd;
+listaVenda.appendChild(li);
+});
+
+document.getElementById('total').innerText=total;
 }
 
+// FINALIZAR
 function finalizar(){
-fetch('/venda',{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({itens:vendaItens,total})})
+fetch('/venda',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+itens:vendaItens,
+total:total
+})
+});
 
-vendaItens=[]
-total=0
-renderVenda()
+vendaItens=[];
+total=0;
+renderVenda();
 }
 
 // RELATORIO
@@ -183,28 +228,30 @@ function carregarRel(){
 fetch('/relatorio')
 .then(r=>r.json())
 .then(d=>{
-dia.innerHTML=''
-mes.innerHTML=''
-rank.innerHTML=''
+
+dia.innerHTML='';
+mes.innerHTML='';
+rank.innerHTML='';
 
 d.dia.forEach(v=>{
-let li=document.createElement('li')
-li.innerText="R$ "+v.total
-dia.appendChild(li)
-})
+let li=document.createElement('li');
+li.innerText="R$ "+v.total;
+dia.appendChild(li);
+});
 
 d.mes.forEach(v=>{
-let li=document.createElement('li')
-li.innerText="R$ "+v.total
-mes.appendChild(li)
-})
+let li=document.createElement('li');
+li.innerText="R$ "+v.total;
+mes.appendChild(li);
+});
 
 Object.entries(d.ranking).forEach(([k,v])=>{
-let li=document.createElement('li')
-li.innerText=k+" : "+v
-rank.appendChild(li)
-})
-})
+let li=document.createElement('li');
+li.innerText=k+" : "+v;
+rank.appendChild(li);
+});
+
+});
 }
 
 </script>
