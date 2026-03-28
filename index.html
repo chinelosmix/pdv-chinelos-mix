@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDV COMPLETO</title>
+<title>PDV PRO</title>
 
 <style>
 body{background:#111;color:#fff;text-align:center;font-family:Arial}
@@ -16,11 +16,13 @@ input,select{padding:8px;margin:5px}
 <body>
 
 <!-- LOGIN -->
-<div id="login">
+<div id="loginTela">
 <h2>Login</h2>
-<input id="user"><br>
-<input id="senha" type="password"><br>
-<button onclick="login()">Entrar</button>
+
+<input id="user" placeholder="Usuário"><br>
+<input id="senha" type="password" placeholder="Senha"><br>
+
+<button onclick="entrar()">Entrar</button>
 
 <h3>Cadastrar Funcionário</h3>
 <input id="novoUser"><br>
@@ -43,7 +45,7 @@ input,select{padding:8px;margin:5px}
 
 <h2>Cadastro Produto</h2>
 
-<input id="cod" placeholder="Código"><br>
+<input id="cod" placeholder="Código de barras"><br>
 <input id="nome" placeholder="Nome"><br>
 <input id="cor" placeholder="Cor"><br>
 <input id="num" placeholder="Numeração"><br>
@@ -65,18 +67,17 @@ input,select{padding:8px;margin:5px}
 
 <ul id="lista"></ul>
 
-<h3>Total: R$ <span id="total">0</span></h3>
+<h3>Total: R$ <span id="totalValor">0</span></h3>
 
 <h3>Pagamento</h3>
-<button onclick="pag='Dinheiro'">Dinheiro</button>
-<button onclick="pag='Cartão'">Cartão</button>
-<button onclick="pag='Pix'">Pix</button>
+<button onclick="setPag('Dinheiro')">Dinheiro</button>
+<button onclick="setPag('Cartão')">Cartão</button>
+<button onclick="setPag('Pix')">Pix</button>
 
-<br>
+<p id="pagamento"></p>
 
-<button onclick="cupom()">Cupom</button>
-<button onclick="emitirNF()">Nota Fiscal</button>
-
+<button onclick="cupom()">🧾 Cupom</button>
+<button onclick="emitirNF()">📄 NF</button>
 <button onclick="finalizar()">Finalizar</button>
 
 </div>
@@ -102,32 +103,38 @@ input,select{padding:8px;margin:5px}
 <script>
 
 // LOGIN
-function login(){
+function entrar(){
 fetch('/login',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
-body:JSON.stringify({user:user.value,senha:senha.value})
+body:JSON.stringify({
+user:document.getElementById('user').value,
+senha:document.getElementById('senha').value
+})
 })
 .then(r=>{
 if(r.ok){
-login.style.display='none';
-app.style.display='block';
+document.getElementById('loginTela').style.display='none';
+document.getElementById('app').style.display='block';
 carregarProd();
-}else alert("Erro");
+}else alert("Login inválido");
+});
+}
+
+// CADASTRAR FUNCIONARIO
+function cadUser(){
+fetch('/cadastrar',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+user:novoUser.value,
+senha:novaSenha.value
+})
 });
 }
 
 // LOGOUT
 function logout(){location.reload()}
-
-// CADASTRAR FUNC
-function cadUser(){
-fetch('/cadastrar',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({user:novoUser.value,senha:novaSenha.value})
-});
-}
 
 // TELAS
 function mostrar(t){
@@ -141,6 +148,7 @@ fetch('/produto',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({
+cod:cod.value,
 nome:nome.value,
 cor:cor.value,
 num:num.value,
@@ -174,6 +182,11 @@ let itens=[];
 let total=0;
 let pag="";
 
+function setPag(p){
+pag=p;
+document.getElementById('pagamento').innerText="Pagamento: "+p;
+}
+
 function add(){
 let nome=selectProd.value;
 let qtd=parseInt(document.getElementById('qtd').value);
@@ -192,10 +205,12 @@ function render(){
 lista.innerHTML='';
 itens.forEach((i,index)=>{
 let li=document.createElement('li');
-li.innerHTML=i.nome+" x"+i.qtd+" <button onclick='remover("+index+")'>X</button>";
+li.innerHTML=i.nome+" x"+i.qtd+
+" <button onclick='remover("+index+")'>X</button>";
 lista.appendChild(li);
 });
-total.innerText=total;
+
+document.getElementById('totalValor').innerText=total;
 }
 
 function remover(i){
@@ -206,21 +221,23 @@ render();
 
 // CUPOM
 function cupom(){
-let txt="CHINELOS MIX\n\n";
+let txt="*** CHINELOS MIX ***\n\n";
+
 itens.forEach(i=>{
 txt+=i.nome+" x"+i.qtd+"\n";
 });
-txt+="TOTAL: "+total+"\n";
-txt+="PAG: "+pag;
+
+txt+="\nTOTAL: "+total;
+txt+="\nPAGAMENTO: "+pag;
 
 let w=window.open('');
 w.document.write("<pre>"+txt+"</pre>");
 w.print();
 }
 
-// NF (placeholder)
+// NF
 function emitirNF(){
-alert("NF integrada depois com SEFAZ");
+alert("NF será integrada com SEFAZ");
 }
 
 // FINALIZAR
