@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDV PRO</title>
+<title>PDV CHINELOS MIX</title>
 
 <style>
 body{background:#111;color:#fff;text-align:center;font-family:Arial}
@@ -49,6 +49,7 @@ input,select{padding:8px;margin:5px}
 <input id="nome" placeholder="Nome"><br>
 <input id="cor" placeholder="Cor"><br>
 <input id="num" placeholder="Numeração"><br>
+<input id="valor" placeholder="Valor"><br>
 <input id="estoque" placeholder="Quantidade"><br>
 
 <button onclick="salvarProd()">Salvar</button>
@@ -77,7 +78,7 @@ input,select{padding:8px;margin:5px}
 <p id="pagamento"></p>
 
 <button onclick="cupom()">🧾 Cupom</button>
-<button onclick="emitirNF()">📄 NF</button>
+<button onclick="emitirNF()">📄 Nota Fiscal</button>
 <button onclick="finalizar()">Finalizar</button>
 
 </div>
@@ -152,6 +153,7 @@ cod:cod.value,
 nome:nome.value,
 cor:cor.value,
 num:num.value,
+valor:parseFloat(valor.value),
 estoque:parseInt(estoque.value)
 })
 }).then(()=>carregarProd());
@@ -171,7 +173,7 @@ op.innerText=p.nome;
 selectProd.appendChild(op);
 
 let li=document.createElement('li');
-li.innerText=p.nome+" | estoque:"+p.estoque;
+li.innerText=`${p.nome} | R$ ${p.valor} | estoque:${p.estoque}`;
 listaProd.appendChild(li);
 });
 });
@@ -191,44 +193,68 @@ function add(){
 let nome=selectProd.value;
 let qtd=parseInt(document.getElementById('qtd').value);
 
+fetch('/produtos')
+.then(r=>r.json())
+.then(lista=>{
+let prod=lista.find(p=>p.nome===nome);
+
 let item=itens.find(i=>i.nome===nome);
 
-if(item) item.qtd+=qtd;
-else itens.push({nome,qtd});
+if(item){
+item.qtd+=qtd;
+item.total+=prod.valor*qtd;
+}else{
+itens.push({
+nome,
+qtd,
+valor:prod.valor,
+total:prod.valor*qtd
+});
+}
 
-total+=qtd*10;
+total+=prod.valor*qtd;
 
 render();
+});
 }
 
 function render(){
 lista.innerHTML='';
+
 itens.forEach((i,index)=>{
 let li=document.createElement('li');
-li.innerHTML=i.nome+" x"+i.qtd+
-" <button onclick='remover("+index+")'>X</button>";
+
+li.innerHTML = `
+${i.nome} | ${i.qtd}x | R$ ${i.valor.toFixed(2)} 
+= R$ ${i.total.toFixed(2)}
+<button onclick="remover(${index})">X</button>
+`;
+
 lista.appendChild(li);
 });
 
-document.getElementById('totalValor').innerText=total;
+document.getElementById('totalValor').innerText=total.toFixed(2);
 }
 
 function remover(i){
-total-=itens[i].qtd*10;
+total-=itens[i].total;
 itens.splice(i,1);
 render();
 }
 
-// CUPOM
+// CUPOM PROFISSIONAL
 function cupom(){
 let txt="*** CHINELOS MIX ***\n\n";
 
 itens.forEach(i=>{
-txt+=i.nome+" x"+i.qtd+"\n";
+txt+=`${i.nome}\n`;
+txt+=`${i.qtd} x ${i.valor.toFixed(2)} = ${i.total.toFixed(2)}\n\n`;
 });
 
-txt+="\nTOTAL: "+total;
-txt+="\nPAGAMENTO: "+pag;
+txt+="---------------------\n";
+txt+="TOTAL: R$ "+total.toFixed(2)+"\n";
+txt+="PAGAMENTO: "+pag+"\n";
+txt+="OBRIGADO!";
 
 let w=window.open('');
 w.document.write("<pre>"+txt+"</pre>");
