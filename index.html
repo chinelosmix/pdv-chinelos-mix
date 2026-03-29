@@ -18,10 +18,8 @@ input,select{padding:8px;margin:5px}
 <!-- LOGIN -->
 <div id="loginTela">
 <h2>Login</h2>
-
-<input id="user" placeholder="Usuário"><br>
-<input id="senha" type="password" placeholder="Senha"><br>
-
+<input id="user"><br>
+<input id="senha" type="password"><br>
 <button onclick="entrar()">Entrar</button>
 
 <h3>Cadastrar Funcionário</h3>
@@ -45,12 +43,19 @@ input,select{padding:8px;margin:5px}
 
 <h2>Cadastro Produto</h2>
 
-<input id="cod" placeholder="Código de barras"><br>
+<input id="cod" placeholder="Código"><br>
 <input id="nome" placeholder="Nome"><br>
 <input id="cor" placeholder="Cor"><br>
 <input id="num" placeholder="Numeração"><br>
 <input id="valor" placeholder="Valor"><br>
 <input id="estoque" placeholder="Quantidade"><br>
+
+<button onclick="abrirScannerCadastro()">📷 Ler Código</button>
+
+<div id="scannerCadastro" style="display:none">
+<video id="videoCadastro" width="300"></video><br>
+<button onclick="fecharScannerCadastro()">Fechar</button>
+</div>
 
 <button onclick="salvarProd()">Salvar</button>
 
@@ -60,6 +65,15 @@ input,select{padding:8px;margin:5px}
 
 <!-- VENDA -->
 <div id="venda" class="tela ativa">
+
+<input id="leitor" placeholder="Passe o código aqui" autofocus>
+
+<button onclick="abrirScannerVenda()">📷 Ler Código</button>
+
+<div id="scannerVenda" style="display:none">
+<video id="videoVenda" width="300"></video><br>
+<button onclick="fecharScannerVenda()">Fechar</button>
+</div>
 
 <select id="selectProd"></select>
 <input id="qtd" value="1">
@@ -78,7 +92,7 @@ input,select{padding:8px;margin:5px}
 <p id="pagamento"></p>
 
 <button onclick="cupom()">🧾 Cupom</button>
-<button onclick="emitirNF()">📄 Nota Fiscal</button>
+<button onclick="emitirNF()">📄 NF</button>
 <button onclick="finalizar()">Finalizar</button>
 
 </div>
@@ -101,6 +115,9 @@ input,select{padding:8px;margin:5px}
 
 </div>
 
+<!-- ZXING -->
+<script src="https://unpkg.com/@zxing/library@latest"></script>
+
 <script>
 
 // LOGIN
@@ -109,14 +126,14 @@ fetch('/login',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({
-user:document.getElementById('user').value,
-senha:document.getElementById('senha').value
+user:user.value,
+senha:senha.value
 })
 })
 .then(r=>{
 if(r.ok){
-document.getElementById('loginTela').style.display='none';
-document.getElementById('app').style.display='block';
+loginTela.style.display='none';
+app.style.display='block';
 carregarProd();
 }else alert("Login inválido");
 });
@@ -186,12 +203,12 @@ let pag="";
 
 function setPag(p){
 pag=p;
-document.getElementById('pagamento').innerText="Pagamento: "+p;
+pagamento.innerText="Pagamento: "+p;
 }
 
 function add(){
 let nome=selectProd.value;
-let qtd=parseInt(document.getElementById('qtd').value);
+let qtd=parseInt(qtd.value);
 
 fetch('/produtos')
 .then(r=>r.json())
@@ -223,17 +240,12 @@ lista.innerHTML='';
 
 itens.forEach((i,index)=>{
 let li=document.createElement('li');
-
-li.innerHTML = `
-${i.nome} | ${i.qtd}x | R$ ${i.valor.toFixed(2)} 
-= R$ ${i.total.toFixed(2)}
-<button onclick="remover(${index})">X</button>
-`;
-
+li.innerHTML=`${i.nome} | ${i.qtd}x | R$ ${i.valor.toFixed(2)} = R$ ${i.total.toFixed(2)}
+<button onclick="remover(${index})">X</button>`;
 lista.appendChild(li);
 });
 
-document.getElementById('totalValor').innerText=total.toFixed(2);
+totalValor.innerText=total.toFixed(2);
 }
 
 function remover(i){
@@ -242,19 +254,16 @@ itens.splice(i,1);
 render();
 }
 
-// CUPOM PROFISSIONAL
+// CUPOM
 function cupom(){
 let txt="*** CHINELOS MIX ***\n\n";
 
 itens.forEach(i=>{
-txt+=`${i.nome}\n`;
-txt+=`${i.qtd} x ${i.valor.toFixed(2)} = ${i.total.toFixed(2)}\n\n`;
+txt+=`${i.nome}\n${i.qtd} x ${i.valor.toFixed(2)} = ${i.total.toFixed(2)}\n\n`;
 });
 
-txt+="---------------------\n";
 txt+="TOTAL: R$ "+total.toFixed(2)+"\n";
-txt+="PAGAMENTO: "+pag+"\n";
-txt+="OBRIGADO!";
+txt+="PAGAMENTO: "+pag;
 
 let w=window.open('');
 w.document.write("<pre>"+txt+"</pre>");
@@ -263,7 +272,7 @@ w.print();
 
 // NF
 function emitirNF(){
-alert("NF será integrada com SEFAZ");
+alert("NF integrada depois");
 }
 
 // FINALIZAR
@@ -307,6 +316,58 @@ rank.appendChild(li);
 });
 });
 }
+
+// SCANNER CADASTRO
+let readerCadastro;
+function abrirScannerCadastro(){
+scannerCadastro.style.display='block';
+readerCadastro=new ZXing.BrowserMultiFormatReader();
+readerCadastro.decodeFromVideoDevice(null,'videoCadastro',(res)=>{
+if(res){cod.value=res.text;fecharScannerCadastro();}
+});
+}
+function fecharScannerCadastro(){
+scannerCadastro.style.display='none';
+if(readerCadastro) readerCadastro.reset();
+}
+
+// SCANNER VENDA
+let readerVenda;
+function abrirScannerVenda(){
+scannerVenda.style.display='block';
+readerVenda=new ZXing.BrowserMultiFormatReader();
+readerVenda.decodeFromVideoDevice(null,'videoVenda',(res)=>{
+if(res){buscarProduto(res.text);fecharScannerVenda();}
+});
+}
+function fecharScannerVenda(){
+scannerVenda.style.display='none';
+if(readerVenda) readerVenda.reset();
+}
+
+// BUSCAR PRODUTO
+function buscarProduto(codigo){
+fetch('/produtos')
+.then(r=>r.json())
+.then(lista=>{
+let prod=lista.find(p=>p.cod==codigo);
+if(prod){
+let item=itens.find(i=>i.nome===prod.nome);
+if(item){item.qtd++;item.total+=prod.valor;}
+else itens.push({nome:prod.nome,qtd:1,valor:prod.valor,total:prod.valor});
+total+=prod.valor;
+render();
+}else alert("Produto não encontrado");
+});
+}
+
+// LEITOR MERCADO
+document.addEventListener("DOMContentLoaded",()=>{
+leitor.addEventListener('change',function(){
+buscarProduto(this.value);
+this.value='';
+});
+});
 
 </script>
 
