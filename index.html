@@ -15,7 +15,6 @@ input,select{padding:8px;margin:5px}
 
 <body>
 
-<!-- LOGIN -->
 <div id="loginTela">
 <h2>Login</h2>
 <input id="user"><br>
@@ -28,7 +27,6 @@ input,select{padding:8px;margin:5px}
 <button onclick="cadUser()">Cadastrar</button>
 </div>
 
-<!-- APP -->
 <div id="app" style="display:none">
 
 <h1>PDV CHINELOS MIX</h1>
@@ -92,7 +90,7 @@ input,select{padding:8px;margin:5px}
 <p id="pagamento"></p>
 
 <button onclick="cupom()">🧾 Cupom</button>
-<button onclick="emitirNF()">📄 NF</button>
+<button onclick="emitirNF()">📄 Nota Fiscal</button>
 <button onclick="finalizar()">Finalizar</button>
 
 </div>
@@ -110,48 +108,32 @@ input,select{padding:8px;margin:5px}
 <ul id="rank"></ul>
 
 <button onclick="carregarRel()">Atualizar</button>
+<button onclick="fecharCaixa()">💰 Fechar Caixa</button>
 
 </div>
 
 </div>
 
-<!-- ZXING -->
 <script src="https://unpkg.com/@zxing/library@latest"></script>
 
 <script>
 
 // LOGIN
 function entrar(){
-fetch('/login',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-user:user.value,
-senha:senha.value
-})
-})
+fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({user:user.value,senha:senha.value})})
 .then(r=>{
-if(r.ok){
-loginTela.style.display='none';
-app.style.display='block';
-carregarProd();
-}else alert("Login inválido");
+if(r.ok){loginTela.style.display='none';app.style.display='block';carregarProd();}
+else alert("Login inválido");
 });
 }
 
-// CADASTRAR FUNCIONARIO
+// CADASTRAR FUNC
 function cadUser(){
-fetch('/cadastrar',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-user:novoUser.value,
-senha:novaSenha.value
-})
-});
+fetch('/cadastrar',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({user:novoUser.value,senha:novaSenha.value})});
 }
 
-// LOGOUT
 function logout(){location.reload()}
 
 // TELAS
@@ -162,18 +144,19 @@ document.getElementById(t).classList.add('ativa');
 
 // PRODUTO
 function salvarProd(){
-fetch('/produto',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
+fetch('/produto',{method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({
-cod:cod.value,
-nome:nome.value,
-cor:cor.value,
-num:num.value,
-valor:parseFloat(valor.value),
+cod:cod.value,nome:nome.value,cor:cor.value,
+num:num.value,valor:parseFloat(valor.value),
 estoque:parseInt(estoque.value)
-})
-}).then(()=>carregarProd());
+})}).then(()=>carregarProd());
+}
+
+function excluirProduto(nome){
+if(!confirm("Excluir produto?")) return;
+fetch('/excluir-produto',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({nome})})
+.then(()=>carregarProd());
 }
 
 function carregarProd(){
@@ -190,25 +173,21 @@ op.innerText=p.nome;
 selectProd.appendChild(op);
 
 let li=document.createElement('li');
-li.innerText=`${p.nome} | R$ ${p.valor} | estoque:${p.estoque}`;
+li.innerHTML=`${p.nome} | R$ ${p.valor} | estoque:${p.estoque}
+<button onclick="excluirProduto('${p.nome}')">❌</button>`;
 listaProd.appendChild(li);
 });
 });
 }
 
 // VENDA
-let itens=[];
-let total=0;
-let pag="";
+let itens=[],total=0,pag="";
 
-function setPag(p){
-pag=p;
-pagamento.innerText="Pagamento: "+p;
-}
+function setPag(p){pag=p;pagamento.innerText="Pagamento: "+p;}
 
 function add(){
 let nome=selectProd.value;
-let qtd=parseInt(qtd.value);
+let qtd=parseInt(document.getElementById('qtd').value);
 
 fetch('/produtos')
 .then(r=>r.json())
@@ -217,75 +196,42 @@ let prod=lista.find(p=>p.nome===nome);
 
 let item=itens.find(i=>i.nome===nome);
 
-if(item){
-item.qtd+=qtd;
-item.total+=prod.valor*qtd;
-}else{
-itens.push({
-nome,
-qtd,
-valor:prod.valor,
-total:prod.valor*qtd
-});
-}
+if(item){item.qtd+=qtd;item.total+=prod.valor*qtd;}
+else itens.push({nome,qtd,valor:prod.valor,total:prod.valor*qtd});
 
 total+=prod.valor*qtd;
-
 render();
 });
 }
 
 function render(){
 lista.innerHTML='';
-
 itens.forEach((i,index)=>{
 let li=document.createElement('li');
 li.innerHTML=`${i.nome} | ${i.qtd}x | R$ ${i.valor.toFixed(2)} = R$ ${i.total.toFixed(2)}
 <button onclick="remover(${index})">X</button>`;
 lista.appendChild(li);
 });
-
 totalValor.innerText=total.toFixed(2);
 }
 
-function remover(i){
-total-=itens[i].total;
-itens.splice(i,1);
-render();
-}
+function remover(i){total-=itens[i].total;itens.splice(i,1);render();}
 
 // CUPOM
 function cupom(){
 let txt="*** CHINELOS MIX ***\n\n";
-
 itens.forEach(i=>{
 txt+=`${i.nome}\n${i.qtd} x ${i.valor.toFixed(2)} = ${i.total.toFixed(2)}\n\n`;
 });
-
-txt+="TOTAL: R$ "+total.toFixed(2)+"\n";
-txt+="PAGAMENTO: "+pag;
-
-let w=window.open('');
-w.document.write("<pre>"+txt+"</pre>");
-w.print();
-}
-
-// NF
-function emitirNF(){
-alert("NF integrada depois");
+txt+="TOTAL: R$ "+total.toFixed(2)+"\nPAGAMENTO: "+pag;
+let w=window.open('');w.document.write("<pre>"+txt+"</pre>");w.print();
 }
 
 // FINALIZAR
 function finalizar(){
-fetch('/venda',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({itens,total})
-});
-
-itens=[];
-total=0;
-render();
+fetch('/venda',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({itens,total})});
+itens=[];total=0;render();
 }
 
 // RELATORIO
@@ -293,9 +239,7 @@ function carregarRel(){
 fetch('/relatorio')
 .then(r=>r.json())
 .then(d=>{
-dia.innerHTML='';
-mes.innerHTML='';
-rank.innerHTML='';
+dia.innerHTML='';mes.innerHTML='';rank.innerHTML='';
 
 d.dia.forEach(v=>{
 let li=document.createElement('li');
@@ -317,36 +261,44 @@ rank.appendChild(li);
 });
 }
 
-// SCANNER CADASTRO
-let readerCadastro;
+// FECHAMENTO DE CAIXA
+function fecharCaixa(){
+fetch('/relatorio')
+.then(r=>r.json())
+.then(d=>{
+let totalDia=d.dia.reduce((s,v)=>s+v.total,0);
+
+let txt="FECHAMENTO DE CAIXA\n\n";
+txt+="TOTAL DO DIA: R$ "+totalDia.toFixed(2);
+
+let w=window.open('');
+w.document.write("<pre>"+txt+"</pre>");
+w.print();
+});
+}
+
+// SCANNER
+let r1,r2;
+
 function abrirScannerCadastro(){
 scannerCadastro.style.display='block';
-readerCadastro=new ZXing.BrowserMultiFormatReader();
-readerCadastro.decodeFromVideoDevice(null,'videoCadastro',(res)=>{
+r1=new ZXing.BrowserMultiFormatReader();
+r1.decodeFromVideoDevice(null,'videoCadastro',(res)=>{
 if(res){cod.value=res.text;fecharScannerCadastro();}
 });
 }
-function fecharScannerCadastro(){
-scannerCadastro.style.display='none';
-if(readerCadastro) readerCadastro.reset();
-}
+function fecharScannerCadastro(){scannerCadastro.style.display='none';if(r1)r1.reset();}
 
-// SCANNER VENDA
-let readerVenda;
 function abrirScannerVenda(){
 scannerVenda.style.display='block';
-readerVenda=new ZXing.BrowserMultiFormatReader();
-readerVenda.decodeFromVideoDevice(null,'videoVenda',(res)=>{
-if(res){buscarProduto(res.text);fecharScannerVenda();}
+r2=new ZXing.BrowserMultiFormatReader();
+r2.decodeFromVideoDevice(null,'videoVenda',(res)=>{
+if(res){buscar(res.text);fecharScannerVenda();}
 });
 }
-function fecharScannerVenda(){
-scannerVenda.style.display='none';
-if(readerVenda) readerVenda.reset();
-}
+function fecharScannerVenda(){scannerVenda.style.display='none';if(r2)r2.reset();}
 
-// BUSCAR PRODUTO
-function buscarProduto(codigo){
+function buscar(codigo){
 fetch('/produtos')
 .then(r=>r.json())
 .then(lista=>{
@@ -355,16 +307,14 @@ if(prod){
 let item=itens.find(i=>i.nome===prod.nome);
 if(item){item.qtd++;item.total+=prod.valor;}
 else itens.push({nome:prod.nome,qtd:1,valor:prod.valor,total:prod.valor});
-total+=prod.valor;
-render();
+total+=prod.valor;render();
 }else alert("Produto não encontrado");
 });
 }
 
-// LEITOR MERCADO
 document.addEventListener("DOMContentLoaded",()=>{
 leitor.addEventListener('change',function(){
-buscarProduto(this.value);
+buscar(this.value);
 this.value='';
 });
 });
