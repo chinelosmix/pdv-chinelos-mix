@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDV</title>
+<title>PDV COMPLETO</title>
 
 <style>
 body{background:#111;color:#fff;text-align:center;font-family:Arial}
@@ -15,6 +15,7 @@ input,select{padding:8px;margin:5px}
 
 <body>
 
+<!-- LOGIN -->
 <div id="loginTela">
 <h2>Login</h2>
 <input id="user"><br>
@@ -22,9 +23,31 @@ input,select{padding:8px;margin:5px}
 <button onclick="entrar()">Entrar</button>
 </div>
 
+<!-- APP -->
 <div id="app" style="display:none">
 
-<h1>PDV CHINELOS MIX</h1>
+<h1>PDV</h1>
+
+<button onclick="mostrar('prod')">Produtos</button>
+<button onclick="mostrar('venda')">Venda</button>
+<button onclick="mostrar('rel')">Relatório</button>
+
+<!-- PRODUTO -->
+<div id="prod" class="tela">
+
+<input id="cod" placeholder="Código"><br>
+<input id="nome" placeholder="Nome"><br>
+<input id="valor" placeholder="Valor"><br>
+<input id="estoque" placeholder="Qtd"><br>
+
+<button onclick="salvarProd()">Salvar</button>
+
+<ul id="listaProd"></ul>
+
+</div>
+
+<!-- VENDA -->
+<div id="venda" class="tela ativa">
 
 <select id="selectProd"></select>
 <input id="qtd" value="1">
@@ -34,7 +57,20 @@ input,select{padding:8px;margin:5px}
 
 <h3>Total: R$ <span id="totalValor">0</span></h3>
 
-<button onclick="emitirNF()">Nota Fiscal</button>
+<button onclick="finalizar()">Finalizar</button>
+<button onclick="emitirNF()">NF</button>
+
+</div>
+
+<!-- RELATORIO -->
+<div id="rel" class="tela">
+
+<ul id="dia"></ul>
+<ul id="rank"></ul>
+
+<button onclick="carregarRel()">Atualizar</button>
+
+</div>
 
 </div>
 
@@ -49,13 +85,50 @@ user:document.getElementById('user').value,
 senha:document.getElementById('senha').value
 })
 })
-.then(res=>{
-if(res.ok){
+.then(r=>{
+if(r.ok){
 document.getElementById('loginTela').style.display='none';
 document.getElementById('app').style.display='block';
-}else{
-alert("Login inválido");
+carregarProd();
+}else alert("Erro login");
+});
 }
+
+function mostrar(t){
+document.querySelectorAll('.tela').forEach(e=>e.classList.remove('ativa'));
+document.getElementById(t).classList.add('ativa');
+}
+
+function salvarProd(){
+fetch('/produto',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+cod:cod.value,
+nome:nome.value,
+valor:parseFloat(valor.value),
+estoque:parseInt(estoque.value)
+})
+}).then(()=>carregarProd());
+}
+
+function carregarProd(){
+fetch('/produtos')
+.then(r=>r.json())
+.then(d=>{
+selectProd.innerHTML='';
+listaProd.innerHTML='';
+
+d.forEach(p=>{
+let op=document.createElement('option');
+op.value=p.nome;
+op.innerText=p.nome;
+selectProd.appendChild(op);
+
+let li=document.createElement('li');
+li.innerText=p.nome+" R$"+p.valor;
+listaProd.appendChild(li);
+});
 });
 }
 
@@ -63,9 +136,18 @@ let itens=[];
 let total=0;
 
 function add(){
-itens.push({nome:"Produto",qtd:1,valor:10});
-total+=10;
+let nome=selectProd.value;
+let qtd=parseInt(document.getElementById('qtd').value);
+
+fetch('/produtos')
+.then(r=>r.json())
+.then(lista=>{
+let prod=lista.find(p=>p.nome===nome);
+
+itens.push({nome,qtd,valor:prod.valor});
+total+=prod.valor*qtd;
 render();
+});
 }
 
 function render(){
@@ -78,6 +160,15 @@ lista.appendChild(li);
 totalValor.innerText=total;
 }
 
+function finalizar(){
+fetch('/venda',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({itens,total})
+});
+itens=[];total=0;render();
+}
+
 function emitirNF(){
 fetch('/nf',{
 method:'POST',
@@ -85,6 +176,27 @@ headers:{'Content-Type':'application/json'},
 body:JSON.stringify({itens,total})
 })
 .then(()=>alert("NF enviada"));
+}
+
+function carregarRel(){
+fetch('/relatorio')
+.then(r=>r.json())
+.then(d=>{
+dia.innerHTML='';
+rank.innerHTML='';
+
+d.dia.forEach(v=>{
+let li=document.createElement('li');
+li.innerText=v.total;
+dia.appendChild(li);
+});
+
+Object.entries(d.ranking).forEach(([k,v])=>{
+let li=document.createElement('li');
+li.innerText=k+" "+v;
+rank.appendChild(li);
+});
+});
 }
 
 </script>

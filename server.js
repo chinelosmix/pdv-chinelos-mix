@@ -5,28 +5,26 @@ const fetch = require('node-fetch');
 const app = express();
 app.use(express.json());
 
-// DADOS
+// ===== DADOS =====
 let usuarios = [{ user: "admin", senha: "123" }];
 let produtos = [];
 let vendas = [];
 
-// LOGIN
+// ===== LOGIN =====
 app.post('/login', (req, res) => {
   const { user, senha } = req.body;
-
   const ok = usuarios.find(u => u.user === user && u.senha === senha);
-
   if (ok) res.json({ ok: true });
   else res.status(401).json({ ok: false });
 });
 
-// CADASTRO FUNC
+// ===== CADASTRO FUNC =====
 app.post('/cadastrar', (req, res) => {
   usuarios.push(req.body);
   res.json({ ok: true });
 });
 
-// PRODUTO
+// ===== PRODUTOS =====
 app.post('/produto', (req, res) => {
   produtos.push(req.body);
   res.json({ ok: true });
@@ -39,7 +37,7 @@ app.post('/excluir-produto', (req, res) => {
   res.json({ ok: true });
 });
 
-// VENDA + ESTOQUE
+// ===== VENDA + ESTOQUE =====
 app.post('/venda', (req, res) => {
   let venda = { ...req.body, data: new Date() };
 
@@ -52,7 +50,7 @@ app.post('/venda', (req, res) => {
   res.json({ ok: true });
 });
 
-// RELATORIO
+// ===== RELATORIO =====
 app.get('/relatorio', (req, res) => {
   const hoje = new Date().toDateString();
   const mesAtual = new Date().getMonth();
@@ -70,7 +68,7 @@ app.get('/relatorio', (req, res) => {
   res.json({ dia, mes, ranking });
 });
 
-// NF-e (FOCUS)
+// ===== NF-e =====
 app.post('/nf', async (req, res) => {
 
   const token = "COLE_SEU_TOKEN_AQUI";
@@ -105,9 +103,12 @@ app.post('/nf', async (req, res) => {
   }
 });
 
-// FRONT
-app.use(express.static(__dirname));
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+// ===== FRONT =====
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
-const PORT = process.env.PORT;
-app.listen(PORT, '0.0.0.0');
+app.use(express.static(__dirname));
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Servidor rodando"));
