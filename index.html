@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDV CHINELOS MIX</title>
+<title>PDV COMPLETO</title>
 
 <style>
 body{background:#111;color:#fff;text-align:center;font-family:Arial}
@@ -36,11 +36,7 @@ input,select{padding:8px;margin:5px}
 <button onclick="mostrar('rel')">Relatório</button>
 <button onclick="logout()">Sair</button>
 
-<!-- PRODUTO -->
 <div id="prod" class="tela">
-
-<h2>Cadastro Produto</h2>
-
 <input id="cod" placeholder="Código"><br>
 <input id="nome" placeholder="Nome"><br>
 <input id="cor" placeholder="Cor"><br>
@@ -49,25 +45,20 @@ input,select{padding:8px;margin:5px}
 <input id="estoque" placeholder="Quantidade"><br>
 
 <button onclick="abrirScannerCadastro()">📷 Ler Código</button>
-
 <div id="scannerCadastro" style="display:none">
 <video id="videoCadastro" width="300"></video><br>
 <button onclick="fecharScannerCadastro()">Fechar</button>
 </div>
 
 <button onclick="salvarProd()">Salvar</button>
-
 <ul id="listaProd"></ul>
-
 </div>
 
-<!-- VENDA -->
 <div id="venda" class="tela ativa">
 
 <input id="leitor" placeholder="Passe o código aqui" autofocus>
 
 <button onclick="abrirScannerVenda()">📷 Ler Código</button>
-
 <div id="scannerVenda" style="display:none">
 <video id="videoVenda" width="300"></video><br>
 <button onclick="fecharScannerVenda()">Fechar</button>
@@ -75,41 +66,30 @@ input,select{padding:8px;margin:5px}
 
 <select id="selectProd"></select>
 <input id="qtd" value="1">
-
 <button onclick="add()">Adicionar</button>
 
 <ul id="lista"></ul>
 
 <h3>Total: R$ <span id="totalValor">0</span></h3>
 
-<h3>Pagamento</h3>
 <button onclick="setPag('Dinheiro')">Dinheiro</button>
 <button onclick="setPag('Cartão')">Cartão</button>
 <button onclick="setPag('Pix')">Pix</button>
 
 <p id="pagamento"></p>
 
-<button onclick="cupom()">🧾 Cupom</button>
-<button onclick="emitirNF()">📄 Nota Fiscal</button>
+<button onclick="cupom()">Cupom</button>
+<button onclick="emitirNF()">Nota Fiscal</button>
 <button onclick="finalizar()">Finalizar</button>
 
 </div>
 
-<!-- RELATORIO -->
 <div id="rel" class="tela">
-
-<h3>Vendas do Dia</h3>
 <ul id="dia"></ul>
-
-<h3>Vendas do Mês</h3>
 <ul id="mes"></ul>
-
-<h3>Ranking</h3>
 <ul id="rank"></ul>
-
 <button onclick="carregarRel()">Atualizar</button>
-<button onclick="fecharCaixa()">💰 Fechar Caixa</button>
-
+<button onclick="fecharCaixa()">Fechar Caixa</button>
 </div>
 
 </div>
@@ -118,17 +98,12 @@ input,select{padding:8px;margin:5px}
 
 <script>
 
-// LOGIN
 function entrar(){
 fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({user:user.value,senha:senha.value})})
-.then(r=>{
-if(r.ok){loginTela.style.display='none';app.style.display='block';carregarProd();}
-else alert("Login inválido");
-});
+.then(r=>{if(r.ok){loginTela.style.display='none';app.style.display='block';carregarProd();}});
 }
 
-// CADASTRAR FUNC
 function cadUser(){
 fetch('/cadastrar',{method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({user:novoUser.value,senha:novaSenha.value})});
@@ -136,13 +111,11 @@ body:JSON.stringify({user:novoUser.value,senha:novaSenha.value})});
 
 function logout(){location.reload()}
 
-// TELAS
 function mostrar(t){
 document.querySelectorAll('.tela').forEach(e=>e.classList.remove('ativa'));
 document.getElementById(t).classList.add('ativa');
 }
 
-// PRODUTO
 function salvarProd(){
 fetch('/produto',{method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({
@@ -153,37 +126,31 @@ estoque:parseInt(estoque.value)
 }
 
 function excluirProduto(nome){
-if(!confirm("Excluir produto?")) return;
 fetch('/excluir-produto',{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({nome})})
-.then(()=>carregarProd());
+body:JSON.stringify({nome})}).then(()=>carregarProd());
 }
 
 function carregarProd(){
 fetch('/produtos')
 .then(r=>r.json())
 .then(d=>{
-selectProd.innerHTML='';
-listaProd.innerHTML='';
-
+selectProd.innerHTML='';listaProd.innerHTML='';
 d.forEach(p=>{
 let op=document.createElement('option');
-op.value=p.nome;
-op.innerText=p.nome;
+op.value=p.nome;op.innerText=p.nome;
 selectProd.appendChild(op);
 
 let li=document.createElement('li');
-li.innerHTML=`${p.nome} | R$ ${p.valor} | estoque:${p.estoque}
-<button onclick="excluirProduto('${p.nome}')">❌</button>`;
+li.innerHTML=`${p.nome} R$${p.valor}
+<button onclick="excluirProduto('${p.nome}')">X</button>`;
 listaProd.appendChild(li);
 });
 });
 }
 
-// VENDA
 let itens=[],total=0,pag="";
 
-function setPag(p){pag=p;pagamento.innerText="Pagamento: "+p;}
+function setPag(p){pag=p;pagamento.innerText=p;}
 
 function add(){
 let nome=selectProd.value;
@@ -195,7 +162,6 @@ fetch('/produtos')
 let prod=lista.find(p=>p.nome===nome);
 
 let item=itens.find(i=>i.nome===nome);
-
 if(item){item.qtd+=qtd;item.total+=prod.valor*qtd;}
 else itens.push({nome,qtd,valor:prod.valor,total:prod.valor*qtd});
 
@@ -208,7 +174,7 @@ function render(){
 lista.innerHTML='';
 itens.forEach((i,index)=>{
 let li=document.createElement('li');
-li.innerHTML=`${i.nome} | ${i.qtd}x | R$ ${i.valor.toFixed(2)} = R$ ${i.total.toFixed(2)}
+li.innerHTML=`${i.nome} ${i.qtd}x R$${i.total}
 <button onclick="remover(${index})">X</button>`;
 lista.appendChild(li);
 });
@@ -217,107 +183,50 @@ totalValor.innerText=total.toFixed(2);
 
 function remover(i){total-=itens[i].total;itens.splice(i,1);render();}
 
-// CUPOM
 function cupom(){
-let txt="*** CHINELOS MIX ***\n\n";
+let txt="CHINELOS MIX\n\n";
 itens.forEach(i=>{
-txt+=`${i.nome}\n${i.qtd} x ${i.valor.toFixed(2)} = ${i.total.toFixed(2)}\n\n`;
+txt+=`${i.nome} ${i.qtd}x ${i.total}\n`;
 });
-txt+="TOTAL: R$ "+total.toFixed(2)+"\nPAGAMENTO: "+pag;
-let w=window.open('');w.document.write("<pre>"+txt+"</pre>");w.print();
+txt+="TOTAL:"+total;
+let w=window.open('');
+w.document.write("<pre>"+txt+"</pre>");
+w.print();
 }
 
-// FINALIZAR
+function emitirNF(){
+fetch('/nf',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({itens,total})})
+.then(()=>alert("NF enviada"));
+}
+
 function finalizar(){
 fetch('/venda',{method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({itens,total})});
 itens=[];total=0;render();
 }
 
-// RELATORIO
 function carregarRel(){
 fetch('/relatorio')
 .then(r=>r.json())
 .then(d=>{
 dia.innerHTML='';mes.innerHTML='';rank.innerHTML='';
-
-d.dia.forEach(v=>{
-let li=document.createElement('li');
-li.innerText="R$ "+v.total;
-dia.appendChild(li);
-});
-
-d.mes.forEach(v=>{
-let li=document.createElement('li');
-li.innerText="R$ "+v.total;
-mes.appendChild(li);
-});
-
+d.dia.forEach(v=>{let li=document.createElement('li');li.innerText=v.total;dia.appendChild(li);});
+d.mes.forEach(v=>{let li=document.createElement('li');li.innerText=v.total;mes.appendChild(li);});
 Object.entries(d.ranking).forEach(([k,v])=>{
-let li=document.createElement('li');
-li.innerText=k+" : "+v;
-rank.appendChild(li);
+let li=document.createElement('li');li.innerText=k+":"+v;rank.appendChild(li);
 });
 });
 }
 
-// FECHAMENTO DE CAIXA
 function fecharCaixa(){
 fetch('/relatorio')
 .then(r=>r.json())
 .then(d=>{
 let totalDia=d.dia.reduce((s,v)=>s+v.total,0);
-
-let txt="FECHAMENTO DE CAIXA\n\n";
-txt+="TOTAL DO DIA: R$ "+totalDia.toFixed(2);
-
-let w=window.open('');
-w.document.write("<pre>"+txt+"</pre>");
-w.print();
+alert("Caixa do dia: R$ "+totalDia.toFixed(2));
 });
 }
-
-// SCANNER
-let r1,r2;
-
-function abrirScannerCadastro(){
-scannerCadastro.style.display='block';
-r1=new ZXing.BrowserMultiFormatReader();
-r1.decodeFromVideoDevice(null,'videoCadastro',(res)=>{
-if(res){cod.value=res.text;fecharScannerCadastro();}
-});
-}
-function fecharScannerCadastro(){scannerCadastro.style.display='none';if(r1)r1.reset();}
-
-function abrirScannerVenda(){
-scannerVenda.style.display='block';
-r2=new ZXing.BrowserMultiFormatReader();
-r2.decodeFromVideoDevice(null,'videoVenda',(res)=>{
-if(res){buscar(res.text);fecharScannerVenda();}
-});
-}
-function fecharScannerVenda(){scannerVenda.style.display='none';if(r2)r2.reset();}
-
-function buscar(codigo){
-fetch('/produtos')
-.then(r=>r.json())
-.then(lista=>{
-let prod=lista.find(p=>p.cod==codigo);
-if(prod){
-let item=itens.find(i=>i.nome===prod.nome);
-if(item){item.qtd++;item.total+=prod.valor;}
-else itens.push({nome:prod.nome,qtd:1,valor:prod.valor,total:prod.valor});
-total+=prod.valor;render();
-}else alert("Produto não encontrado");
-});
-}
-
-document.addEventListener("DOMContentLoaded",()=>{
-leitor.addEventListener('change',function(){
-buscar(this.value);
-this.value='';
-});
-});
 
 </script>
 
