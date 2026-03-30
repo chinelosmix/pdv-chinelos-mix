@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDV COMPLETO</title>
+<title>PDV</title>
 
 <style>
 body{background:#111;color:#fff;text-align:center;font-family:Arial}
@@ -20,49 +20,11 @@ input,select{padding:8px;margin:5px}
 <input id="user"><br>
 <input id="senha" type="password"><br>
 <button onclick="entrar()">Entrar</button>
-
-<h3>Cadastrar Funcionário</h3>
-<input id="novoUser"><br>
-<input id="novaSenha"><br>
-<button onclick="cadUser()">Cadastrar</button>
 </div>
 
 <div id="app" style="display:none">
 
 <h1>PDV CHINELOS MIX</h1>
-
-<button onclick="mostrar('prod')">Produtos</button>
-<button onclick="mostrar('venda')">Venda</button>
-<button onclick="mostrar('rel')">Relatório</button>
-<button onclick="logout()">Sair</button>
-
-<div id="prod" class="tela">
-<input id="cod" placeholder="Código"><br>
-<input id="nome" placeholder="Nome"><br>
-<input id="cor" placeholder="Cor"><br>
-<input id="num" placeholder="Numeração"><br>
-<input id="valor" placeholder="Valor"><br>
-<input id="estoque" placeholder="Quantidade"><br>
-
-<button onclick="abrirScannerCadastro()">📷 Ler Código</button>
-<div id="scannerCadastro" style="display:none">
-<video id="videoCadastro" width="300"></video><br>
-<button onclick="fecharScannerCadastro()">Fechar</button>
-</div>
-
-<button onclick="salvarProd()">Salvar</button>
-<ul id="listaProd"></ul>
-</div>
-
-<div id="venda" class="tela ativa">
-
-<input id="leitor" placeholder="Passe o código aqui" autofocus>
-
-<button onclick="abrirScannerVenda()">📷 Ler Código</button>
-<div id="scannerVenda" style="display:none">
-<video id="videoVenda" width="300"></video><br>
-<button onclick="fecharScannerVenda()">Fechar</button>
-</div>
 
 <select id="selectProd"></select>
 <input id="qtd" value="1">
@@ -72,160 +34,57 @@ input,select{padding:8px;margin:5px}
 
 <h3>Total: R$ <span id="totalValor">0</span></h3>
 
-<button onclick="setPag('Dinheiro')">Dinheiro</button>
-<button onclick="setPag('Cartão')">Cartão</button>
-<button onclick="setPag('Pix')">Pix</button>
-
-<p id="pagamento"></p>
-
-<button onclick="cupom()">Cupom</button>
 <button onclick="emitirNF()">Nota Fiscal</button>
-<button onclick="finalizar()">Finalizar</button>
 
 </div>
-
-<div id="rel" class="tela">
-<ul id="dia"></ul>
-<ul id="mes"></ul>
-<ul id="rank"></ul>
-<button onclick="carregarRel()">Atualizar</button>
-<button onclick="fecharCaixa()">Fechar Caixa</button>
-</div>
-
-</div>
-
-<script src="https://unpkg.com/@zxing/library@latest"></script>
 
 <script>
 
 function entrar(){
-fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({user:user.value,senha:senha.value})})
-.then(r=>{if(r.ok){loginTela.style.display='none';app.style.display='block';carregarProd();}});
-}
-
-function cadUser(){
-fetch('/cadastrar',{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({user:novoUser.value,senha:novaSenha.value})});
-}
-
-function logout(){location.reload()}
-
-function mostrar(t){
-document.querySelectorAll('.tela').forEach(e=>e.classList.remove('ativa'));
-document.getElementById(t).classList.add('ativa');
-}
-
-function salvarProd(){
-fetch('/produto',{method:'POST',headers:{'Content-Type':'application/json'},
+fetch('/login',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
 body:JSON.stringify({
-cod:cod.value,nome:nome.value,cor:cor.value,
-num:num.value,valor:parseFloat(valor.value),
-estoque:parseInt(estoque.value)
-})}).then(()=>carregarProd());
+user:document.getElementById('user').value,
+senha:document.getElementById('senha').value
+})
+})
+.then(res=>{
+if(res.ok){
+document.getElementById('loginTela').style.display='none';
+document.getElementById('app').style.display='block';
+}else{
+alert("Login inválido");
 }
-
-function excluirProduto(nome){
-fetch('/excluir-produto',{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({nome})}).then(()=>carregarProd());
-}
-
-function carregarProd(){
-fetch('/produtos')
-.then(r=>r.json())
-.then(d=>{
-selectProd.innerHTML='';listaProd.innerHTML='';
-d.forEach(p=>{
-let op=document.createElement('option');
-op.value=p.nome;op.innerText=p.nome;
-selectProd.appendChild(op);
-
-let li=document.createElement('li');
-li.innerHTML=`${p.nome} R$${p.valor}
-<button onclick="excluirProduto('${p.nome}')">X</button>`;
-listaProd.appendChild(li);
-});
 });
 }
 
-let itens=[],total=0,pag="";
-
-function setPag(p){pag=p;pagamento.innerText=p;}
+let itens=[];
+let total=0;
 
 function add(){
-let nome=selectProd.value;
-let qtd=parseInt(document.getElementById('qtd').value);
-
-fetch('/produtos')
-.then(r=>r.json())
-.then(lista=>{
-let prod=lista.find(p=>p.nome===nome);
-
-let item=itens.find(i=>i.nome===nome);
-if(item){item.qtd+=qtd;item.total+=prod.valor*qtd;}
-else itens.push({nome,qtd,valor:prod.valor,total:prod.valor*qtd});
-
-total+=prod.valor*qtd;
+itens.push({nome:"Produto",qtd:1,valor:10});
+total+=10;
 render();
-});
 }
 
 function render(){
 lista.innerHTML='';
-itens.forEach((i,index)=>{
+itens.forEach(i=>{
 let li=document.createElement('li');
-li.innerHTML=`${i.nome} ${i.qtd}x R$${i.total}
-<button onclick="remover(${index})">X</button>`;
+li.innerText=i.nome+" x"+i.qtd;
 lista.appendChild(li);
 });
-totalValor.innerText=total.toFixed(2);
-}
-
-function remover(i){total-=itens[i].total;itens.splice(i,1);render();}
-
-function cupom(){
-let txt="CHINELOS MIX\n\n";
-itens.forEach(i=>{
-txt+=`${i.nome} ${i.qtd}x ${i.total}\n`;
-});
-txt+="TOTAL:"+total;
-let w=window.open('');
-w.document.write("<pre>"+txt+"</pre>");
-w.print();
+totalValor.innerText=total;
 }
 
 function emitirNF(){
-fetch('/nf',{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({itens,total})})
+fetch('/nf',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({itens,total})
+})
 .then(()=>alert("NF enviada"));
-}
-
-function finalizar(){
-fetch('/venda',{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({itens,total})});
-itens=[];total=0;render();
-}
-
-function carregarRel(){
-fetch('/relatorio')
-.then(r=>r.json())
-.then(d=>{
-dia.innerHTML='';mes.innerHTML='';rank.innerHTML='';
-d.dia.forEach(v=>{let li=document.createElement('li');li.innerText=v.total;dia.appendChild(li);});
-d.mes.forEach(v=>{let li=document.createElement('li');li.innerText=v.total;mes.appendChild(li);});
-Object.entries(d.ranking).forEach(([k,v])=>{
-let li=document.createElement('li');li.innerText=k+":"+v;rank.appendChild(li);
-});
-});
-}
-
-function fecharCaixa(){
-fetch('/relatorio')
-.then(r=>r.json())
-.then(d=>{
-let totalDia=d.dia.reduce((s,v)=>s+v.total,0);
-alert("Caixa do dia: R$ "+totalDia.toFixed(2));
-});
 }
 
 </script>
