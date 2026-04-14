@@ -1,18 +1,13 @@
+
 {
-  "name": "pdvloja",
+  "name": "pdv-loja",
   "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
+  "description": "PDV Chinelos Mix",
+  "main": "servidor.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node servidor.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "express": "^5.2.1",
-    "node-fetch": "^3.3.2"
+    "express": "^4.18.2"
   }
 }
