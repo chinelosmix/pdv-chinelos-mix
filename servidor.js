@@ -2,17 +2,29 @@ const express = require('express');
 const app = express();
 
 app.use(express.json());
-app.use(express.static('público')); // 👈 MUITO IMPORTANTE
 
-let usuarios = [{ usuario: "admin", senha: "123" }];
+// 🔥 SERVE A PASTA PUBLICO
+app.use(express.static('público'));
 
+// LOGIN
 app.post('/login', (req, res) => {
   const { usuario, senha } = req.body;
 
-  const ok = usuarios.find(u => u.usuario === usuario && u.senha === senha);
+  if(usuario === "admin" && senha === "123"){
+    res.json({ ok: true });
+  } else {
+    res.json({ ok: false });
+  }
+});
 
-  res.json({ ok: !!ok });
+// VENDA (pra não dar erro)
+app.post('/venda', (req, res) => {
+  console.log("Venda recebida:", req.body);
+  res.json({ ok: true });
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Rodando na porta " + PORT));
+
+app.listen(PORT, () => {
+  console.log("Rodando na porta " + PORT);
+});
