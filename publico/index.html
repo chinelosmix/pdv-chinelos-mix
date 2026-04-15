@@ -23,10 +23,10 @@ td,th{border:1px solid #fff;padding:5px}
 <h1>PDV CHINELOS MIX</h1>
 
 <!-- LOGIN -->
-<div id="login">
+<div id="telaLogin">
 <input id="user" placeholder="Usuário"><br>
 <input id="pass" type="password" placeholder="Senha"><br>
-<button onclick="login()">Entrar</button>
+<button onclick="entrar()">Entrar</button>
 </div>
 
 <!-- MENU -->
@@ -118,10 +118,12 @@ let total=0
 let edit=-1
 
 // LOGIN
-function login(){
-if(user.value==="admin"&&pass.value==="123"){
-login.style.display="none"
+function entrar(){
+if(user.value==="admin" && pass.value==="123"){
+telaLogin.style.display="none"
 menu.style.display="block"
+}else{
+alert("Login inválido")
 }
 }
 
@@ -152,6 +154,7 @@ produtos.push(p)
 
 localStorage.setItem("produtos",JSON.stringify(produtos))
 listarProdutos()
+limpar()
 }
 
 function listarProdutos(){
@@ -188,6 +191,15 @@ function excluir(i){
 produtos.splice(i,1)
 localStorage.setItem("produtos",JSON.stringify(produtos))
 listarProdutos()
+}
+
+function limpar(){
+codigo.value=""
+nome.value=""
+cor.value=""
+numero.value=""
+quantidade.value=""
+valor.value=""
 }
 
 // FUNCIONARIO
