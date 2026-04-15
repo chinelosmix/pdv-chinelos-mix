@@ -1,1 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>PDV Chinelos Mix</title>
 
+<style>
+body { background:#000; color:#fff; font-family:Arial; text-align:center; }
+input, button { padding:10px; margin:5px; }
+button { background:green; color:#fff; border:none; }
+</style>
+</head>
+
+<body>
+
+<h1>PDV CHINELOS MIX</h1>
+
+<div id="login">
+  <input id="user" placeholder="Usuário"><br>
+  <input id="senha" type="password" placeholder="Senha"><br>
+  <button onclick="login()">Entrar</button>
+</div>
+
+<div id="sistema" style="display:none">
+  <h2>Venda</h2>
+
+  <input id="codigo" placeholder="Código"><br>
+  <input id="nome" placeholder="Produto"><br>
+  <input id="valor" placeholder="Valor"><br>
+
+  <button onclick="addProduto()">Adicionar Produto</button>
+
+  <h3>Total: R$ <span id="total">0</span></h3>
+
+  <button onclick="finalizar()">Finalizar Venda</button>
+</div>
+
+<script>
+let total = 0;
+
+function login(){
+  fetch('/login',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      user:document.getElementById('user').value,
+      senha:document.getElementById('senha').value
+    })
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok){
+      document.getElementById('login').style.display='none';
+      document.getElementById('sistema').style.display='block';
+    }else{
+      alert("Login inválido");
+    }
+  });
+}
+
+function addProduto(){
+  let valor = parseFloat(document.getElementById('valor').value);
+  total += valor;
+  document.getElementById('total').innerText = total.toFixed(2);
+
+  fetch('/produtos',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      codigo:codigo.value,
+      nome:nome.value,
+      valor:valor
+    })
+  });
+}
+
+function finalizar(){
+  fetch('/venda',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ total })
+  });
+
+  alert("Venda finalizada!");
+  total = 0;
+  document.getElementById('total').innerText = "0";
+}
+</script>
+
+</body>
+</html>
