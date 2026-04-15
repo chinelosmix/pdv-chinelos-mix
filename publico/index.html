@@ -3,7 +3,9 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Cadastro de Produtos</title>
+<title>PDV Produtos</title>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 body{background:#000;color:#fff;font-family:Arial;text-align:center}
@@ -11,6 +13,7 @@ input,button{padding:10px;margin:5px;font-size:16px}
 button{background:green;color:#fff;border:none}
 table{width:100%;margin-top:20px;border-collapse:collapse}
 td,th{border:1px solid #fff;padding:5px}
+#reader{width:300px;margin:auto}
 </style>
 </head>
 
@@ -21,15 +24,19 @@ td,th{border:1px solid #fff;padding:5px}
 <h2>Cadastro de Produto</h2>
 
 <input id="codigo" placeholder="Código de Barras"><br>
+<button onclick="abrirCamera()">📷 Escanear</button>
+
+<div id="reader"></div>
+
 <input id="nome" placeholder="Nome"><br>
 <input id="cor" placeholder="Cor"><br>
 <input id="numero" placeholder="Numeração"><br>
-<input id="quantidade" placeholder="Quantidade" type="number"><br>
-<input id="valor" placeholder="Valor" type="number"><br>
+<input id="quantidade" type="number" placeholder="Quantidade"><br>
+<input id="valor" type="number" placeholder="Valor"><br>
 
-<button onclick="salvarProduto()">Salvar Produto</button>
+<button onclick="salvarProduto()">Salvar</button>
 
-<h2>Produtos Cadastrados</h2>
+<h2>Produtos</h2>
 
 <table>
 <thead>
@@ -51,24 +58,44 @@ td,th{border:1px solid #fff;padding:5px}
 <script>
 
 let produtos = JSON.parse(localStorage.getItem("produtos")) || []
+let editIndex = -1
+
+function abrirCamera(){
+const html5QrCode = new Html5Qrcode("reader")
+
+Html5Qrcode.getCameras().then(devices => {
+if(devices.length){
+html5QrCode.start(
+devices[0].id,
+{ fps: 10, qrbox: 250 },
+(code)=>{
+document.getElementById("codigo").value = code
+html5QrCode.stop()
+document.getElementById("reader").innerHTML=""
+}
+)
+}
+})
+}
 
 function salvarProduto(){
 
 let p = {
-codigo: document.getElementById("codigo").value,
-nome: document.getElementById("nome").value,
-cor: document.getElementById("cor").value,
-numero: document.getElementById("numero").value,
-quantidade: document.getElementById("quantidade").value,
-valor: document.getElementById("valor").value
+codigo: codigo.value,
+nome: nome.value,
+cor: cor.value,
+numero: numero.value,
+quantidade: quantidade.value,
+valor: valor.value
 }
 
-if(!p.codigo || !p.nome){
-alert("Preencha código e nome")
-return
-}
-
+if(editIndex >= 0){
+produtos[editIndex] = p
+editIndex = -1
+}else{
 produtos.push(p)
+}
+
 localStorage.setItem("produtos", JSON.stringify(produtos))
 
 limpar()
@@ -78,7 +105,7 @@ listar()
 function listar(){
 let html = ""
 
-produtos.forEach((p, i)=>{
+produtos.forEach((p,i)=>{
 html += `
 <tr>
 <td>${p.codigo}</td>
@@ -87,12 +114,28 @@ html += `
 <td>${p.numero}</td>
 <td>${p.quantidade}</td>
 <td>R$ ${p.valor}</td>
-<td><button onclick="excluir(${i})">Excluir</button></td>
+<td>
+<button onclick="editar(${i})">Editar</button>
+<button onclick="excluir(${i})">Excluir</button>
+</td>
 </tr>
 `
 })
 
-document.getElementById("lista").innerHTML = html
+lista.innerHTML = html
+}
+
+function editar(i){
+let p = produtos[i]
+
+codigo.value = p.codigo
+nome.value = p.nome
+cor.value = p.cor
+numero.value = p.numero
+quantidade.value = p.quantidade
+valor.value = p.valor
+
+editIndex = i
 }
 
 function excluir(i){
@@ -104,12 +147,12 @@ listar()
 }
 
 function limpar(){
-document.getElementById("codigo").value=""
-document.getElementById("nome").value=""
-document.getElementById("cor").value=""
-document.getElementById("numero").value=""
-document.getElementById("quantidade").value=""
-document.getElementById("valor").value=""
+codigo.value=""
+nome.value=""
+cor.value=""
+numero.value=""
+quantidade.value=""
+valor.value=""
 }
 
 listar()
