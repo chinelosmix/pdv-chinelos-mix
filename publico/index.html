@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDV Chinelos Mix</title>
+<title>PDV PRO</title>
 
 <style>
 body { background:#000; color:#fff; font-family:Arial; text-align:center; }
@@ -26,21 +26,35 @@ button { background:green; color:#fff; border:none; }
 
 <!-- MENU -->
 <div id="menu" class="box">
-<button onclick="mostrar('cadastro')">Cadastro</button>
+<button onclick="mostrar('funcionario')">Funcionário</button>
+<button onclick="mostrar('cadastro')">Produtos</button>
 <button onclick="mostrar('venda')">Venda</button>
 </div>
 
-<!-- CADASTRO -->
+<!-- FUNCIONARIO -->
+<div id="funcionario" class="box">
+<h2>Funcionário</h2>
+<input id="nomeFunc" placeholder="Nome">
+<button onclick="salvarFunc()">Cadastrar</button>
+
+<h3>Ponto</h3>
+<button onclick="registrarPonto('Entrada')">Entrada</button>
+<button onclick="registrarPonto('Almoço')">Almoço</button>
+<button onclick="registrarPonto('Volta')">Volta</button>
+<button onclick="registrarPonto('Saída')">Saída</button>
+</div>
+
+<!-- PRODUTOS -->
 <div id="cadastro" class="box">
 <h2>Cadastro Produto</h2>
 
-<input id="codigo" placeholder="Código (barras)">
+<input id="codigo" placeholder="Código">
 <input id="nome" placeholder="Nome">
 <input id="cor" placeholder="Cor">
 <input id="numero" placeholder="Numeração">
 <input id="valor" placeholder="Valor">
 
-<button onclick="salvarProduto()">Salvar Produto</button>
+<button onclick="salvarProduto()">Salvar</button>
 </div>
 
 <!-- VENDA -->
@@ -49,13 +63,17 @@ button { background:green; color:#fff; border:none; }
 
 <input id="busca" placeholder="Código ou nome">
 <button onclick="buscarProduto()">Buscar</button>
+<button onclick="scanner()">📷 Scanner</button>
 
-<br>
-<button onclick="iniciarScanner()">📷 Scanner</button>
+<h3 id="produtoSel"></h3>
 
-<h3 id="produtoSelecionado"></h3>
+<input id="qtd" value="1">
 
-<input id="qtd" placeholder="Quantidade" value="1">
+<select id="pagamento">
+<option>Dinheiro</option>
+<option>Pix</option>
+<option>Cartão</option>
+</select>
 
 <button onclick="add()">Adicionar</button>
 
@@ -68,93 +86,103 @@ button { background:green; color:#fff; border:none; }
 
 <script>
 let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+let funcionarios = JSON.parse(localStorage.getItem('func')) || [];
 let total = 0;
 let atual = null;
 
 // LOGIN
 function entrar(){
-if(user.value === "admin" && pass.value === "123"){
+if(user.value==="admin" && pass.value==="123"){
 login.style.display="none";
 menu.style.display="block";
-}else{
-alert("Login errado");
 }
 }
 
 // MENU
-function mostrar(tela){
-cadastro.style.display="none";
-venda.style.display="none";
-document.getElementById(tela).style.display="block";
+function mostrar(t){
+document.querySelectorAll('.box').forEach(e=>e.style.display='none');
+document.getElementById(t).style.display='block';
 }
 
-// SALVAR PRODUTO
+// FUNCIONARIO
+function salvarFunc(){
+funcionarios.push(nomeFunc.value);
+localStorage.setItem('func',JSON.stringify(funcionarios));
+alert("Salvo");
+}
+
+function registrarPonto(tipo){
+alert(tipo+" registrado");
+}
+
+// PRODUTO
 function salvarProduto(){
-let p = {
-codigo: codigo.value,
-nome: nome.value,
-cor: cor.value,
-numero: numero.value,
-valor: Number(valor.value)
+let p={
+codigo:codigo.value,
+nome:nome.value,
+cor:cor.value,
+numero:numero.value,
+valor:Number(valor.value)
 };
-
 produtos.push(p);
-localStorage.setItem('produtos', JSON.stringify(produtos));
-
-alert("Produto salvo!");
+localStorage.setItem('produtos',JSON.stringify(produtos));
+alert("Produto salvo");
 }
 
 // BUSCAR
 function buscarProduto(){
-let buscaTexto = busca.value;
-
-atual = produtos.find(p =>
-p.codigo == buscaTexto || p.nome.toLowerCase().includes(buscaTexto.toLowerCase())
-);
-
+let b=busca.value;
+atual=produtos.find(p=>p.codigo==b || p.nome.toLowerCase().includes(b.toLowerCase()));
 if(atual){
-produtoSelecionado.innerText =
-atual.nome + " | " + atual.cor + " | " + atual.numero + " | R$ " + atual.valor;
-}else{
-alert("Produto não encontrado");
-}
+produtoSel.innerText=atual.nome+" "+atual.cor+" "+atual.numero+" R$"+atual.valor;
+}else alert("Não encontrado");
 }
 
-// ADD VENDA
+// ADD
 function add(){
 if(!atual) return alert("Selecione produto");
-
-let qtd = Number(document.getElementById('qtd').value);
-total += atual.valor * qtd;
-
-document.getElementById('total').innerText = total;
+let q=Number(qtd.value);
+total+=atual.valor*q;
+document.getElementById('total').innerText=total;
 }
 
-// FINALIZAR
+// FINALIZAR + CUPOM
 function finalizar(){
-alert("Venda finalizada: R$ " + total);
-total = 0;
-document.getElementById('total').innerText = total;
+let forma=document.getElementById('pagamento').value;
+
+let cupom = `
+--- CUPOM ---
+PDV CHINELOS MIX
+
+Total: R$ ${total}
+Pagamento: ${forma}
+
+Obrigado!
+`;
+
+let win = window.open();
+win.document.write("<pre>"+cupom+"</pre>");
+win.print();
+
+total=0;
+document.getElementById('total').innerText=0;
 }
 
-// SCANNER CAMERA
-function iniciarScanner(){
-const scanner = new Html5Qrcode("reader");
-
-let div = document.createElement("div");
-div.id = "reader";
+// SCANNER
+function scanner(){
+let div=document.createElement("div");
+div.id="reader";
 document.body.appendChild(div);
 
-scanner.start(
+let html5QrCode = new Html5Qrcode("reader");
+
+html5QrCode.start(
 { facingMode: "environment" },
-{
-fps: 10,
-qrbox: 250
-},
-(code) => {
-busca.value = code;
+{ fps: 10 },
+(code)=>{
+busca.value=code;
 buscarProduto();
-scanner.stop();
+html5QrCode.stop();
 }
 );
 }
