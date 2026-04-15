@@ -1,192 +1,121 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDV PRO</title>
+<title>Cadastro de Produtos</title>
 
 <style>
-body { background:#000; color:#fff; font-family:Arial; text-align:center; }
-input, button, select { padding:10px; margin:5px; width:80%; }
-button { background:green; color:#fff; border:none; }
-.box { display:none; }
+body{background:#000;color:#fff;font-family:Arial;text-align:center}
+input,button{padding:10px;margin:5px;font-size:16px}
+button{background:green;color:#fff;border:none}
+table{width:100%;margin-top:20px;border-collapse:collapse}
+td,th{border:1px solid #fff;padding:5px}
 </style>
-
 </head>
 
 <body>
 
 <h1>PDV CHINELOS MIX</h1>
 
-<!-- LOGIN -->
-<div id="login">
-<input id="user" placeholder="Usuário"><br>
-<input id="pass" type="password" placeholder="Senha"><br>
-<button onclick="entrar()">Entrar</button>
-</div>
+<h2>Cadastro de Produto</h2>
 
-<!-- MENU -->
-<div id="menu" class="box">
-<button onclick="mostrar('funcionario')">Funcionário</button>
-<button onclick="mostrar('cadastro')">Produtos</button>
-<button onclick="mostrar('venda')">Venda</button>
-</div>
+<input id="codigo" placeholder="Código de Barras"><br>
+<input id="nome" placeholder="Nome"><br>
+<input id="cor" placeholder="Cor"><br>
+<input id="numero" placeholder="Numeração"><br>
+<input id="quantidade" placeholder="Quantidade" type="number"><br>
+<input id="valor" placeholder="Valor" type="number"><br>
 
-<!-- FUNCIONARIO -->
-<div id="funcionario" class="box">
-<h2>Funcionário</h2>
-<input id="nomeFunc" placeholder="Nome">
-<button onclick="salvarFunc()">Cadastrar</button>
+<button onclick="salvarProduto()">Salvar Produto</button>
 
-<h3>Ponto</h3>
-<button onclick="registrarPonto('Entrada')">Entrada</button>
-<button onclick="registrarPonto('Almoço')">Almoço</button>
-<button onclick="registrarPonto('Volta')">Volta</button>
-<button onclick="registrarPonto('Saída')">Saída</button>
-</div>
+<h2>Produtos Cadastrados</h2>
 
-<!-- PRODUTOS -->
-<div id="cadastro" class="box">
-<h2>Cadastro Produto</h2>
+<table>
+<thead>
+<tr>
+<th>Código</th>
+<th>Nome</th>
+<th>Cor</th>
+<th>Nº</th>
+<th>Qtd</th>
+<th>Valor</th>
+<th>Ação</th>
+</tr>
+</thead>
 
-<input id="codigo" placeholder="Código">
-<input id="nome" placeholder="Nome">
-<input id="cor" placeholder="Cor">
-<input id="numero" placeholder="Numeração">
-<input id="valor" placeholder="Valor">
+<tbody id="lista"></tbody>
 
-<button onclick="salvarProduto()">Salvar</button>
-</div>
-
-<!-- VENDA -->
-<div id="venda" class="box">
-<h2>Venda</h2>
-
-<input id="busca" placeholder="Código ou nome">
-<button onclick="buscarProduto()">Buscar</button>
-<button onclick="scanner()">📷 Scanner</button>
-
-<h3 id="produtoSel"></h3>
-
-<input id="qtd" value="1">
-
-<select id="pagamento">
-<option>Dinheiro</option>
-<option>Pix</option>
-<option>Cartão</option>
-</select>
-
-<button onclick="add()">Adicionar</button>
-
-<h3>Total: R$ <span id="total">0</span></h3>
-
-<button onclick="finalizar()">Finalizar</button>
-</div>
-
-<script src="https://unpkg.com/html5-qrcode"></script>
+</table>
 
 <script>
-let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-let funcionarios = JSON.parse(localStorage.getItem('func')) || [];
-let total = 0;
-let atual = null;
 
-// LOGIN
-function entrar(){
-if(user.value==="admin" && pass.value==="123"){
-login.style.display="none";
-menu.style.display="block";
-}
-}
+let produtos = JSON.parse(localStorage.getItem("produtos")) || []
 
-// MENU
-function mostrar(t){
-document.querySelectorAll('.box').forEach(e=>e.style.display='none');
-document.getElementById(t).style.display='block';
-}
-
-// FUNCIONARIO
-function salvarFunc(){
-funcionarios.push(nomeFunc.value);
-localStorage.setItem('func',JSON.stringify(funcionarios));
-alert("Salvo");
-}
-
-function registrarPonto(tipo){
-alert(tipo+" registrado");
-}
-
-// PRODUTO
 function salvarProduto(){
-let p={
-codigo:codigo.value,
-nome:nome.value,
-cor:cor.value,
-numero:numero.value,
-valor:Number(valor.value)
-};
-produtos.push(p);
-localStorage.setItem('produtos',JSON.stringify(produtos));
-alert("Produto salvo");
+
+let p = {
+codigo: document.getElementById("codigo").value,
+nome: document.getElementById("nome").value,
+cor: document.getElementById("cor").value,
+numero: document.getElementById("numero").value,
+quantidade: document.getElementById("quantidade").value,
+valor: document.getElementById("valor").value
 }
 
-// BUSCAR
-function buscarProduto(){
-let b=busca.value;
-atual=produtos.find(p=>p.codigo==b || p.nome.toLowerCase().includes(b.toLowerCase()));
-if(atual){
-produtoSel.innerText=atual.nome+" "+atual.cor+" "+atual.numero+" R$"+atual.valor;
-}else alert("Não encontrado");
+if(!p.codigo || !p.nome){
+alert("Preencha código e nome")
+return
 }
 
-// ADD
-function add(){
-if(!atual) return alert("Selecione produto");
-let q=Number(qtd.value);
-total+=atual.valor*q;
-document.getElementById('total').innerText=total;
+produtos.push(p)
+localStorage.setItem("produtos", JSON.stringify(produtos))
+
+limpar()
+listar()
 }
 
-// FINALIZAR + CUPOM
-function finalizar(){
-let forma=document.getElementById('pagamento').value;
+function listar(){
+let html = ""
 
-let cupom = `
---- CUPOM ---
-PDV CHINELOS MIX
+produtos.forEach((p, i)=>{
+html += `
+<tr>
+<td>${p.codigo}</td>
+<td>${p.nome}</td>
+<td>${p.cor}</td>
+<td>${p.numero}</td>
+<td>${p.quantidade}</td>
+<td>R$ ${p.valor}</td>
+<td><button onclick="excluir(${i})">Excluir</button></td>
+</tr>
+`
+})
 
-Total: R$ ${total}
-Pagamento: ${forma}
-
-Obrigado!
-`;
-
-let win = window.open();
-win.document.write("<pre>"+cupom+"</pre>");
-win.print();
-
-total=0;
-document.getElementById('total').innerText=0;
+document.getElementById("lista").innerHTML = html
 }
 
-// SCANNER
-function scanner(){
-let div=document.createElement("div");
-div.id="reader";
-document.body.appendChild(div);
-
-let html5QrCode = new Html5Qrcode("reader");
-
-html5QrCode.start(
-{ facingMode: "environment" },
-{ fps: 10 },
-(code)=>{
-busca.value=code;
-buscarProduto();
-html5QrCode.stop();
+function excluir(i){
+if(confirm("Excluir produto?")){
+produtos.splice(i,1)
+localStorage.setItem("produtos", JSON.stringify(produtos))
+listar()
 }
-);
 }
+
+function limpar(){
+document.getElementById("codigo").value=""
+document.getElementById("nome").value=""
+document.getElementById("cor").value=""
+document.getElementById("numero").value=""
+document.getElementById("quantidade").value=""
+document.getElementById("valor").value=""
+}
+
+listar()
+
 </script>
 
 </body>
 </html>
+```
