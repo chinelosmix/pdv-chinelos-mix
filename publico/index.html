@@ -1,52 +1,93 @@
-```html id="vendas01"
+```html
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDV Venda</title>
+<title>PDV CHINELOS MIX</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 body{background:#000;color:#fff;font-family:Arial;text-align:center}
-input,button,select{padding:10px;margin:5px;font-size:16px}
+input,button,select{padding:10px;margin:5px;width:80%}
 button{background:green;color:#fff;border:none}
-table{width:100%;margin-top:20px;border-collapse:collapse}
+.box{display:none}
+table{width:100%;border-collapse:collapse}
 td,th{border:1px solid #fff;padding:5px}
-#reader{width:300px;margin:auto}
 </style>
+
 </head>
 
 <body>
 
 <h1>PDV CHINELOS MIX</h1>
 
-<h2>Venda</h2>
+<!-- LOGIN -->
+<div id="login">
+<input id="user" placeholder="Usuário"><br>
+<input id="pass" type="password" placeholder="Senha"><br>
+<button onclick="login()">Entrar</button>
+</div>
 
-<input id="codigo" placeholder="Código de Barras">
-<button onclick="abrirCamera()">📷</button>
+<!-- MENU -->
+<div id="menu" class="box">
+<button onclick="mostrar('produtos')">Produtos</button>
+<button onclick="mostrar('funcionario')">Funcionários</button>
+<button onclick="mostrar('venda')">Venda</button>
+</div>
 
+<!-- PRODUTOS -->
+<div id="produtos" class="box">
+
+<h2>Cadastro Produto</h2>
+
+<input id="codigo" placeholder="Código">
+<button onclick="scanner()">📷</button>
 <div id="reader"></div>
 
-<br>
+<input id="nome" placeholder="Nome">
+<input id="cor" placeholder="Cor">
+<input id="numero" placeholder="Numeração">
+<input id="quantidade" placeholder="Quantidade">
+<input id="valor" placeholder="Valor">
 
-<button onclick="adicionar()">Adicionar</button>
+<button onclick="salvarProduto()">Salvar</button>
 
 <table>
 <thead>
 <tr>
-<th>Produto</th>
-<th>Qtd</th>
-<th>Valor</th>
+<th>Nome</th><th>Cor</th><th>Nº</th><th>Qtd</th><th>Valor</th><th>Ação</th>
 </tr>
 </thead>
-
-<tbody id="listaVenda"></tbody>
+<tbody id="listaProdutos"></tbody>
 </table>
 
-<h2>Total: R$ <span id="total">0</span></h2>
+</div>
 
-<h3>Forma de Pagamento</h3>
+<!-- FUNCIONARIO -->
+<div id="funcionario" class="box">
+<h2>Funcionários</h2>
+<input id="nomeFunc" placeholder="Nome">
+<button onclick="salvarFunc()">Cadastrar</button>
+
+<h3>Ponto</h3>
+<button onclick="ponto('Entrada')">Entrada</button>
+<button onclick="ponto('Almoço')">Almoço</button>
+<button onclick="ponto('Volta')">Volta</button>
+<button onclick="ponto('Saída')">Saída</button>
+</div>
+
+<!-- VENDA -->
+<div id="venda" class="box">
+
+<h2>Venda</h2>
+
+<input id="codVenda" placeholder="Código">
+<button onclick="scannerVenda()">📷</button>
+
+<h3 id="produtoSel"></h3>
+
+<input id="qtd" value="1">
 
 <select id="pagamento">
 <option>Dinheiro</option>
@@ -56,108 +97,162 @@ td,th{border:1px solid #fff;padding:5px}
 <option>Vale</option>
 </select>
 
-<br>
+<button onclick="addVenda()">Adicionar</button>
 
-<button onclick="finalizar()">Finalizar Venda</button>
+<table>
+<tbody id="listaVenda"></tbody>
+</table>
+
+<h2>Total: R$ <span id="total">0</span></h2>
+
+<button onclick="finalizar()">Finalizar</button>
+
+</div>
 
 <script>
 
-let produtos = JSON.parse(localStorage.getItem("produtos")) || []
-let venda = []
-let total = 0
+let produtos = JSON.parse(localStorage.getItem("produtos"))||[]
+let funcionarios = JSON.parse(localStorage.getItem("func"))||[]
+let venda=[]
+let total=0
+let edit=-1
 
-function abrirCamera(){
-const html5QrCode = new Html5Qrcode("reader")
-
-Html5Qrcode.getCameras().then(devices => {
-if(devices.length){
-html5QrCode.start(
-devices[0].id,
-{ fps: 10, qrbox: 250 },
-(code)=>{
-codigo.value = code
-html5QrCode.stop()
-reader.innerHTML=""
-adicionar()
+// LOGIN
+function login(){
+if(user.value==="admin"&&pass.value==="123"){
+login.style.display="none"
+menu.style.display="block"
 }
-)
-}
-})
 }
 
-function adicionar(){
-
-let cod = codigo.value
-let produto = produtos.find(p => p.codigo == cod)
-
-if(!produto){
-alert("Produto não encontrado")
-return
+// MENU
+function mostrar(t){
+document.querySelectorAll('.box').forEach(e=>e.style.display='none')
+document.getElementById(t).style.display='block'
+listarProdutos()
 }
 
-venda.push(produto)
-total += Number(produto.valor)
-
-atualizar()
-codigo.value=""
+// PRODUTOS
+function salvarProduto(){
+let p={
+codigo:codigo.value,
+nome:nome.value,
+cor:cor.value,
+numero:numero.value,
+quantidade:quantidade.value,
+valor:Number(valor.value)
 }
 
-function atualizar(){
+if(edit>=0){
+produtos[edit]=p
+edit=-1
+}else{
+produtos.push(p)
+}
 
-let html = ""
+localStorage.setItem("produtos",JSON.stringify(produtos))
+listarProdutos()
+}
 
-venda.forEach(p=>{
-html += `
+function listarProdutos(){
+let html=""
+produtos.forEach((p,i)=>{
+html+=`
 <tr>
 <td>${p.nome}</td>
-<td>1</td>
-<td>R$ ${p.valor}</td>
-</tr>
-`
+<td>${p.cor}</td>
+<td>${p.numero}</td>
+<td>${p.quantidade}</td>
+<td>R$${p.valor}</td>
+<td>
+<button onclick="editar(${i})">Editar</button>
+<button onclick="excluir(${i})">Excluir</button>
+</td>
+</tr>`
 })
-
-listaVenda.innerHTML = html
-document.getElementById("total").innerText = total.toFixed(2)
+listaProdutos.innerHTML=html
 }
 
+function editar(i){
+let p=produtos[i]
+codigo.value=p.codigo
+nome.value=p.nome
+cor.value=p.cor
+numero.value=p.numero
+quantidade.value=p.quantidade
+valor.value=p.valor
+edit=i
+}
+
+function excluir(i){
+produtos.splice(i,1)
+localStorage.setItem("produtos",JSON.stringify(produtos))
+listarProdutos()
+}
+
+// FUNCIONARIO
+function salvarFunc(){
+funcionarios.push(nomeFunc.value)
+localStorage.setItem("func",JSON.stringify(funcionarios))
+alert("Salvo")
+}
+
+function ponto(t){
+alert(t+" registrado")
+}
+
+// VENDA
+function addVenda(){
+let p=produtos.find(x=>x.codigo==codVenda.value)
+if(!p)return alert("Não encontrado")
+
+venda.push(p)
+total+=p.valor
+
+listaVenda.innerHTML+=`<tr><td>${p.nome}</td><td>R$${p.valor}</td></tr>`
+document.getElementById("total").innerText=total.toFixed(2)
+codVenda.value=""
+}
+
+// CUPOM
 function finalizar(){
+let forma=pagamento.value
 
-let pagamento = document.getElementById("pagamento").value
-
-let cupom = `
-PDV CHINELOS MIX
-CNPJ: 00.000.000/0001-00
-END: SUA LOJA
-
--------------------------
-`
+let cupom="PDV CHINELOS MIX\nCNPJ: 00.000.000\nEND: SUA LOJA\n\n"
 
 venda.forEach(p=>{
-cupom += `${p.nome} - R$ ${p.valor}\n`
+cupom+=p.nome+" R$"+p.valor+"\n"
 })
 
-cupom += `
--------------------------
-TOTAL: R$ ${total.toFixed(2)}
-PAGAMENTO: ${pagamento}
+cupom+="\nTOTAL: R$"+total+"\n"+forma+"\nOBRIGADO!"
 
-OBRIGADO!
-`
+let w=window.open()
+w.document.write("<pre>"+cupom+"</pre>")
+w.print()
 
-imprimir(cupom)
-
-venda = []
-total = 0
-atualizar()
+venda=[]
+total=0
+listaVenda.innerHTML=""
+document.getElementById("total").innerText=0
 }
 
-function imprimir(texto){
+// SCANNER
+function scanner(){
+let html5QrCode=new Html5Qrcode("reader")
+html5QrCode.start({facingMode:"environment"},{fps:10},(code)=>{
+codigo.value=code
+html5QrCode.stop()
+reader.innerHTML=""
+})
+}
 
-let win = window.open("","","width=300,height=600")
-
-win.document.write("<pre>"+texto+"</pre>")
-win.print()
-win.close()
+function scannerVenda(){
+let html5QrCode=new Html5Qrcode("reader")
+html5QrCode.start({facingMode:"environment"},{fps:10},(code)=>{
+codVenda.value=code
+addVenda()
+html5QrCode.stop()
+})
 }
 
 </script>
