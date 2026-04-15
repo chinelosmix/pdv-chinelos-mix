@@ -38,26 +38,20 @@ button { background:green; color:#fff; border:none; }
 <script>
 let total = 0;
 
+// LOGIN LOCAL (SEM SERVIDOR)
 function login(){
-fetch('/login',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-usuario:document.getElementById('usuario').value,
-senha:document.getElementById('senha').value
-})
-})
-.then(r=>r.json())
-.then(d=>{
-if(d.ok){
+let u = document.getElementById('usuario').value;
+let s = document.getElementById('senha').value;
+
+if(u === "admin" && s === "123"){
 document.getElementById('login').style.display='none';
 document.getElementById('sistema').style.display='block';
 }else{
-alert('Login errado');
+alert("Login errado");
 }
-});
 }
 
+// VENDA
 function add(){
 let valor = Number(document.getElementById('valor').value);
 total += valor;
@@ -65,12 +59,7 @@ document.getElementById('total').innerText = total;
 }
 
 function finalizar(){
-fetch('/venda',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({total})
-});
-alert('Venda finalizada');
+alert("Venda finalizada: R$ " + total);
 total = 0;
 document.getElementById('total').innerText = total;
 }
