@@ -1,15 +1,15 @@
-```html
+```html id="vendas01"
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDV Produtos</title>
+<title>PDV Venda</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 body{background:#000;color:#fff;font-family:Arial;text-align:center}
-input,button{padding:10px;margin:5px;font-size:16px}
+input,button,select{padding:10px;margin:5px;font-size:16px}
 button{background:green;color:#fff;border:none}
 table{width:100%;margin-top:20px;border-collapse:collapse}
 td,th{border:1px solid #fff;padding:5px}
@@ -21,44 +21,50 @@ td,th{border:1px solid #fff;padding:5px}
 
 <h1>PDV CHINELOS MIX</h1>
 
-<h2>Cadastro de Produto</h2>
+<h2>Venda</h2>
 
-<input id="codigo" placeholder="Código de Barras"><br>
-<button onclick="abrirCamera()">📷 Escanear</button>
+<input id="codigo" placeholder="Código de Barras">
+<button onclick="abrirCamera()">📷</button>
 
 <div id="reader"></div>
 
-<input id="nome" placeholder="Nome"><br>
-<input id="cor" placeholder="Cor"><br>
-<input id="numero" placeholder="Numeração"><br>
-<input id="quantidade" type="number" placeholder="Quantidade"><br>
-<input id="valor" type="number" placeholder="Valor"><br>
+<br>
 
-<button onclick="salvarProduto()">Salvar</button>
-
-<h2>Produtos</h2>
+<button onclick="adicionar()">Adicionar</button>
 
 <table>
 <thead>
 <tr>
-<th>Código</th>
-<th>Nome</th>
-<th>Cor</th>
-<th>Nº</th>
+<th>Produto</th>
 <th>Qtd</th>
 <th>Valor</th>
-<th>Ação</th>
 </tr>
 </thead>
 
-<tbody id="lista"></tbody>
-
+<tbody id="listaVenda"></tbody>
 </table>
+
+<h2>Total: R$ <span id="total">0</span></h2>
+
+<h3>Forma de Pagamento</h3>
+
+<select id="pagamento">
+<option>Dinheiro</option>
+<option>Pix</option>
+<option>Débito</option>
+<option>Crédito</option>
+<option>Vale</option>
+</select>
+
+<br>
+
+<button onclick="finalizar()">Finalizar Venda</button>
 
 <script>
 
 let produtos = JSON.parse(localStorage.getItem("produtos")) || []
-let editIndex = -1
+let venda = []
+let total = 0
 
 function abrirCamera(){
 const html5QrCode = new Html5Qrcode("reader")
@@ -69,93 +75,90 @@ html5QrCode.start(
 devices[0].id,
 { fps: 10, qrbox: 250 },
 (code)=>{
-document.getElementById("codigo").value = code
+codigo.value = code
 html5QrCode.stop()
-document.getElementById("reader").innerHTML=""
+reader.innerHTML=""
+adicionar()
 }
 )
 }
 })
 }
 
-function salvarProduto(){
+function adicionar(){
 
-let p = {
-codigo: codigo.value,
-nome: nome.value,
-cor: cor.value,
-numero: numero.value,
-quantidade: quantidade.value,
-valor: valor.value
+let cod = codigo.value
+let produto = produtos.find(p => p.codigo == cod)
+
+if(!produto){
+alert("Produto não encontrado")
+return
 }
 
-if(editIndex >= 0){
-produtos[editIndex] = p
-editIndex = -1
-}else{
-produtos.push(p)
+venda.push(produto)
+total += Number(produto.valor)
+
+atualizar()
+codigo.value=""
 }
 
-localStorage.setItem("produtos", JSON.stringify(produtos))
+function atualizar(){
 
-limpar()
-listar()
-}
-
-function listar(){
 let html = ""
 
-produtos.forEach((p,i)=>{
+venda.forEach(p=>{
 html += `
 <tr>
-<td>${p.codigo}</td>
 <td>${p.nome}</td>
-<td>${p.cor}</td>
-<td>${p.numero}</td>
-<td>${p.quantidade}</td>
+<td>1</td>
 <td>R$ ${p.valor}</td>
-<td>
-<button onclick="editar(${i})">Editar</button>
-<button onclick="excluir(${i})">Excluir</button>
-</td>
 </tr>
 `
 })
 
-lista.innerHTML = html
+listaVenda.innerHTML = html
+document.getElementById("total").innerText = total.toFixed(2)
 }
 
-function editar(i){
-let p = produtos[i]
+function finalizar(){
 
-codigo.value = p.codigo
-nome.value = p.nome
-cor.value = p.cor
-numero.value = p.numero
-quantidade.value = p.quantidade
-valor.value = p.valor
+let pagamento = document.getElementById("pagamento").value
 
-editIndex = i
+let cupom = `
+PDV CHINELOS MIX
+CNPJ: 00.000.000/0001-00
+END: SUA LOJA
+
+-------------------------
+`
+
+venda.forEach(p=>{
+cupom += `${p.nome} - R$ ${p.valor}\n`
+})
+
+cupom += `
+-------------------------
+TOTAL: R$ ${total.toFixed(2)}
+PAGAMENTO: ${pagamento}
+
+OBRIGADO!
+`
+
+imprimir(cupom)
+
+venda = []
+total = 0
+atualizar()
 }
 
-function excluir(i){
-if(confirm("Excluir produto?")){
-produtos.splice(i,1)
-localStorage.setItem("produtos", JSON.stringify(produtos))
-listar()
-}
-}
+function imprimir(texto){
 
-function limpar(){
-codigo.value=""
-nome.value=""
-cor.value=""
-numero.value=""
-quantidade.value=""
-valor.value=""
-}
+let win = window.open("","","width=300,height=600")
 
-listar()
+win.document.write("<pre>"+texto+"</pre>")
+win.print()
+win.close()
+}
 
 </script>
 
