@@ -9,6 +9,7 @@ body { background:#000; color:#fff; font-family:Arial; text-align:center; }
 input, button { padding:10px; margin:5px; }
 button { background:green; color:#fff; border:none; }
 </style>
+
 </head>
 
 <body>
@@ -16,7 +17,7 @@ button { background:green; color:#fff; border:none; }
 <h1>PDV CHINELOS MIX</h1>
 
 <div id="login">
-  <input id="user" placeholder="Usuário"><br>
+  <input id="usuario" placeholder="Usuário"><br>
   <input id="senha" type="password" placeholder="Senha"><br>
   <button onclick="login()">Entrar</button>
 </div>
@@ -28,7 +29,7 @@ button { background:green; color:#fff; border:none; }
   <input id="nome" placeholder="Produto"><br>
   <input id="valor" placeholder="Valor"><br>
 
-  <button onclick="addProduto()">Adicionar Produto</button>
+  <button onclick="adicionar()">Adicionar</button>
 
   <h3>Total: R$ <span id="total">0</span></h3>
 
@@ -43,33 +44,25 @@ function login(){
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
-      user:document.getElementById('user').value,
-      senha:document.getElementById('senha').value
+      usuario: document.getElementById('usuario').value,
+      senha: document.getElementById('senha').value
     })
-  }).then(r=>r.json()).then(d=>{
-    if(d.ok){
+  })
+  .then(res=>res.json())
+  .then(data=>{
+    if(data.ok){
       document.getElementById('login').style.display='none';
       document.getElementById('sistema').style.display='block';
-    }else{
-      alert("Login inválido");
+    } else {
+      alert('Login inválido');
     }
   });
 }
 
-function addProduto(){
-  let valor = parseFloat(document.getElementById('valor').value);
+function adicionar(){
+  let valor = parseFloat(document.getElementById('valor').value) || 0;
   total += valor;
   document.getElementById('total').innerText = total.toFixed(2);
-
-  fetch('/produtos',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      codigo:codigo.value,
-      nome:nome.value,
-      valor:valor
-    })
-  });
 }
 
 function finalizar(){
@@ -79,7 +72,7 @@ function finalizar(){
     body:JSON.stringify({ total })
   });
 
-  alert("Venda finalizada!");
+  alert('Venda finalizada!');
   total = 0;
   document.getElementById('total').innerText = "0";
 }
