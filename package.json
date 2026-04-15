@@ -1,7 +1,6 @@
 {
   "name": "pdv-loja",
   "version": "1.0.0",
-  "description": "PDV Chinelos Mix",
   "main": "servidor.js",
   "scripts": {
     "start": "node servidor.js"
@@ -10,5 +9,3 @@
     "express": "^4.18.2"
   }
 }
-
-
