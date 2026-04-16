@@ -4,6 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <title>PDV CHINELOS MIX</title>
+
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
@@ -14,6 +15,7 @@ table{width:100%;border-collapse:collapse;margin-top:10px}
 td,th{border:1px solid #555;padding:5px}
 .tela{display:none}
 .menu{background:#111;padding:10px}
+#reader,#readerVenda{width:300px;margin:auto}
 </style>
 </head>
 
@@ -21,12 +23,14 @@ td,th{border:1px solid #555;padding:5px}
 
 <h1>PDV CHINELOS MIX</h1>
 
+<!-- LOGIN -->
 <div id="login" class="tela" style="display:block">
 <input id="user" placeholder="Usuário"><br>
 <input id="pass" type="password" placeholder="Senha"><br>
 <button onclick="entrar()">Entrar</button>
 </div>
 
+<!-- MENU -->
 <div id="menu" class="tela menu">
 <button onclick="mostrar('produtos')">Produtos</button>
 <button onclick="mostrar('vendas')">Vendas</button>
@@ -40,24 +44,37 @@ td,th{border:1px solid #555;padding:5px}
 <h2>Produtos</h2>
 
 <input id="codigo" placeholder="Código">
+<button onclick="scanProduto()">📷 Scanner</button>
+<div id="reader"></div>
+
 <input id="nome" placeholder="Nome">
 <input id="cor" placeholder="Cor">
 <input id="numero" placeholder="Numeração">
-<input id="quantidade" placeholder="Qtd">
+<input id="quantidade" placeholder="Quantidade">
 <input id="valor" placeholder="Valor">
 
 <button onclick="salvarProduto()">Salvar</button>
 
-<table><tbody id="listaProdutos"></tbody></table>
+<table>
+<thead>
+<tr>
+<th>Código</th><th>Nome</th><th>Cor</th><th>Nº</th><th>Qtd</th><th>Valor</th><th>Ação</th>
+</tr>
+</thead>
+<tbody id="listaProdutos"></tbody>
+</table>
 
 <button onclick="mostrar('menu')">Voltar</button>
 </div>
 
 <!-- VENDAS -->
 <div id="vendas" class="tela">
-<h2>Venda</h2>
+<h2>Vendas</h2>
 
 <input id="codVenda" placeholder="Código">
+<button onclick="scanVenda()">📷 Scanner</button>
+<div id="readerVenda"></div>
+
 <input id="qtd" value="1">
 
 <button onclick="addVenda()">Adicionar</button>
@@ -73,10 +90,15 @@ td,th{border:1px solid #555;padding:5px}
 
 <h3>Total: R$ <span id="total">0</span></h3>
 
-<button onclick="imprimir()">🧾 Imprimir</button>
+<button onclick="imprimir()">🧾 Imprimir Cupom</button>
 <button onclick="finalizar()">Finalizar</button>
 
-<table><tbody id="listaVenda"></tbody></table>
+<table>
+<thead>
+<tr><th>Nome</th><th>Qtd</th><th>Valor</th><th>Ação</th></tr>
+</thead>
+<tbody id="listaVenda"></tbody>
+</table>
 
 <button onclick="mostrar('menu')">Voltar</button>
 </div>
@@ -90,7 +112,12 @@ td,th{border:1px solid #555;padding:5px}
 
 <button onclick="salvarFunc()">Salvar</button>
 
-<table><tbody id="listaFunc"></tbody></table>
+<table>
+<thead>
+<tr><th>Nome</th><th>Cargo</th><th>Ponto</th><th>Ação</th></tr>
+</thead>
+<tbody id="listaFunc"></tbody>
+</table>
 
 <button onclick="mostrar('menu')">Voltar</button>
 </div>
@@ -113,7 +140,12 @@ td,th{border:1px solid #555;padding:5px}
 <div id="relatorio" class="tela">
 <h2>Relatório</h2>
 
-<table><tbody id="listaRelatorio"></tbody></table>
+<table>
+<thead>
+<tr><th>Data</th><th>Total</th><th>Pagamento</th></tr>
+</thead>
+<tbody id="listaRelatorio"></tbody>
+</table>
 
 <h3>Total: R$ <span id="totalRelatorio">0</span></h3>
 
@@ -129,7 +161,7 @@ mostrar("menu")
 }else alert("Login inválido")
 }
 
-// TELAS
+// TROCAR TELA
 function mostrar(t){
 document.querySelectorAll(".tela").forEach(x=>x.style.display="none")
 document.getElementById(t).style.display="block"
@@ -139,28 +171,89 @@ listarRelatorio()
 }
 
 // PRODUTOS
-let produtos=JSON.parse(localStorage.getItem("produtos"))||[]
+let produtos = JSON.parse(localStorage.getItem("produtos"))||[]
+let edit = -1
 
 function salvarProduto(){
-produtos.push({
+let p = {
 codigo:codigo.value,
 nome:nome.value,
 cor:cor.value,
 numero:numero.value,
 quantidade:Number(quantidade.value),
 valor:Number(valor.value)
-})
+}
+
+if(edit>=0){
+produtos[edit]=p
+edit=-1
+}else{
+produtos.push(p)
+}
+
 localStorage.setItem("produtos",JSON.stringify(produtos))
 listarProdutos()
 }
 
 function listarProdutos(){
-listaProdutos.innerHTML=produtos.map((p,i)=>`
+let html=""
+produtos.forEach((p,i)=>{
+html+=`
 <tr>
+<td>${p.codigo}</td>
 <td>${p.nome}</td>
+<td>${p.cor}</td>
+<td>${p.numero}</td>
 <td>${p.quantidade}</td>
-<td>R$${p.valor}</td>
-</tr>`).join("")
+<td>R$ ${p.valor}</td>
+<td>
+<button onclick="editar(${i})">Editar</button>
+<button onclick="excluir(${i})">Excluir</button>
+</td>
+</tr>`
+})
+listaProdutos.innerHTML=html
+}
+
+function editar(i){
+let p=produtos[i]
+codigo.value=p.codigo
+nome.value=p.nome
+cor.value=p.cor
+numero.value=p.numero
+quantidade.value=p.quantidade
+valor.value=p.valor
+edit=i
+}
+
+function excluir(i){
+produtos.splice(i,1)
+localStorage.setItem("produtos",JSON.stringify(produtos))
+listarProdutos()
+}
+
+// SCANNER
+let cam1=null
+let cam2=null
+
+function scanProduto(){
+if(cam1){cam1.stop();cam1=null;reader.innerHTML="";return}
+cam1=new Html5Qrcode("reader")
+cam1.start({facingMode:"environment"},{fps:10},c=>{
+codigo.value=c
+cam1.stop()
+reader.innerHTML=""
+})
+}
+
+function scanVenda(){
+if(cam2){cam2.stop();cam2=null;readerVenda.innerHTML="";return}
+cam2=new Html5Qrcode("readerVenda")
+cam2.start({facingMode:"environment"},{fps:10},c=>{
+codVenda.value=c
+cam2.stop()
+readerVenda.innerHTML=""
+})
 }
 
 // VENDAS
@@ -172,13 +265,11 @@ let p=produtos.find(x=>x.codigo==codVenda.value)
 if(!p)return alert("Produto não encontrado")
 
 let q=Number(qtd.value)
-
 if(p.quantidade<q)return alert("Sem estoque")
 
 p.quantidade-=q
 
 venda.push({...p,qtd:q})
-
 total+=p.valor*q
 
 localStorage.setItem("produtos",JSON.stringify(produtos))
@@ -186,29 +277,38 @@ atualizarVenda()
 }
 
 function atualizarVenda(){
-listaVenda.innerHTML=venda.map((p,i)=>`
+let html=""
+venda.forEach((p,i)=>{
+html+=`
 <tr>
 <td>${p.nome}</td>
 <td>${p.qtd}</td>
-<td>R$${p.valor}</td>
-</tr>`).join("")
+<td>R$ ${p.valor}</td>
+<td><button onclick="remover(${i})">X</button></td>
+</tr>`
+})
+listaVenda.innerHTML=html
+total.innerText=total.toFixed(2)
+}
 
-document.getElementById("total").innerText=total.toFixed(2)
+function remover(i){
+total-=venda[i].valor*venda[i].qtd
+venda.splice(i,1)
+atualizarVenda()
 }
 
 function imprimir(){
-let texto="CHINELOS MIX\nCNPJ: 46.982.791/0001-01\n\n"
+let txt="CHINELOS MIX\nCNPJ: 46.982.791/0001-01\n\n"
 venda.forEach(p=>{
-texto+=`${p.nome} ${p.qtd} R$${p.valor}\n`
+txt+=`${p.nome} ${p.qtd} R$${p.valor}\n`
 })
-texto+=`\nTOTAL: R$${total}\n${pagamento.value}`
-
+txt+=`\nTOTAL: R$${total}\n${pagamento.value}`
 let w=window.open()
-w.document.write("<pre>"+texto+"</pre>")
+w.document.write("<pre>"+txt+"</pre>")
 w.print()
 }
 
-// CAIXA + RELATORIO
+// CAIXA / RELATORIO
 let caixa=0
 let aberto=false
 let rel=JSON.parse(localStorage.getItem("rel"))||[]
@@ -252,7 +352,7 @@ return `<tr><td>${r.data}</td><td>${r.total}</td><td>${r.pagamento}</td></tr>`
 totalRelatorio.innerText=t.toFixed(2)
 }
 
-// FUNCIONARIO
+// FUNCIONARIOS
 let funcs=JSON.parse(localStorage.getItem("funcs"))||[]
 
 function salvarFunc(){
@@ -265,13 +365,14 @@ function listarFunc(){
 listaFunc.innerHTML=funcs.map((f,i)=>`
 <tr>
 <td>${f.nome}</td>
+<td>${f.cargo}</td>
 <td>
 <button onclick="ponto(${i},'Entrada')">E</button>
 <button onclick="ponto(${i},'Almoço')">A</button>
 <button onclick="ponto(${i},'Volta')">V</button>
 <button onclick="ponto(${i},'Saída')">S</button>
-<button onclick="imprimirPonto(${i})">🧾</button>
 </td>
+<td><button onclick="imprimirPonto(${i})">🧾</button></td>
 </tr>`).join("")
 }
 
@@ -285,7 +386,6 @@ alert(t+" "+h)
 function imprimirPonto(i){
 let f=funcs[i]
 let u=f.ponto[f.ponto.length-1]
-
 let w=window.open()
 w.document.write(`<pre>${f.nome}\n${u.tipo}\n${u.hora}</pre>`)
 w.print()
@@ -296,4 +396,3 @@ w.print()
 </body>
 </html>
 ```
-
