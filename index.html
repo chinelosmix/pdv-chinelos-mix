@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDV COMPLETO</title>
+<title>PDV CHINELOS MIX</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
@@ -43,7 +43,7 @@ td,th{border:1px solid #555;padding:5px}
 <h2>Cadastro de Produto</h2>
 
 <input id="codigo" placeholder="Código">
-<button onclick="scanProduto()">📷</button>
+<button onclick="scanProduto()">📷 Scanner</button>
 <div id="reader"></div>
 
 <input id="nome" placeholder="Nome">
@@ -73,7 +73,7 @@ td,th{border:1px solid #555;padding:5px}
 <h2>Venda</h2>
 
 <input id="codVenda" placeholder="Código">
-<button onclick="scanVenda()">📷</button>
+<button onclick="scanVenda()">📷 Scanner</button>
 
 <div id="readerVenda"></div>
 
@@ -85,8 +85,9 @@ td,th{border:1px solid #555;padding:5px}
 <option>Dinheiro</option>
 <option>Pix</option>
 <option>Débito</option>
-<option>Crédito</option>
-<option>Vale</option>
+<option>Crédito à vista</option>
+<option>Crédito 2x</option>
+<option>Crédito 3x</option>
 </select>
 
 <button onclick="imprimir()">🧾 Imprimir Cupom</button>
@@ -292,15 +293,32 @@ venda.splice(i,1)
 atualizarVenda()
 }
 
+// 🧾 CUPOM PROFISSIONAL
 function imprimir(){
-let texto="PDV CHINELOS MIX\n\n"
-venda.forEach(p=>{
-texto+=p.nome+" R$"+p.valor+"\n"
-})
-texto+="\nTOTAL: R$ "+total+"\n"+pagamento.value
 
-let w=window.open()
-w.document.write("<pre>"+texto+"</pre>")
+let cupom = `
+CHINELOS MIX
+CNPJ: 46.982.791/0001-01
+END: AV. LEONOR BOLSONI MARQUES DA SILVA, 45
+CENTRO - POÁ
+
+-----------------------------
+`
+
+venda.forEach(p=>{
+cupom += `${p.nome} - R$ ${p.valor}\n`
+})
+
+cupom += `
+-----------------------------
+TOTAL: R$ ${total.toFixed(2)}
+PAGAMENTO: ${pagamento.value}
+
+OBRIGADO PELA PREFERÊNCIA!
+`
+
+let w = window.open("", "", "width=300,height=600")
+w.document.write("<pre style='font-size:14px'>"+cupom+"</pre>")
 w.print()
 }
 
