@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDV Produtos</title>
+<title>Produtos</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
@@ -19,12 +19,10 @@ td,th{border:1px solid #fff;padding:5px}
 
 <body>
 
-<h1>PDV CHINELOS MIX</h1>
+<h2>Cadastro de Produtos</h2>
 
-<h2>Cadastro de Produto</h2>
-
-<input id="codigo" placeholder="Código de Barras" autofocus><br>
-<button onclick="abrirCamera()">📷 Escanear</button>
+<input id="codigo" placeholder="Código de barras"><br>
+<button onclick="abrirCamera()">📷 Scanner</button>
 
 <div id="reader"></div>
 
@@ -36,7 +34,7 @@ td,th{border:1px solid #fff;padding:5px}
 
 <button onclick="salvarProduto()">Salvar</button>
 
-<h2>Produtos</h2>
+<h3>Produtos</h3>
 
 <table>
 <thead>
@@ -52,58 +50,45 @@ td,th{border:1px solid #fff;padding:5px}
 </thead>
 
 <tbody id="lista"></tbody>
-
 </table>
 
 <script>
 
 let produtos = JSON.parse(localStorage.getItem("produtos")) || []
 let editIndex = -1
-let scannerAtivo = null
 
-// SCANNER
 function abrirCamera(){
-
-if(scannerAtivo){
-scannerAtivo.stop()
-scannerAtivo = null
-reader.innerHTML = ""
-return
-}
-
-scannerAtivo = new Html5Qrcode("reader")
+const html5QrCode = new Html5Qrcode("reader")
 
 Html5Qrcode.getCameras().then(devices => {
 if(devices.length){
-scannerAtivo.start(
+html5QrCode.start(
 devices[0].id,
 { fps: 10 },
 (code)=>{
-codigo.value = code
-scannerAtivo.stop()
-scannerAtivo = null
-reader.innerHTML=""
+document.getElementById("codigo").value = code
+html5QrCode.stop()
+document.getElementById("reader").innerHTML=""
 }
 )
 }
 })
 }
 
-// SALVAR
 function salvarProduto(){
 
-if(!codigo.value || !nome.value){
-alert("Preencha código e nome")
-return
+let p = {
+codigo: document.getElementById("codigo").value,
+nome: document.getElementById("nome").value,
+cor: document.getElementById("cor").value,
+numero: document.getElementById("numero").value,
+quantidade: Number(document.getElementById("quantidade").value || 0),
+valor: Number(document.getElementById("valor").value || 0)
 }
 
-let p = {
-codigo: codigo.value,
-nome: nome.value,
-cor: cor.value,
-numero: numero.value,
-quantidade: Number(quantidade.value || 0),
-valor: Number(valor.value || 0)
+if(!p.codigo || !p.nome){
+alert("Preencha código e nome")
+return
 }
 
 if(editIndex >= 0){
@@ -117,11 +102,10 @@ localStorage.setItem("produtos", JSON.stringify(produtos))
 
 limpar()
 listar()
-codigo.focus()
 }
 
-// LISTAR
 function listar(){
+
 let html = ""
 
 produtos.forEach((p,i)=>{
@@ -132,7 +116,7 @@ html += `
 <td>${p.cor}</td>
 <td>${p.numero}</td>
 <td>${p.quantidade}</td>
-<td>R$ ${p.valor.toFixed(2)}</td>
+<td>R$ ${p.valor}</td>
 <td>
 <button onclick="editar(${i})">Editar</button>
 <button onclick="excluir(${i})">Excluir</button>
@@ -141,25 +125,23 @@ html += `
 `
 })
 
-lista.innerHTML = html
+document.getElementById("lista").innerHTML = html
 }
 
-// EDITAR
 function editar(i){
+
 let p = produtos[i]
 
-codigo.value = p.codigo
-nome.value = p.nome
-cor.value = p.cor
-numero.value = p.numero
-quantidade.value = p.quantidade
-valor.value = p.valor
+document.getElementById("codigo").value = p.codigo
+document.getElementById("nome").value = p.nome
+document.getElementById("cor").value = p.cor
+document.getElementById("numero").value = p.numero
+document.getElementById("quantidade").value = p.quantidade
+document.getElementById("valor").value = p.valor
 
 editIndex = i
-codigo.focus()
 }
 
-// EXCLUIR
 function excluir(i){
 if(confirm("Excluir produto?")){
 produtos.splice(i,1)
@@ -168,16 +150,16 @@ listar()
 }
 }
 
-// LIMPAR
 function limpar(){
-codigo.value=""
-nome.value=""
-cor.value=""
-numero.value=""
-quantidade.value=""
-valor.value=""
+document.getElementById("codigo").value=""
+document.getElementById("nome").value=""
+document.getElementById("cor").value=""
+document.getElementById("numero").value=""
+document.getElementById("quantidade").value=""
+document.getElementById("valor").value=""
 }
 
+// 🔥 ESSA LINHA É FUNDAMENTAL
 listar()
 
 </script>
