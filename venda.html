@@ -20,14 +20,15 @@ td,th{border:1px solid #fff;padding:5px}
 
 <body>
 
-<h2>PDV VENDA</h2>
+<h1>PDV CHINELOS MIX</h1>
+<h2>Venda</h2>
 
 <input id="codigo" placeholder="Código de barras" autofocus>
 <button onclick="abrirCamera()">📷 Scanner</button>
 
 <div id="reader"></div>
 
-<h3 id="infoProduto"></h3>
+<h3 id="info"></h3>
 
 <input id="qtd" type="number" value="1">
 
@@ -47,6 +48,7 @@ td,th{border:1px solid #fff;padding:5px}
 <th>Produto</th>
 <th>Qtd</th>
 <th>Valor</th>
+<th>Ação</th>
 </tr>
 </thead>
 <tbody id="lista"></tbody>
@@ -63,7 +65,21 @@ let venda = []
 let total = 0
 let atual = null
 
-// SCANNER
+// 🔍 BUSCAR PRODUTO
+function buscar(){
+let cod = document.getElementById("codigo").value
+
+atual = produtos.find(p => p.codigo == cod)
+
+if(atual){
+document.getElementById("info").innerText =
+`${atual.nome} | R$ ${atual.valor} | Estoque: ${atual.quantidade}`
+}else{
+document.getElementById("info").innerText = "Produto não encontrado"
+}
+}
+
+// 📷 SCANNER
 function abrirCamera(){
 const html5QrCode = new Html5Qrcode("reader")
 
@@ -73,30 +89,17 @@ html5QrCode.start(
 devices[0].id,
 { fps: 10 },
 (code)=>{
-codigo.value = code
-buscarProduto()
+document.getElementById("codigo").value = code
+buscar()
 html5QrCode.stop()
-reader.innerHTML=""
+document.getElementById("reader").innerHTML=""
 }
 )
 }
 })
 }
 
-// BUSCAR PRODUTO
-function buscarProduto(){
-let cod = codigo.value
-
-atual = produtos.find(p => p.codigo == cod)
-
-if(atual){
-infoProduto.innerText = `${atual.nome} | R$ ${atual.valor} | Estoque: ${atual.quantidade}`
-}else{
-infoProduto.innerText = "Produto não encontrado"
-}
-}
-
-// ADICIONAR
+// ➕ ADICIONAR
 function adicionar(){
 
 if(!atual){
@@ -111,7 +114,7 @@ alert("Estoque insuficiente")
 return
 }
 
-// BAIXA ESTOQUE
+// baixa estoque
 atual.quantidade -= qtd
 
 venda.push({
@@ -122,25 +125,26 @@ qtd: qtd
 
 total += atual.valor * qtd
 
-atualizarTela()
+atualizar()
 
 localStorage.setItem("produtos", JSON.stringify(produtos))
 
-codigo.value=""
-infoProduto.innerText=""
+document.getElementById("codigo").value=""
+document.getElementById("info").innerText=""
 }
 
-// ATUALIZA TELA
-function atualizarTela(){
+// 🔄 ATUALIZA TELA
+function atualizar(){
 
 let html = ""
 
-venda.forEach(p=>{
+venda.forEach((p,i)=>{
 html += `
 <tr>
 <td>${p.nome}</td>
 <td>${p.qtd}</td>
 <td>R$ ${p.valor}</td>
+<td><button onclick="remover(${i})">❌</button></td>
 </tr>
 `
 })
@@ -149,7 +153,27 @@ document.getElementById("lista").innerHTML = html
 document.getElementById("total").innerText = total.toFixed(2)
 }
 
-// FINALIZAR
+// ❌ REMOVER ITEM
+function remover(i){
+
+let item = venda[i]
+
+// devolve estoque
+let prod = produtos.find(p => p.nome == item.nome)
+if(prod){
+prod.quantidade += item.qtd
+}
+
+total -= item.valor * item.qtd
+
+venda.splice(i,1)
+
+atualizar()
+
+localStorage.setItem("produtos", JSON.stringify(produtos))
+}
+
+// 🧾 FINALIZAR
 function finalizar(){
 
 if(venda.length === 0){
@@ -185,15 +209,14 @@ w.print()
 
 venda = []
 total = 0
-atualizarTela()
+atualizar()
 }
 
-// PISTOLA AUTOMÁTICA
-document.getElementById("codigo").addEventListener("change", buscarProduto)
+// 🔫 PISTOLA AUTOMÁTICA
+document.getElementById("codigo").addEventListener("change", buscar)
 
 </script>
 
 </body>
 </html>
 ```
-
