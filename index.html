@@ -9,13 +9,12 @@
 
 <style>
 body{background:#000;color:#fff;font-family:Arial;text-align:center}
-input,button,select{padding:10px;margin:5px;font-size:16px}
+input,button,select{padding:10px;margin:5px}
 button{background:green;color:#fff;border:none}
-table{width:100%;margin-top:15px;border-collapse:collapse}
+table{width:100%;margin-top:10px;border-collapse:collapse}
 td,th{border:1px solid #555;padding:5px}
 .tela{display:none}
 .menu{background:#111;padding:10px}
-#reader,#readerVenda{width:300px;margin:auto}
 </style>
 </head>
 
@@ -30,11 +29,60 @@ td,th{border:1px solid #555;padding:5px}
 </div>
 
 <div id="menu" class="tela menu">
-<button onclick="mostrar('produtos')">📦 Produtos</button>
-<button onclick="mostrar('vendas')">💰 Vendas</button>
-<button onclick="mostrar('funcionarios')">👨‍💼 Funcionários</button>
-<button onclick="mostrar('caixa')">🏦 Caixa</button>
-<button onclick="mostrar('relatorio')">📊 Relatório</button>
+<button onclick="mostrar('produtos')">Produtos</button>
+<button onclick="mostrar('vendas')">Vendas</button>
+<button onclick="mostrar('funcionarios')">Funcionários</button>
+<button onclick="mostrar('caixa')">Caixa</button>
+<button onclick="mostrar('relatorio')">Relatório</button>
+</div>
+
+<!-- PRODUTOS -->
+<div id="produtos" class="tela">
+<h2>Produtos</h2>
+
+<input id="codigo" placeholder="Código">
+<input id="nome" placeholder="Nome">
+<input id="valor" placeholder="Valor">
+
+<button onclick="salvarProduto()">Salvar</button>
+
+<table><tbody id="listaProdutos"></tbody></table>
+<button onclick="mostrar('menu')">Voltar</button>
+</div>
+
+<!-- VENDAS -->
+<div id="vendas" class="tela">
+<h2>Vendas</h2>
+
+<input id="codVenda" placeholder="Código">
+<button onclick="addVenda()">Adicionar</button>
+
+<select id="pagamento">
+<option>Dinheiro</option>
+<option>Pix</option>
+<option>Débito</option>
+<option>Crédito</option>
+</select>
+
+<h3>Total: <span id="total">0</span></h3>
+
+<button onclick="finalizar()">Finalizar</button>
+
+<table><tbody id="listaVenda"></tbody></table>
+
+<button onclick="mostrar('menu')">Voltar</button>
+</div>
+
+<!-- FUNCIONARIOS -->
+<div id="funcionarios" class="tela">
+<h2>Funcionários</h2>
+
+<input id="nomeFunc" placeholder="Nome">
+<button onclick="salvarFunc()">Salvar</button>
+
+<table><tbody id="listaFunc"></tbody></table>
+
+<button onclick="mostrar('menu')">Voltar</button>
 </div>
 
 <!-- CAIXA -->
@@ -42,114 +90,120 @@ td,th{border:1px solid #555;padding:5px}
 <h2>Caixa</h2>
 
 <input id="valorInicial" placeholder="Valor inicial">
-
-<button onclick="abrirCaixa()">Abrir Caixa</button>
-<button onclick="fecharCaixa()">Fechar Caixa</button>
+<button onclick="abrirCaixa()">Abrir</button>
+<button onclick="fecharCaixa()">Fechar</button>
 
 <h3 id="statusCaixa"></h3>
 
-<button onclick="mostrar('menu')">⬅ Voltar</button>
+<button onclick="mostrar('menu')">Voltar</button>
 </div>
 
 <!-- RELATORIO -->
 <div id="relatorio" class="tela">
-<h2>Relatório de Vendas</h2>
+<h2>Relatório</h2>
 
-<table>
-<thead>
-<tr><th>Data</th><th>Total</th><th>Pagamento</th></tr>
-</thead>
-<tbody id="listaRelatorio"></tbody>
-</table>
+<table><tbody id="listaRelatorio"></tbody></table>
 
-<h3>Total Geral: R$ <span id="totalRelatorio">0</span></h3>
-
-<button onclick="mostrar('menu')">⬅ Voltar</button>
+<button onclick="mostrar('menu')">Voltar</button>
 </div>
-
-<!-- (resto do sistema continua igual: produtos, vendas, funcionarios...) -->
 
 <script>
 
 // LOGIN
 function entrar(){
-if(user.value==="admin" && pass.value==="123"){
+if(user.value=="admin" && pass.value=="123"){
 mostrar("menu")
-}else{
-alert("Login inválido")
-}
+}else alert("Erro login")
 }
 
 // TROCAR TELA
 function mostrar(t){
-document.querySelectorAll(".tela").forEach(e=>e.style.display="none")
+document.querySelectorAll(".tela").forEach(x=>x.style.display="none")
 document.getElementById(t).style.display="block"
+listarProdutos()
+listarFunc()
 listarRelatorio()
 }
 
-// ================= CAIXA =================
-let caixaAberto = false
-let valorCaixa = 0
+// PRODUTOS
+let produtos = JSON.parse(localStorage.getItem("produtos"))||[]
+
+function salvarProduto(){
+produtos.push({codigo:codigo.value,nome:nome.value,valor:valor.value})
+localStorage.setItem("produtos",JSON.stringify(produtos))
+listarProdutos()
+}
+
+function listarProdutos(){
+listaProdutos.innerHTML = produtos.map(p=>`<tr><td>${p.nome}</td></tr>`).join("")
+}
+
+// VENDAS
+let venda=[]
+let total=0
+
+function addVenda(){
+let p=produtos.find(x=>x.codigo==codVenda.value)
+if(!p)return alert("Não encontrado")
+venda.push(p)
+total+=Number(p.valor)
+atualizarVenda()
+}
+
+function atualizarVenda(){
+listaVenda.innerHTML = venda.map(p=>`<tr><td>${p.nome}</td></tr>`).join("")
+document.getElementById("total").innerText=total
+}
+
+// CAIXA
+let caixa=0
+let aberto=false
 
 function abrirCaixa(){
-valorCaixa = Number(valorInicial.value)
-caixaAberto = true
-statusCaixa.innerText = "Caixa aberto com R$ " + valorCaixa
+caixa=Number(valorInicial.value)
+aberto=true
+statusCaixa.innerText="Aberto"
 }
 
 function fecharCaixa(){
-caixaAberto = false
-statusCaixa.innerText = "Caixa fechado. Total em caixa: R$ " + valorCaixa
+aberto=false
+statusCaixa.innerText="Fechado: "+caixa
 }
 
-// ================= RELATORIO =================
-let vendasRelatorio = JSON.parse(localStorage.getItem("relatorio")) || []
+// RELATORIO
+let rel = JSON.parse(localStorage.getItem("rel"))||[]
 
-function salvarRelatorio(total,pagamento){
-let venda = {
-data: new Date().toLocaleString(),
-total: total,
-pagamento: pagamento
-}
-vendasRelatorio.push(venda)
-localStorage.setItem("relatorio", JSON.stringify(vendasRelatorio))
+function salvarRel(){
+rel.push({data:new Date().toLocaleString(),total:total})
+localStorage.setItem("rel",JSON.stringify(rel))
 }
 
 function listarRelatorio(){
-let html=""
-let totalGeral=0
-
-vendasRelatorio.forEach(v=>{
-html+=`<tr><td>${v.data}</td><td>R$ ${v.total}</td><td>${v.pagamento}</td></tr>`
-totalGeral+=Number(v.total)
-})
-
-listaRelatorio.innerHTML=html
-totalRelatorio.innerText=totalGeral.toFixed(2)
+listaRelatorio.innerHTML = rel.map(r=>`<tr><td>${r.data} - ${r.total}</td></tr>`).join("")
 }
 
-// ================= FINALIZAR VENDA =================
+// FINALIZAR
 function finalizar(){
-
-if(venda.length==0){
-alert("Sem venda")
-return
-}
-
-if(!caixaAberto){
-alert("Abra o caixa primeiro")
-return
-}
-
-valorCaixa += total
-
-salvarRelatorio(total,pagamento.value)
-
-alert("Venda finalizada")
-
+if(!aberto)return alert("Abra o caixa")
+caixa+=total
+salvarRel()
+alert("Finalizado")
 venda=[]
 total=0
 atualizarVenda()
+}
+
+function salvarFunc(){
+let f=nomeFunc.value
+let lista = JSON.parse(localStorage.getItem("func"))||[]
+lista.push(f)
+localStorage.setItem("func",JSON.stringify(lista))
+listarFunc()
+}
+
+function listarFunc(){
+let lista = JSON.parse(localStorage.getItem("func"))||[]
+listaFunc.innerHTML = lista.map(f=>`<tr><td>${f}</td></tr>`).join("")
 }
 
 </script>
