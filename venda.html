@@ -3,34 +3,34 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDV Venda</title>
+<title>PDV Vendas</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 body{background:#000;color:#fff;font-family:Arial;text-align:center}
-input,button,select{padding:12px;margin:5px;width:90%}
+input,button{padding:10px;margin:5px;font-size:16px}
 button{background:green;color:#fff;border:none}
-table{width:100%;border-collapse:collapse;margin-top:10px}
+table{width:100%;margin-top:20px;border-collapse:collapse}
 td,th{border:1px solid #fff;padding:5px}
 #reader{width:300px;margin:auto}
 </style>
-
 </head>
 
 <body>
 
-<h1>PDV CHINELOS MIX</h1>
-<h2>Venda</h2>
+<h1>💰 PDV VENDAS</h1>
 
-<input id="codigo" placeholder="Código de barras" autofocus>
+<input id="codigo" placeholder="Código de Barras"><br>
 <button onclick="abrirCamera()">📷 Scanner</button>
 
 <div id="reader"></div>
 
-<h3 id="info"></h3>
+<br>
 
-<input id="qtd" type="number" value="1">
+<button onclick="adicionar()">Adicionar Produto</button>
+
+<h2>Total: R$ <span id="total">0</span></h2>
 
 <select id="pagamento">
 <option>Dinheiro</option>
@@ -40,13 +40,14 @@ td,th{border:1px solid #fff;padding:5px}
 <option>Vale</option>
 </select>
 
-<button onclick="adicionar()">Adicionar</button>
+<br><br>
+
+<button onclick="finalizar()">Finalizar Venda</button>
 
 <table>
 <thead>
 <tr>
-<th>Produto</th>
-<th>Qtd</th>
+<th>Nome</th>
 <th>Valor</th>
 <th>Ação</th>
 </tr>
@@ -54,43 +55,22 @@ td,th{border:1px solid #fff;padding:5px}
 <tbody id="lista"></tbody>
 </table>
 
-<h2>Total: R$ <span id="total">0</span></h2>
-
-<button onclick="finalizar()">Finalizar Venda</button>
-
 <script>
 
 let produtos = JSON.parse(localStorage.getItem("produtos")) || []
 let venda = []
 let total = 0
-let atual = null
 
-// 🔍 BUSCAR PRODUTO
-function buscar(){
-let cod = document.getElementById("codigo").value
-
-atual = produtos.find(p => p.codigo == cod)
-
-if(atual){
-document.getElementById("info").innerText =
-`${atual.nome} | R$ ${atual.valor} | Estoque: ${atual.quantidade}`
-}else{
-document.getElementById("info").innerText = "Produto não encontrado"
-}
-}
-
-// 📷 SCANNER
 function abrirCamera(){
 const html5QrCode = new Html5Qrcode("reader")
 
-Html5QrCode.getCameras().then(devices => {
+Html5Qrcode.getCameras().then(devices => {
 if(devices.length){
 html5QrCode.start(
 devices[0].id,
-{ fps: 10 },
+{ fps: 10, qrbox: 250 },
 (code)=>{
 document.getElementById("codigo").value = code
-buscar()
 html5QrCode.stop()
 document.getElementById("reader").innerHTML=""
 }
@@ -99,121 +79,61 @@ document.getElementById("reader").innerHTML=""
 })
 }
 
-// ➕ ADICIONAR
 function adicionar(){
+let cod = document.getElementById("codigo").value
 
-if(!atual){
+let produto = produtos.find(p => p.codigo == cod)
+
+if(!produto){
 alert("Produto não encontrado")
 return
 }
 
-let qtd = Number(document.getElementById("qtd").value)
-
-if(atual.quantidade < qtd){
-alert("Estoque insuficiente")
-return
-}
-
-// baixa estoque
-atual.quantidade -= qtd
-
-venda.push({
-nome: atual.nome,
-valor: atual.valor,
-qtd: qtd
-})
-
-total += atual.valor * qtd
+venda.push(produto)
+total += Number(produto.valor)
 
 atualizar()
-
-localStorage.setItem("produtos", JSON.stringify(produtos))
-
-document.getElementById("codigo").value=""
-document.getElementById("info").innerText=""
 }
 
-// 🔄 ATUALIZA TELA
 function atualizar(){
-
 let html = ""
 
 venda.forEach((p,i)=>{
 html += `
 <tr>
 <td>${p.nome}</td>
-<td>${p.qtd}</td>
 <td>R$ ${p.valor}</td>
-<td><button onclick="remover(${i})">❌</button></td>
+<td><button onclick="remover(${i})">X</button></td>
 </tr>
 `
 })
 
-document.getElementById("lista").innerHTML = html
-document.getElementById("total").innerText = total.toFixed(2)
+lista.innerHTML = html
+totalSpan.innerText = total.toFixed(2)
 }
 
-// ❌ REMOVER ITEM
 function remover(i){
-
-let item = venda[i]
-
-// devolve estoque
-let prod = produtos.find(p => p.nome == item.nome)
-if(prod){
-prod.quantidade += item.qtd
-}
-
-total -= item.valor * item.qtd
-
+total -= Number(venda[i].valor)
 venda.splice(i,1)
-
 atualizar()
-
-localStorage.setItem("produtos", JSON.stringify(produtos))
 }
 
-// 🧾 FINALIZAR
 function finalizar(){
-
-if(venda.length === 0){
-alert("Nenhum item na venda")
+if(venda.length == 0){
+alert("Nenhuma venda")
 return
 }
 
-let forma = document.getElementById("pagamento").value
+let forma = pagamento.value
 
-let cupom = `
-PDV CHINELOS MIX
-CNPJ: 00.000.000
-END: SUA LOJA
-
-----------------
-`
-
-venda.forEach(p=>{
-cupom += `${p.nome} x${p.qtd} R$${p.valor}\n`
-})
-
-cupom += `
-----------------
-TOTAL: R$ ${total.toFixed(2)}
-PAGAMENTO: ${forma}
-
-OBRIGADO!
-`
-
-let w = window.open()
-w.document.write("<pre>"+cupom+"</pre>")
-w.print()
+alert("Venda finalizada\nTotal: R$ " + total + "\nPagamento: " + forma)
 
 venda = []
 total = 0
 atualizar()
 }
 
-// 🔫 PISTOLA AUTOMÁTICA
-document.getElementById("codigo").addEventListener("change", buscar)
+const totalSpan = document.getElementById("total")
 
 </script>
 
