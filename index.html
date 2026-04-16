@@ -23,14 +23,12 @@ td,th{border:1px solid #555;padding:5px}
 
 <h1>PDV CHINELOS MIX</h1>
 
-<!-- LOGIN -->
 <div id="login" class="tela" style="display:block">
 <input id="user" placeholder="Usuário"><br>
 <input id="pass" type="password" placeholder="Senha"><br>
 <button onclick="entrar()">Entrar</button>
 </div>
 
-<!-- MENU -->
 <div id="menu" class="tela menu">
 <button onclick="mostrar('produtos')">📦 Produtos</button>
 <button onclick="mostrar('vendas')">💰 Vendas</button>
@@ -43,7 +41,7 @@ td,th{border:1px solid #555;padding:5px}
 <h2>Cadastro de Produto</h2>
 
 <input id="codigo" placeholder="Código">
-<button onclick="scanProduto()">📷 Scanner</button>
+<button onclick="scanProduto()">📷</button>
 <div id="reader"></div>
 
 <input id="nome" placeholder="Nome">
@@ -73,7 +71,7 @@ td,th{border:1px solid #555;padding:5px}
 <h2>Venda</h2>
 
 <input id="codVenda" placeholder="Código">
-<button onclick="scanVenda()">📷 Scanner</button>
+<button onclick="scanVenda()">📷</button>
 
 <div id="readerVenda"></div>
 
@@ -95,7 +93,7 @@ td,th{border:1px solid #555;padding:5px}
 
 <table>
 <thead>
-<tr><th>Nome</th><th>Valor</th><th>Ação</th></tr>
+<tr><th>Nome</th><th>Qtd</th><th>Valor</th><th>Ação</th></tr>
 </thead>
 <tbody id="listaVenda"></tbody>
 </table>
@@ -146,7 +144,7 @@ listarProdutos()
 listarFunc()
 }
 
-// ================= PRODUTOS =================
+// PRODUTOS
 let produtos = JSON.parse(localStorage.getItem("produtos"))||[]
 let edit=-1
 
@@ -218,21 +216,13 @@ quantidade.value=""
 valor.value=""
 }
 
-// ================= SCANNER =================
+// SCANNER
 let camProduto=null
 let camVenda=null
 
 function scanProduto(){
-
-if(camProduto){
-camProduto.stop()
-camProduto=null
-reader.innerHTML=""
-return
-}
-
+if(camProduto){camProduto.stop();camProduto=null;reader.innerHTML="";return}
 camProduto=new Html5Qrcode("reader")
-
 camProduto.start({facingMode:"environment"},{fps:10},code=>{
 codigo.value=code
 camProduto.stop()
@@ -242,16 +232,8 @@ reader.innerHTML=""
 }
 
 function scanVenda(){
-
-if(camVenda){
-camVenda.stop()
-camVenda=null
-readerVenda.innerHTML=""
-return
-}
-
+if(camVenda){camVenda.stop();camVenda=null;readerVenda.innerHTML="";return}
 camVenda=new Html5Qrcode("readerVenda")
-
 camVenda.start({facingMode:"environment"},{fps:10},code=>{
 codVenda.value=code
 camVenda.stop()
@@ -260,7 +242,7 @@ readerVenda.innerHTML=""
 })
 }
 
-// ================= VENDAS =================
+// VENDAS
 let venda=[]
 let total=0
 
@@ -268,8 +250,15 @@ function addVenda(){
 let p=produtos.find(x=>x.codigo==codVenda.value)
 if(!p)return alert("Produto não encontrado")
 
-venda.push(p)
-total+=Number(p.valor)
+let qtd=1
+
+venda.push({
+nome:p.nome,
+valor:Number(p.valor),
+qtd:qtd
+})
+
+total+=p.valor*qtd
 atualizarVenda()
 }
 
@@ -279,6 +268,7 @@ venda.forEach((p,i)=>{
 html+=`
 <tr>
 <td>${p.nome}</td>
+<td>${p.qtd}</td>
 <td>R$ ${p.valor}</td>
 <td><button onclick="remover(${i})">X</button></td>
 </tr>`
@@ -288,37 +278,40 @@ document.getElementById("total").innerText=total.toFixed(2)
 }
 
 function remover(i){
-total-=Number(venda[i].valor)
+total-=venda[i].valor*venda[i].qtd
 venda.splice(i,1)
 atualizarVenda()
 }
 
-// 🧾 CUPOM PROFISSIONAL
+// CUPOM COMPLETO
 function imprimir(){
 
-let cupom = `
+let cupom=`
 CHINELOS MIX
 CNPJ: 46.982.791/0001-01
 END: AV. LEONOR BOLSONI MARQUES DA SILVA, 45
 CENTRO - POÁ
 
------------------------------
+--------------------------------
+ITEM   QTD   VALOR   TOTAL
+--------------------------------
 `
 
 venda.forEach(p=>{
-cupom += `${p.nome} - R$ ${p.valor}\n`
+let t=p.valor*p.qtd
+cupom+=`${p.nome}  ${p.qtd}  R$${p.valor}  R$${t}\n`
 })
 
-cupom += `
------------------------------
+cupom+=`
+--------------------------------
 TOTAL: R$ ${total.toFixed(2)}
 PAGAMENTO: ${pagamento.value}
 
-OBRIGADO PELA PREFERÊNCIA!
+OBRIGADO!
 `
 
-let w = window.open("", "", "width=300,height=600")
-w.document.write("<pre style='font-size:14px'>"+cupom+"</pre>")
+let w=window.open("","","width=300,height=600")
+w.document.write("<pre>"+cupom+"</pre>")
 w.print()
 }
 
@@ -329,15 +322,11 @@ total=0
 atualizarVenda()
 }
 
-// ================= FUNCIONÁRIOS =================
+// FUNCIONÁRIOS
 let funcionarios=JSON.parse(localStorage.getItem("funcionarios"))||[]
 
 function salvarFunc(){
-funcionarios.push({
-nome:nomeFunc.value,
-cargo:cargoFunc.value,
-ponto:[]
-})
+funcionarios.push({nome:nomeFunc.value,cargo:cargoFunc.value,ponto:[]})
 localStorage.setItem("funcionarios",JSON.stringify(funcionarios))
 listarFunc()
 }
@@ -355,7 +344,10 @@ html+=`
 <button onclick="ponto(${i},'Volta')">Volta</button>
 <button onclick="ponto(${i},'Saída')">Saída</button>
 </td>
-<td><button onclick="excluirFunc(${i})">Excluir</button></td>
+<td>
+<button onclick="imprimirPonto(${i})">🧾</button>
+<button onclick="excluirFunc(${i})">X</button>
+</td>
 </tr>`
 })
 listaFunc.innerHTML=html
@@ -366,6 +358,27 @@ let hora=new Date().toLocaleString()
 funcionarios[i].ponto.push({tipo,hora})
 localStorage.setItem("funcionarios",JSON.stringify(funcionarios))
 alert(tipo+" registrado: "+hora)
+}
+
+function imprimirPonto(i){
+let f=funcionarios[i]
+let ultimo=f.ponto[f.ponto.length-1]
+
+let texto=`
+CHINELOS MIX
+
+FUNCIONÁRIO: ${f.nome}
+CARGO: ${f.cargo}
+
+TIPO: ${ultimo.tipo}
+DATA: ${ultimo.hora}
+
+COMPROVANTE
+`
+
+let w=window.open()
+w.document.write("<pre>"+texto+"</pre>")
+w.print()
 }
 
 function excluirFunc(i){
