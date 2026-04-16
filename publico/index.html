@@ -3,44 +3,25 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDV CHINELOS MIX</title>
+<title>Produtos</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 body{background:#000;color:#fff;font-family:Arial;text-align:center}
-input,button,select{padding:10px;margin:5px;font-size:16px}
+input,button{padding:10px;margin:5px;font-size:16px}
 button{background:green;color:#fff;border:none}
 table{width:100%;margin-top:20px;border-collapse:collapse}
 td,th{border:1px solid #fff;padding:5px}
-.tela{display:none}
 #reader{width:300px;margin:auto}
 </style>
 </head>
 
 <body>
 
-<h1>PDV CHINELOS MIX</h1>
+<h2>Cadastro de Produtos</h2>
 
-<!-- LOGIN -->
-<div id="login" class="tela" style="display:block">
-<input id="user" placeholder="Usuário"><br>
-<input id="pass" type="password" placeholder="Senha"><br>
-<button onclick="entrar()">Entrar</button>
-</div>
-
-<!-- MENU -->
-<div id="menu" class="tela">
-<button onclick="mostrar('produtos')">📦 Produtos</button>
-<button onclick="mostrar('vendas')">💰 Vendas</button>
-</div>
-
-<!-- PRODUTOS -->
-<div id="produtos" class="tela">
-
-<h2>Cadastro de Produto</h2>
-
-<input id="codigo" placeholder="Código"><br>
+<input id="codigo" placeholder="Código de barras"><br>
 <button onclick="abrirCamera()">📷 Scanner</button>
 
 <div id="reader"></div>
@@ -53,102 +34,78 @@ td,th{border:1px solid #fff;padding:5px}
 
 <button onclick="salvarProduto()">Salvar</button>
 
-<h3>Lista</h3>
+<h3>Produtos</h3>
+
 <table>
 <thead>
 <tr>
-<th>Código</th><th>Nome</th><th>Cor</th><th>Nº</th><th>Qtd</th><th>Valor</th><th>Ação</th>
+<th>Código</th>
+<th>Nome</th>
+<th>Cor</th>
+<th>Nº</th>
+<th>Qtd</th>
+<th>Valor</th>
+<th>Ação</th>
 </tr>
 </thead>
-<tbody id="listaProdutos"></tbody>
+
+<tbody id="lista"></tbody>
 </table>
-
-<br>
-<button onclick="mostrar('menu')">⬅ Voltar</button>
-
-</div>
-
-<!-- VENDAS -->
-<div id="vendas" class="tela">
-
-<h2>Venda</h2>
-
-<input id="codVenda" placeholder="Código"><br>
-<button onclick="abrirCameraVenda()">📷 Scanner</button>
-
-<div id="readerVenda"></div>
-
-<button onclick="addVenda()">Adicionar</button>
-
-<h3>Total: R$ <span id="total">0</span></h3>
-
-<select id="pagamento">
-<option>Dinheiro</option>
-<option>Pix</option>
-<option>Débito</option>
-<option>Crédito</option>
-<option>Vale</option>
-</select>
-
-<button onclick="finalizar()">Finalizar</button>
-
-<table>
-<thead>
-<tr><th>Nome</th><th>Valor</th><th>Ação</th></tr>
-</thead>
-<tbody id="listaVenda"></tbody>
-</table>
-
-<br>
-<button onclick="mostrar('menu')">⬅ Voltar</button>
-
-</div>
 
 <script>
 
-// LOGIN
-function entrar(){
-if(user.value == "admin" && pass.value == "123"){
-mostrar("menu")
-}else{
-alert("Login inválido")
-}
-}
-
-// TROCAR TELA
-function mostrar(id){
-document.querySelectorAll(".tela").forEach(t=>t.style.display="none")
-document.getElementById(id).style.display="block"
-}
-
-// PRODUTOS
 let produtos = JSON.parse(localStorage.getItem("produtos")) || []
-let edit = -1
+let editIndex = -1
+
+function abrirCamera(){
+const html5QrCode = new Html5Qrcode("reader")
+
+Html5Qrcode.getCameras().then(devices => {
+if(devices.length){
+html5QrCode.start(
+devices[0].id,
+{ fps: 10 },
+(code)=>{
+document.getElementById("codigo").value = code
+html5QrCode.stop()
+document.getElementById("reader").innerHTML=""
+}
+)
+}
+})
+}
 
 function salvarProduto(){
 
 let p = {
-codigo: codigo.value,
-nome: nome.value,
-cor: cor.value,
-numero: numero.value,
-quantidade: quantidade.value,
-valor: valor.value
+codigo: document.getElementById("codigo").value,
+nome: document.getElementById("nome").value,
+cor: document.getElementById("cor").value,
+numero: document.getElementById("numero").value,
+quantidade: Number(document.getElementById("quantidade").value || 0),
+valor: Number(document.getElementById("valor").value || 0)
 }
 
-if(edit >= 0){
-produtos[edit] = p
-edit = -1
+if(!p.codigo || !p.nome){
+alert("Preencha código e nome")
+return
+}
+
+if(editIndex >= 0){
+produtos[editIndex] = p
+editIndex = -1
 }else{
 produtos.push(p)
 }
 
 localStorage.setItem("produtos", JSON.stringify(produtos))
-listarProdutos()
+
 limpar()
+listar()
 }
 
-function listarProdutos(){
+function listar(){
+
 let html = ""
 
 produtos.forEach((p,i)=>{
@@ -168,123 +125,45 @@ html += `
 `
 })
 
-listaProdutos.innerHTML = html
+document.getElementById("lista").innerHTML = html
 }
 
 function editar(i){
+
 let p = produtos[i]
 
-codigo.value=p.codigo
-nome.value=p.nome
-cor.value=p.cor
-numero.value=p.numero
-quantidade.value=p.quantidade
-valor.value=p.valor
+document.getElementById("codigo").value = p.codigo
+document.getElementById("nome").value = p.nome
+document.getElementById("cor").value = p.cor
+document.getElementById("numero").value = p.numero
+document.getElementById("quantidade").value = p.quantidade
+document.getElementById("valor").value = p.valor
 
-edit = i
+editIndex = i
 }
 
 function excluir(i){
+if(confirm("Excluir produto?")){
 produtos.splice(i,1)
 localStorage.setItem("produtos", JSON.stringify(produtos))
-listarProdutos()
+listar()
+}
 }
 
 function limpar(){
-codigo.value=""
-nome.value=""
-cor.value=""
-numero.value=""
-quantidade.value=""
-valor.value=""
+document.getElementById("codigo").value=""
+document.getElementById("nome").value=""
+document.getElementById("cor").value=""
+document.getElementById("numero").value=""
+document.getElementById("quantidade").value=""
+document.getElementById("valor").value=""
 }
 
-listarProdutos()
-
-// SCANNER PRODUTO
-function abrirCamera(){
-const cam = new Html5Qrcode("reader")
-
-Html5Qrcode.getCameras().then(devices=>{
-cam.start(devices[0].id,{fps:10,qrbox:250},code=>{
-codigo.value=code
-cam.stop()
-reader.innerHTML=""
-})
-})
-}
-
-// VENDAS
-let venda = []
-let total = 0
-
-function addVenda(){
-let p = produtos.find(x => x.codigo == codVenda.value)
-
-if(!p){
-alert("Produto não encontrado")
-return
-}
-
-venda.push(p)
-total += Number(p.valor)
-
-atualizarVenda()
-}
-
-function atualizarVenda(){
-let html=""
-
-venda.forEach((p,i)=>{
-html+=`
-<tr>
-<td>${p.nome}</td>
-<td>R$ ${p.valor}</td>
-<td><button onclick="remover(${i})">X</button></td>
-</tr>
-`
-})
-
-listaVenda.innerHTML = html
-document.getElementById("total").innerText = total.toFixed(2)
-}
-
-function remover(i){
-total -= Number(venda[i].valor)
-venda.splice(i,1)
-atualizarVenda()
-}
-
-function finalizar(){
-
-if(venda.length==0){
-alert("Sem venda")
-return
-}
-
-alert("Venda finalizada\nTotal: R$ "+total+"\nPagamento: "+pagamento.value)
-
-venda=[]
-total=0
-atualizarVenda()
-}
-
-// SCANNER VENDA
-function abrirCameraVenda(){
-const cam = new Html5Qrcode("readerVenda")
-
-Html5Qrcode.getCameras().then(devices=>{
-cam.start(devices[0].id,{fps:10,qrbox:250},code=>{
-codVenda.value=code
-cam.stop()
-readerVenda.innerHTML=""
-})
-})
-}
+// 🔥 ESSA LINHA É FUNDAMENTAL
+listar()
 
 </script>
 
 </body>
 </html>
 ```
-
