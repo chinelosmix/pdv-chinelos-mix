@@ -145,7 +145,7 @@ listarProdutos()
 listarFunc()
 }
 
-// PRODUTOS
+// ================= PRODUTOS =================
 let produtos = JSON.parse(localStorage.getItem("produtos"))||[]
 let edit=-1
 
@@ -217,7 +217,49 @@ quantidade.value=""
 valor.value=""
 }
 
-// VENDAS
+// ================= SCANNER =================
+let camProduto=null
+let camVenda=null
+
+function scanProduto(){
+
+if(camProduto){
+camProduto.stop()
+camProduto=null
+reader.innerHTML=""
+return
+}
+
+camProduto=new Html5Qrcode("reader")
+
+camProduto.start({facingMode:"environment"},{fps:10},code=>{
+codigo.value=code
+camProduto.stop()
+camProduto=null
+reader.innerHTML=""
+})
+}
+
+function scanVenda(){
+
+if(camVenda){
+camVenda.stop()
+camVenda=null
+readerVenda.innerHTML=""
+return
+}
+
+camVenda=new Html5Qrcode("readerVenda")
+
+camVenda.start({facingMode:"environment"},{fps:10},code=>{
+codVenda.value=code
+camVenda.stop()
+camVenda=null
+readerVenda.innerHTML=""
+})
+}
+
+// ================= VENDAS =================
 let venda=[]
 let total=0
 
@@ -250,7 +292,6 @@ venda.splice(i,1)
 atualizarVenda()
 }
 
-// 🧾 IMPRIMIR
 function imprimir(){
 let texto="PDV CHINELOS MIX\n\n"
 venda.forEach(p=>{
@@ -263,7 +304,6 @@ w.document.write("<pre>"+texto+"</pre>")
 w.print()
 }
 
-// FINALIZAR
 function finalizar(){
 alert("Venda finalizada")
 venda=[]
@@ -271,7 +311,7 @@ total=0
 atualizarVenda()
 }
 
-// FUNCIONÁRIOS
+// ================= FUNCIONÁRIOS =================
 let funcionarios=JSON.parse(localStorage.getItem("funcionarios"))||[]
 
 function salvarFunc(){
@@ -291,47 +331,29 @@ html+=`
 <tr>
 <td>${f.nome}</td>
 <td>${f.cargo}</td>
-<td><button onclick="bater(${i})">Bater ponto</button></td>
+<td>
+<button onclick="ponto(${i},'Entrada')">Entrada</button>
+<button onclick="ponto(${i},'Almoço')">Almoço</button>
+<button onclick="ponto(${i},'Volta')">Volta</button>
+<button onclick="ponto(${i},'Saída')">Saída</button>
+</td>
 <td><button onclick="excluirFunc(${i})">Excluir</button></td>
 </tr>`
 })
 listaFunc.innerHTML=html
 }
 
-function bater(i){
+function ponto(i,tipo){
 let hora=new Date().toLocaleString()
-funcionarios[i].ponto.push(hora)
+funcionarios[i].ponto.push({tipo,hora})
 localStorage.setItem("funcionarios",JSON.stringify(funcionarios))
-alert("Ponto registrado: "+hora)
+alert(tipo+" registrado: "+hora)
 }
 
 function excluirFunc(i){
 funcionarios.splice(i,1)
 localStorage.setItem("funcionarios",JSON.stringify(funcionarios))
 listarFunc()
-}
-
-// SCANNER
-function scanProduto(){
-let cam=new Html5Qrcode("reader")
-Html5QrCode.getCameras().then(dev=>{
-cam.start(dev[0].id,{fps:10},code=>{
-codigo.value=code
-cam.stop()
-reader.innerHTML=""
-})
-})
-}
-
-function scanVenda(){
-let cam=new Html5Qrcode("readerVenda")
-Html5QrCode.getCameras().then(dev=>{
-cam.start(dev[0].id,{fps:10},code=>{
-codVenda.value=code
-cam.stop()
-readerVenda.innerHTML=""
-})
-})
 }
 
 listarProdutos()
