@@ -69,7 +69,7 @@ td,th{border:1px solid #555;padding:5px}
 
 <!-- VENDAS -->
 <div id="vendas" class="tela">
-<h2>Vendas</h2>
+<h2>Venda</h2>
 
 <input id="codVenda" placeholder="Código">
 <button onclick="scanVenda()">📷 Scanner</button>
@@ -86,9 +86,13 @@ td,th{border:1px solid #555;padding:5px}
 <option>Crédito à vista</option>
 <option>Crédito 2x</option>
 <option>Crédito 3x</option>
+<option>Vale</option>
 </select>
 
+<input id="dinheiro" placeholder="Valor recebido">
+
 <h3>Total: R$ <span id="total">0</span></h3>
+<h3>Troco: R$ <span id="troco">0</span></h3>
 
 <button onclick="imprimir()">🧾 Imprimir Cupom</button>
 <button onclick="finalizar()">Finalizar</button>
@@ -103,7 +107,7 @@ td,th{border:1px solid #555;padding:5px}
 <button onclick="mostrar('menu')">Voltar</button>
 </div>
 
-<!-- FUNCIONARIOS -->
+<!-- FUNCIONÁRIOS -->
 <div id="funcionarios" class="tela">
 <h2>Funcionários</h2>
 
@@ -136,7 +140,7 @@ td,th{border:1px solid #555;padding:5px}
 <button onclick="mostrar('menu')">Voltar</button>
 </div>
 
-<!-- RELATORIO -->
+<!-- RELATÓRIO -->
 <div id="relatorio" class="tela">
 <h2>Relatório</h2>
 
@@ -171,11 +175,11 @@ listarRelatorio()
 }
 
 // PRODUTOS
-let produtos = JSON.parse(localStorage.getItem("produtos"))||[]
-let edit = -1
+let produtos=JSON.parse(localStorage.getItem("produtos"))||[]
+let edit=-1
 
 function salvarProduto(){
-let p = {
+let p={
 codigo:codigo.value,
 nome:nome.value,
 cor:cor.value,
@@ -233,11 +237,10 @@ listarProdutos()
 }
 
 // SCANNER
-let cam1=null
-let cam2=null
+let cam1=null,cam2=null
 
 function scanProduto(){
-if(cam1){cam1.stop();cam1=null;reader.innerHTML="";return}
+if(cam1){cam1.stop();reader.innerHTML="";cam1=null;return}
 cam1=new Html5Qrcode("reader")
 cam1.start({facingMode:"environment"},{fps:10},c=>{
 codigo.value=c
@@ -247,7 +250,7 @@ reader.innerHTML=""
 }
 
 function scanVenda(){
-if(cam2){cam2.stop();cam2=null;readerVenda.innerHTML="";return}
+if(cam2){cam2.stop();readerVenda.innerHTML="";cam2=null;return}
 cam2=new Html5Qrcode("readerVenda")
 cam2.start({facingMode:"environment"},{fps:10},c=>{
 codVenda.value=c
@@ -288,7 +291,11 @@ html+=`
 </tr>`
 })
 listaVenda.innerHTML=html
-total.innerText=total.toFixed(2)
+document.getElementById("total").innerText=total.toFixed(2)
+
+// TROCO
+let recebido=Number(dinheiro.value)
+troco.innerText=recebido? (recebido-total).toFixed(2):0
 }
 
 function remover(i){
@@ -297,20 +304,42 @@ venda.splice(i,1)
 atualizarVenda()
 }
 
+// CUPOM PROFISSIONAL
 function imprimir(){
-let txt="CHINELOS MIX\nCNPJ: 46.982.791/0001-01\n\n"
+let linha="--------------------------------"
+
+let cupom=`
+        CHINELOS MIX
+CNPJ: 46.982.791/0001-01
+AV. LEONOR BOLSONI MARQUES DA SILVA, 45
+CENTRO - POÁ
+
+${linha}
+ITEM   QTD   VALOR   TOTAL
+${linha}
+`
+
 venda.forEach(p=>{
-txt+=`${p.nome} ${p.qtd} R$${p.valor}\n`
+let t=p.valor*p.qtd
+cupom+=`${p.nome} ${p.qtd} R$${p.valor} R$${t}\n`
 })
-txt+=`\nTOTAL: R$${total}\n${pagamento.value}`
+
+cupom+=`${linha}
+TOTAL: R$ ${total.toFixed(2)}
+PAGAMENTO: ${pagamento.value}
+RECEBIDO: R$ ${dinheiro.value}
+TROCO: R$ ${(dinheiro.value-total).toFixed(2)}
+
+OBRIGADO!
+`
+
 let w=window.open()
-w.document.write("<pre>"+txt+"</pre>")
+w.document.write("<pre>"+cupom+"</pre>")
 w.print()
 }
 
-// CAIXA / RELATORIO
-let caixa=0
-let aberto=false
+// CAIXA + RELATORIO
+let caixa=0,aberto=false
 let rel=JSON.parse(localStorage.getItem("rel"))||[]
 
 function abrirCaixa(){
@@ -367,10 +396,10 @@ listaFunc.innerHTML=funcs.map((f,i)=>`
 <td>${f.nome}</td>
 <td>${f.cargo}</td>
 <td>
-<button onclick="ponto(${i},'Entrada')">E</button>
-<button onclick="ponto(${i},'Almoço')">A</button>
-<button onclick="ponto(${i},'Volta')">V</button>
-<button onclick="ponto(${i},'Saída')">S</button>
+<button onclick="ponto(${i},'Entrada')">Entrada</button>
+<button onclick="ponto(${i},'Almoço')">Almoço</button>
+<button onclick="ponto(${i},'Volta')">Volta</button>
+<button onclick="ponto(${i},'Saída')">Saída</button>
 </td>
 <td><button onclick="imprimirPonto(${i})">🧾</button></td>
 </tr>`).join("")
