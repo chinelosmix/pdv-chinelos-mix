@@ -1,1 +1,199 @@
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>PDV Venda</title>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+body{background:#000;color:#fff;font-family:Arial;text-align:center}
+input,button,select{padding:12px;margin:5px;width:90%}
+button{background:green;color:#fff;border:none}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+td,th{border:1px solid #fff;padding:5px}
+#reader{width:300px;margin:auto}
+</style>
+
+</head>
+
+<body>
+
+<h2>PDV VENDA</h2>
+
+<input id="codigo" placeholder="Código de barras" autofocus>
+<button onclick="abrirCamera()">📷 Scanner</button>
+
+<div id="reader"></div>
+
+<h3 id="infoProduto"></h3>
+
+<input id="qtd" type="number" value="1">
+
+<select id="pagamento">
+<option>Dinheiro</option>
+<option>Pix</option>
+<option>Débito</option>
+<option>Crédito</option>
+<option>Vale</option>
+</select>
+
+<button onclick="adicionar()">Adicionar</button>
+
+<table>
+<thead>
+<tr>
+<th>Produto</th>
+<th>Qtd</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody id="lista"></tbody>
+</table>
+
+<h2>Total: R$ <span id="total">0</span></h2>
+
+<button onclick="finalizar()">Finalizar Venda</button>
+
+<script>
+
+let produtos = JSON.parse(localStorage.getItem("produtos")) || []
+let venda = []
+let total = 0
+let atual = null
+
+// SCANNER
+function abrirCamera(){
+const html5QrCode = new Html5Qrcode("reader")
+
+Html5QrCode.getCameras().then(devices => {
+if(devices.length){
+html5QrCode.start(
+devices[0].id,
+{ fps: 10 },
+(code)=>{
+codigo.value = code
+buscarProduto()
+html5QrCode.stop()
+reader.innerHTML=""
+}
+)
+}
+})
+}
+
+// BUSCAR PRODUTO
+function buscarProduto(){
+let cod = codigo.value
+
+atual = produtos.find(p => p.codigo == cod)
+
+if(atual){
+infoProduto.innerText = `${atual.nome} | R$ ${atual.valor} | Estoque: ${atual.quantidade}`
+}else{
+infoProduto.innerText = "Produto não encontrado"
+}
+}
+
+// ADICIONAR
+function adicionar(){
+
+if(!atual){
+alert("Produto não encontrado")
+return
+}
+
+let qtd = Number(document.getElementById("qtd").value)
+
+if(atual.quantidade < qtd){
+alert("Estoque insuficiente")
+return
+}
+
+// BAIXA ESTOQUE
+atual.quantidade -= qtd
+
+venda.push({
+nome: atual.nome,
+valor: atual.valor,
+qtd: qtd
+})
+
+total += atual.valor * qtd
+
+atualizarTela()
+
+localStorage.setItem("produtos", JSON.stringify(produtos))
+
+codigo.value=""
+infoProduto.innerText=""
+}
+
+// ATUALIZA TELA
+function atualizarTela(){
+
+let html = ""
+
+venda.forEach(p=>{
+html += `
+<tr>
+<td>${p.nome}</td>
+<td>${p.qtd}</td>
+<td>R$ ${p.valor}</td>
+</tr>
+`
+})
+
+document.getElementById("lista").innerHTML = html
+document.getElementById("total").innerText = total.toFixed(2)
+}
+
+// FINALIZAR
+function finalizar(){
+
+if(venda.length === 0){
+alert("Nenhum item na venda")
+return
+}
+
+let forma = document.getElementById("pagamento").value
+
+let cupom = `
+PDV CHINELOS MIX
+CNPJ: 00.000.000
+END: SUA LOJA
+
+----------------
+`
+
+venda.forEach(p=>{
+cupom += `${p.nome} x${p.qtd} R$${p.valor}\n`
+})
+
+cupom += `
+----------------
+TOTAL: R$ ${total.toFixed(2)}
+PAGAMENTO: ${forma}
+
+OBRIGADO!
+`
+
+let w = window.open()
+w.document.write("<pre>"+cupom+"</pre>")
+w.print()
+
+venda = []
+total = 0
+atualizarTela()
+}
+
+// PISTOLA AUTOMÁTICA
+document.getElementById("codigo").addEventListener("change", buscarProduto)
+
+</script>
+
+</body>
+</html>
+```
 
