@@ -5,14 +5,11 @@
 <meta charset="UTF-8">
 <title>PDV CHINELOS MIX</title>
 
-<script src="https://unpkg.com/html5-qrcode"></script>
-
 <style>
 body{margin:0;font-family:Arial;background:#0f172a;color:#fff}
 header{background:#020617;padding:15px;text-align:center}
 nav{display:flex;background:#020617}
 nav button{flex:1;padding:12px;background:#020617;color:#fff;border:none}
-nav button:hover{background:#1e293b}
 .box{display:none;padding:10px}
 input,select{width:100%;padding:10px;margin:5px 0;border-radius:5px;border:none}
 button{padding:10px;background:#22c55e;color:#fff;border:none;border-radius:5px;margin-top:5px}
@@ -33,83 +30,80 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <button onclick="show('rel')">Relatório</button>
 </nav>
 
+<!-- PRODUTOS -->
 <div id="prod" class="box">
 <h2>Produto</h2>
-<input id="codigo">
-<input id="nome">
-<input id="cor">
-<input id="numero">
-<input id="estoque">
-<input id="valor">
+
+<input id="codigo" placeholder="Código">
+<input id="nome" placeholder="Nome">
+<input id="cor" placeholder="Cor">
+<input id="numero" placeholder="Numeração">
+<input id="estoque" placeholder="Estoque">
+<input id="valor" placeholder="Valor">
+
 <button onclick="salvarP()">Salvar</button>
-<table id="listaP"></table>
+
+<table>
+<thead>
+<tr>
+<th>Código</th><th>Nome</th><th>Cor</th><th>Nº</th><th>Qtd</th><th>Valor</th><th>Ação</th>
+</tr>
+</thead>
+<tbody id="listaP"></tbody>
+</table>
 </div>
 
+<!-- VENDAS -->
 <div id="ven" class="box">
 <h2>Venda</h2>
-<input id="codVenda">
+
+<input id="codVenda" placeholder="Código">
 <input id="qtd" value="1">
 <button onclick="add()">Adicionar</button>
 
-<select id="pag">
-<option>Dinheiro</option>
-<option>Pix</option>
-<option>Débito</option>
-<option>Crédito</option>
-<option>Vale</option>
-</select>
+<h3>Total: R$ <span id="total">0</span></h3>
 
-<input id="recebido" placeholder="Valor recebido">
-
-<h3>Total: <span id="total">0</span></h3>
-<h3>Troco: <span id="troco">0</span></h3>
-
-<button onclick="cupom()">Imprimir</button>
-<button onclick="finalizar()">Finalizar</button>
+<button onclick="cupom()">Imprimir Cupom</button>
 
 <table id="listaV"></table>
 </div>
 
+<!-- FUNCIONARIOS -->
 <div id="fun" class="box">
 <h2>Funcionários</h2>
-<input id="nomeF">
-<input id="cargoF">
+
+<input id="nomeF" placeholder="Nome">
+<input id="cargoF" placeholder="Cargo">
+
 <button onclick="salvarF()">Salvar</button>
+
 <table id="listaF"></table>
-</div>
-
-<div id="cx" class="box">
-<input id="valorInicial">
-<button onclick="abrir()">Abrir</button>
-<button onclick="fechar()">Fechar</button>
-<h3 id="status"></h3>
-</div>
-
-<div id="rel" class="box">
-<table id="listaR"></table>
-<h3>Total: <span id="totR"></span></h3>
 </div>
 
 <script>
 
-function show(t){
-document.querySelectorAll(".box").forEach(x=>x.style.display="none")
-document.getElementById(t).style.display="block"
-listarP(); listarF(); listarR();
-}
-
-// PRODUTOS
+// ===== PRODUTOS =====
 let prod=JSON.parse(localStorage.getItem("prod"))||[]
+let edit=-1
 
 function salvarP(){
-prod.push({
+
+let p={
 codigo:codigo.value,
 nome:nome.value,
 cor:cor.value,
 numero:numero.value,
-estoque:Number(estoque.value),
-valor:Number(valor.value)
-})
+estoque:estoque.value,
+valor:valor.value
+}
+
+if(edit>=0){
+prod[edit]=p
+edit=-1
+}else{
+prod.push(p)
+}
+
 localStorage.setItem("prod",JSON.stringify(prod))
 listarP()
 }
@@ -117,28 +111,50 @@ listarP()
 function listarP(){
 listaP.innerHTML=prod.map((p,i)=>`
 <tr>
+<td>${p.codigo}</td>
 <td>${p.nome}</td>
+<td>${p.cor}</td>
+<td>${p.numero}</td>
 <td>${p.estoque}</td>
-<td>R$${p.valor}</td>
-</tr>`).join("")
+<td>${p.valor}</td>
+<td>
+<button onclick="editar(${i})">Editar</button>
+<button onclick="excluir(${i})">Excluir</button>
+</td>
+</tr>
+`).join("")
 }
 
-// VENDAS
-let venda=[],total=0
+function editar(i){
+let p=prod[i]
+codigo.value=p.codigo
+nome.value=p.nome
+cor.value=p.cor
+numero.value=p.numero
+estoque.value=p.estoque
+valor.value=p.valor
+edit=i
+}
+
+function excluir(i){
+prod.splice(i,1)
+localStorage.setItem("prod",JSON.stringify(prod))
+listarP()
+}
+
+// ===== VENDAS =====
+let venda=[]
+let total=0
 
 function add(){
 let p=prod.find(x=>x.codigo==codVenda.value)
 if(!p)return alert("Produto não encontrado")
 
 let q=Number(qtd.value)
-if(p.estoque<q)return alert("Sem estoque")
-
-p.estoque-=q
 
 venda.push({...p,qtd:q})
-total+=p.valor*q
+total+=Number(p.valor)*q
 
-localStorage.setItem("prod",JSON.stringify(prod))
 atualizar()
 }
 
@@ -148,83 +164,79 @@ listaV.innerHTML=venda.map(p=>`
 <td>${p.nome}</td>
 <td>${p.qtd}</td>
 <td>R$${p.valor}</td>
-</tr>`).join("")
+</tr>
+`).join("")
 
-totalEl.innerText=total.toFixed(2)
-
-let r=Number(recebido.value)
-troco.innerText=r?(r-total).toFixed(2):0
+document.getElementById("total").innerText=total.toFixed(2)
 }
 
-recebido.oninput=atualizar
-
+// CUPOM
 function cupom(){
-let txt="CHINELOS MIX\nPOÁ\n\n"
-venda.forEach(p=>txt+=`${p.nome} ${p.qtd} R$${p.valor}\n`)
-txt+=`\nTOTAL: ${total}`
+let txt="CHINELOS MIX\n\n"
+
+venda.forEach(p=>{
+txt+=`${p.nome}  ${p.qtd}  R$${p.valor}\n`
+})
+
+txt+=`
+TOTAL: R$ ${total.toFixed(2)}
+
+OBRIGADO, VOLTE SEMPRE!
+`
+
 let w=window.open()
 w.document.write("<pre>"+txt+"</pre>")
 w.print()
 }
 
-// CAIXA
-let caixa=0,ab=false,rel=JSON.parse(localStorage.getItem("rel"))||[]
-
-function abrir(){caixa=Number(valorInicial.value);ab=true;status.innerText="Aberto"}
-function fechar(){ab=false;status.innerText="Total "+caixa}
-
-function finalizar(){
-if(!ab)return alert("Abra o caixa")
-
-caixa+=total
-rel.push({d:new Date().toLocaleString(),t:total,p:pag.value})
-
-localStorage.setItem("rel",JSON.stringify(rel))
-
-venda=[];total=0;atualizar()
-alert("OK")
-}
-
-// RELATORIO
-function listarR(){
-let t=0
-listaR.innerHTML=rel.map(r=>{
-t+=Number(r.t)
-return `<tr><td>${r.d}</td><td>${r.t}</td></tr>`
-}).join("")
-totR.innerText=t.toFixed(2)
-}
-
-// FUNCIONARIO
-let f=JSON.parse(localStorage.getItem("f"))||[]
+// ===== FUNCIONARIOS =====
+let funcs=JSON.parse(localStorage.getItem("funcs"))||[]
 
 function salvarF(){
-f.push({n:nomeF.value,c:cargoF.value,p:[]})
-localStorage.setItem("f",JSON.stringify(f))
+funcs.push({nome:nomeF.value,cargo:cargoF.value,ponto:[]})
+localStorage.setItem("funcs",JSON.stringify(funcs))
 listarF()
 }
 
 function listarF(){
-listaF.innerHTML=f.map((x,i)=>`
+listaF.innerHTML=funcs.map((f,i)=>`
 <tr>
-<td>${x.n}</td>
+<td>${f.nome}</td>
+<td>${f.cargo}</td>
 <td>
 <button onclick="ponto(${i},'Entrada')">Entrada</button>
-<button onclick="ponto(${i},'Almoço')">Almoço</button>
-<button onclick="ponto(${i},'Volta')">Volta</button>
 <button onclick="ponto(${i},'Saída')">Saída</button>
+<button onclick="imprimir(${i})">🧾 Imprimir</button>
 </td>
-</tr>`).join("")
+</tr>
+`).join("")
 }
 
 function ponto(i,t){
 let h=new Date().toLocaleString()
-f[i].p.push({t,h})
-localStorage.setItem("f",JSON.stringify(f))
+funcs[i].ponto.push({tipo:t,hora:h})
+localStorage.setItem("funcs",JSON.stringify(funcs))
 alert(t+" "+h)
 }
 
-show('ven')
+function imprimir(i){
+let f=funcs[i]
+let u=f.ponto[f.ponto.length-1]
+
+let w=window.open()
+w.document.write(`<pre>${f.nome}\n${u.tipo}\n${u.hora}</pre>`)
+w.print()
+}
+
+// ===== INICIO =====
+function show(t){
+document.querySelectorAll(".box").forEach(x=>x.style.display="none")
+document.getElementById(t).style.display="block"
+listarP()
+listarF()
+}
+
+show("ven")
 
 </script>
 
