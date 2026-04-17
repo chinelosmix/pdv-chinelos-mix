@@ -6,26 +6,31 @@
 <title>PDV CHINELOS MIX</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body{margin:0;font-family:Arial;background:#0f172a;color:#fff}
-header{background:#020617;padding:15px;text-align:center;font-size:18px}
+header{background:#020617;padding:15px;text-align:center}
 nav{display:flex;background:#020617}
-nav button{flex:1;padding:12px;border:none;background:#020617;color:#fff;font-weight:bold}
-nav button:hover{background:#1e293b}
+nav button{flex:1;padding:12px;border:none;background:#020617;color:#fff}
 .box{display:none;padding:10px}
-input,select{width:100%;padding:12px;margin:5px 0;border-radius:6px;border:none;font-size:16px}
-button{padding:12px;background:#22c55e;color:#fff;border:none;border-radius:6px;margin-top:5px;font-size:16px}
+input,select{width:100%;padding:10px;margin:5px 0;border-radius:5px;border:none}
+button{padding:10px;background:#22c55e;color:#fff;border:none;border-radius:5px;margin-top:5px}
 table{width:100%;margin-top:10px;border-collapse:collapse}
 td,th{border-bottom:1px solid #334155;padding:8px}
 #reader,#readerVenda{width:300px;margin:auto}
-#ven{background:#020617;border-top:2px solid #22c55e}
 </style>
 </head>
 
 <body>
 
 <header>PDV CHINELOS MIX</header>
+
+<!-- LOGIN -->
+<div id="loginBox">
+<input id="user" placeholder="Funcionário">
+<button onclick="login()">Entrar</button>
+</div>
 
 <nav>
 <button onclick="show('prod')">Produtos</button>
@@ -39,15 +44,15 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <div id="prod" class="box">
 <h2>Produtos</h2>
 
-<input id="codigo" placeholder="Código">
-<button onclick="scanProduto()">📷 Scanner</button>
+<input id="codigo">
+<button onclick="scanProduto()">📷</button>
 <div id="reader"></div>
 
-<input id="nome" placeholder="Nome">
-<input id="cor" placeholder="Cor">
-<input id="numero" placeholder="Numeração">
-<input id="estoque" placeholder="Quantidade">
-<input id="valor" placeholder="Valor">
+<input id="nome">
+<input id="cor">
+<input id="numero">
+<input id="estoque">
+<input id="valor">
 
 <button onclick="salvarProduto()">Salvar</button>
 
@@ -65,8 +70,8 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <div id="ven" class="box">
 <h2>Venda</h2>
 
-<input id="codVenda" placeholder="Código">
-<button onclick="scanVenda()">📷 Scanner</button>
+<input id="codVenda">
+<button onclick="scanVenda()">📷</button>
 <div id="readerVenda"></div>
 
 <input id="qtd" value="1">
@@ -76,9 +81,7 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <option>Dinheiro</option>
 <option>Pix</option>
 <option>Débito</option>
-<option>Crédito à vista</option>
-<option>Crédito 2x</option>
-<option>Crédito 3x</option>
+<option>Crédito</option>
 <option>Vale</option>
 </select>
 
@@ -97,8 +100,8 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <div id="fun" class="box">
 <h2>Funcionários</h2>
 
-<input id="nomeF" placeholder="Nome">
-<input id="cargoF" placeholder="Cargo">
+<input id="nomeF">
+<input id="cargoF">
 <button onclick="salvarFunc()">Salvar</button>
 
 <table id="listaFunc"></table>
@@ -106,7 +109,7 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <!-- CAIXA -->
 <div id="cx" class="box">
-<input id="valorInicial" placeholder="Valor inicial">
+<input id="valorInicial">
 <button onclick="abrirCaixa()">Abrir</button>
 <button onclick="fecharCaixa()">Fechar</button>
 <h3 id="status"></h3>
@@ -114,11 +117,20 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <!-- RELATORIO -->
 <div id="rel" class="box">
+<canvas id="grafico" height="100"></canvas>
 <table id="listaRelatorio"></table>
 <h3>Total: R$ <span id="totalRelatorio">0</span></h3>
 </div>
 
 <script>
+
+// LOGIN
+let usuarioAtual=""
+function login(){
+usuarioAtual = user.value
+alert("Bem-vindo "+usuarioAtual)
+loginBox.style.display="none"
+}
 
 // PRODUTOS
 let produtos = JSON.parse(localStorage.getItem("produtos")) || []
@@ -146,19 +158,22 @@ listarProdutos()
 }
 
 function listarProdutos(){
-listaProdutos.innerHTML=produtos.map((p,i)=>`
+listaProdutos.innerHTML=produtos.map((p,i)=>{
+let alerta = p.estoque <= 5 ? "⚠️" : ""
+return `
 <tr>
 <td>${p.codigo}</td>
 <td>${p.nome}</td>
 <td>${p.cor}</td>
 <td>${p.numero}</td>
-<td>${p.estoque}</td>
+<td>${p.estoque} ${alerta}</td>
 <td>R$${p.valor}</td>
 <td>
 <button onclick="editar(${i})">Editar</button>
 <button onclick="excluir(${i})">Excluir</button>
 </td>
-</tr>`).join("")
+</tr>`
+}).join("")
 }
 
 function editar(i){
@@ -179,26 +194,11 @@ listarProdutos()
 }
 
 // SCANNER
-let cam1=null,cam2=null
-
 function scanProduto(){
-if(cam1){cam1.stop();cam1=null;reader.innerHTML="";return}
-cam1=new Html5Qrcode("reader")
-cam1.start({facingMode:"environment"},{fps:10},c=>{
-codigo.value=c
-cam1.stop()
-reader.innerHTML=""
-})
+new Html5Qrcode("reader").start({facingMode:"environment"},{fps:10},c=>codigo.value=c)
 }
-
 function scanVenda(){
-if(cam2){cam2.stop();cam2=null;readerVenda.innerHTML="";return}
-cam2=new Html5Qrcode("readerVenda")
-cam2.start({facingMode:"environment"},{fps:10},c=>{
-codVenda.value=c
-cam2.stop()
-readerVenda.innerHTML=""
-})
+new Html5Qrcode("readerVenda").start({facingMode:"environment"},{fps:10},c=>codVenda.value=c)
 }
 
 // VENDAS
@@ -225,10 +225,8 @@ codVenda.focus()
 atualizarVenda()
 }
 
-codVenda.addEventListener("keypress", function(e){
-if(e.key === "Enter"){
-addVenda()
-}
+codVenda.addEventListener("keypress",e=>{
+if(e.key==="Enter") addVenda()
 })
 
 function atualizarVenda(){
@@ -239,7 +237,7 @@ listaVenda.innerHTML=venda.map(p=>`
 <td>R$${p.valor}</td>
 </tr>`).join("")
 
-document.getElementById("total").innerText=total.toFixed(2)
+total.innerText=total.toFixed(2)
 
 let r=Number(dinheiro.value)
 troco.innerText=r?(r-total).toFixed(2):0
@@ -248,28 +246,15 @@ troco.innerText=r?(r-total).toFixed(2):0
 dinheiro.oninput=atualizarVenda
 
 function imprimir(){
-let txt=`
-CHINELOS MIX
-CNPJ: 46.982.791/0001-01
-AV. LEONOR BOLSONI MARQUES DA SILVA, 45
-CENTRO - POÁ
-
-------------------------
-`
+let txt="CHINELOS MIX\n\n"
 
 venda.forEach(p=>{
 txt+=`${p.nome} ${p.qtd} R$${p.valor}\n`
 })
 
-txt+=`
-------------------------
-TOTAL: R$${total.toFixed(2)}
-PAGAMENTO: ${pagamento.value}
-RECEBIDO: ${dinheiro.value}
-TROCO: ${(dinheiro.value-total).toFixed(2)}
-
-OBRIGADO, VOLTE SEMPRE!
-`
+txt+=`\nTOTAL: R$${total}\n`
+txt+=`Atendido por: ${usuarioAtual}\n`
+txt+="OBRIGADO, VOLTE SEMPRE!"
 
 let w=window.open()
 w.document.write("<pre>"+txt+"</pre>")
@@ -310,14 +295,27 @@ atualizarVenda()
 alert("Venda finalizada")
 }
 
-// RELATORIO
+// RELATORIO + GRAFICO
 function listarRelatorio(){
 let t=0
+let datas=[]
+let valores=[]
+
 listaRelatorio.innerHTML=rel.map(r=>{
 t+=Number(r.total)
+datas.push(r.data)
+valores.push(r.total)
 return `<tr><td>${r.data}</td><td>R$${r.total}</td><td>${r.pagamento}</td></tr>`
 }).join("")
+
 totalRelatorio.innerText=t.toFixed(2)
+
+setTimeout(()=>{
+new Chart(document.getElementById("grafico"),{
+type:"bar",
+data:{labels:datas,datasets:[{label:"Vendas",data:valores}]}
+})
+},200)
 }
 
 // FUNCIONARIOS
@@ -359,7 +357,7 @@ w.document.write(`<pre>${f.nome}\n${u.tipo}\n${u.hora}</pre>`)
 w.print()
 }
 
-// NAVEGAÇÃO
+// NAV
 function show(t){
 document.querySelectorAll(".box").forEach(x=>x.style.display="none")
 document.getElementById(t).style.display="block"
@@ -369,8 +367,6 @@ listarRelatorio()
 }
 
 show("ven")
-setTimeout(()=>codVenda.focus(),500)
-
 </script>
 
 </body>
