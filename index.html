@@ -9,15 +9,17 @@
 
 <style>
 body{margin:0;font-family:Arial;background:#0f172a;color:#fff}
-header{background:#020617;padding:15px;text-align:center}
+header{background:#020617;padding:15px;text-align:center;font-size:18px}
 nav{display:flex;background:#020617}
-nav button{flex:1;padding:12px;background:#020617;color:#fff;border:none}
+nav button{flex:1;padding:12px;border:none;background:#020617;color:#fff;font-weight:bold}
+nav button:hover{background:#1e293b}
 .box{display:none;padding:10px}
-input,select{width:100%;padding:10px;margin:5px 0;border-radius:5px;border:none}
-button{padding:10px;background:#22c55e;color:#fff;border:none;border-radius:5px;margin-top:5px}
+input,select{width:100%;padding:12px;margin:5px 0;border-radius:6px;border:none;font-size:16px}
+button{padding:12px;background:#22c55e;color:#fff;border:none;border-radius:6px;margin-top:5px;font-size:16px}
 table{width:100%;margin-top:10px;border-collapse:collapse}
 td,th{border-bottom:1px solid #334155;padding:8px}
 #reader,#readerVenda{width:300px;margin:auto}
+#ven{background:#020617;border-top:2px solid #22c55e}
 </style>
 </head>
 
@@ -118,7 +120,7 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <script>
 
-// ================= PRODUTOS =================
+// PRODUTOS
 let produtos = JSON.parse(localStorage.getItem("produtos")) || []
 let edit = -1
 
@@ -199,7 +201,7 @@ readerVenda.innerHTML=""
 })
 }
 
-// ================= VENDAS =================
+// VENDAS
 let venda=[],total=0
 
 function addVenda(){
@@ -215,19 +217,29 @@ venda.push({...p,qtd:q})
 total+=p.valor*q
 
 localStorage.setItem("produtos",JSON.stringify(produtos))
+
+codVenda.value=""
+qtd.value=1
+codVenda.focus()
+
 atualizarVenda()
 }
 
+codVenda.addEventListener("keypress", function(e){
+if(e.key === "Enter"){
+addVenda()
+}
+})
+
 function atualizarVenda(){
-listaVenda.innerHTML=venda.map((p,i)=>`
+listaVenda.innerHTML=venda.map(p=>`
 <tr>
 <td>${p.nome}</td>
 <td>${p.qtd}</td>
 <td>R$${p.valor}</td>
 </tr>`).join("")
 
-totalEl=document.getElementById("total")
-totalEl.innerText=total.toFixed(2)
+document.getElementById("total").innerText=total.toFixed(2)
 
 let r=Number(dinheiro.value)
 troco.innerText=r?(r-total).toFixed(2):0
@@ -236,16 +248,13 @@ troco.innerText=r?(r-total).toFixed(2):0
 dinheiro.oninput=atualizarVenda
 
 function imprimir(){
-let linha="-------------------------"
 let txt=`
 CHINELOS MIX
 CNPJ: 46.982.791/0001-01
 AV. LEONOR BOLSONI MARQUES DA SILVA, 45
 CENTRO - POÁ
 
-${linha}
-ITEM QTD VALOR
-${linha}
+------------------------
 `
 
 venda.forEach(p=>{
@@ -253,7 +262,7 @@ txt+=`${p.nome} ${p.qtd} R$${p.valor}\n`
 })
 
 txt+=`
-${linha}
+------------------------
 TOTAL: R$${total.toFixed(2)}
 PAGAMENTO: ${pagamento.value}
 RECEBIDO: ${dinheiro.value}
@@ -267,7 +276,7 @@ w.document.write("<pre>"+txt+"</pre>")
 w.print()
 }
 
-// ================= CAIXA =================
+// CAIXA
 let caixa=0,aberto=false
 let rel=JSON.parse(localStorage.getItem("rel"))||[]
 
@@ -301,17 +310,17 @@ atualizarVenda()
 alert("Venda finalizada")
 }
 
-// ================= RELATORIO =================
+// RELATORIO
 function listarRelatorio(){
 let t=0
 listaRelatorio.innerHTML=rel.map(r=>{
 t+=Number(r.total)
-return `<tr><td>${r.data}</td><td>${r.total}</td><td>${r.pagamento}</td></tr>`
+return `<tr><td>${r.data}</td><td>R$${r.total}</td><td>${r.pagamento}</td></tr>`
 }).join("")
 totalRelatorio.innerText=t.toFixed(2)
 }
 
-// ================= FUNCIONARIOS =================
+// FUNCIONARIOS
 let funcs=JSON.parse(localStorage.getItem("funcs"))||[]
 
 function salvarFunc(){
@@ -350,7 +359,7 @@ w.document.write(`<pre>${f.nome}\n${u.tipo}\n${u.hora}</pre>`)
 w.print()
 }
 
-// ================= NAVEGAÇÃO =================
+// NAVEGAÇÃO
 function show(t){
 document.querySelectorAll(".box").forEach(x=>x.style.display="none")
 document.getElementById(t).style.display="block"
@@ -360,6 +369,7 @@ listarRelatorio()
 }
 
 show("ven")
+setTimeout(()=>codVenda.focus(),500)
 
 </script>
 
