@@ -20,7 +20,7 @@ table{width:100%;margin-top:10px;border-collapse:collapse}
 td,th{border-bottom:1px solid #334155;padding:8px}
 #reader,#readerVenda{width:300px;margin:auto}
 
-/* IMPRESSÃO TÉRMICA */
+/* IMPRESSÃO */
 @media print {
 body{margin:0;font-family:monospace}
 #cupom{width:58mm;font-size:12px}
@@ -253,35 +253,40 @@ function imprimir(){
 
 let agrupado={}
 venda.forEach(p=>{
-if(!agrupado[p.codigo]) agrupado[p.codigo]={...p,qtd:0,total:0}
+if(!agrupado[p.codigo]) agrupado[p.codigo]={nome:p.nome,qtd:0,total:0}
 agrupado[p.codigo].qtd+=p.qtd
 agrupado[p.codigo].total+=p.valor*p.qtd
 })
 
 function linha(nome,qtd,total){
-nome=nome.substring(0,16)
-return nome.padEnd(16)+" "+String(qtd).padStart(2)+" "+("R$"+total.toFixed(2)).padStart(8)
+nome=nome.substring(0,20)
+let n=nome.padEnd(20," ")
+let q=String(qtd).padStart(3," ")
+let v=total.toFixed(2).padStart(8," ")
+return `${n}${q}${v}`
 }
+
+let linhaSep="--------------------------------"
 
 let html=`<div id="cupom">
 <center><b>CHINELOS MIX</b><br>
 CNPJ: 46.982.791/0001-01<br>
 AV. LEONOR BOLSONI MARQUES DA SILVA, 45</center>
-<br>------------------------------<br>
-PRODUTO         QTD    VALOR<br>
-------------------------------<br>
+<br>${linhaSep}<br>
+PRODUTO               QTD   VALOR<br>
+${linhaSep}<br>
 `
 
 Object.values(agrupado).forEach(p=>{
 html+=linha(p.nome,p.qtd,p.total)+"<br>"
 })
 
-html+=`------------------------------<br>
-TOTAL: R$ ${totalVenda.toFixed(2)}<br>
-PAGAMENTO: ${pagamento.value}<br>
-RECEBIDO: R$ ${totalVenda.toFixed(2)}<br><br>
+html+=`${linhaSep}<br>
+TOTAL:        R$ ${totalVenda.toFixed(2)}<br>
+PAGAMENTO:    ${pagamento.value}<br>
+RECEBIDO:     R$ ${totalVenda.toFixed(2)}<br><br>
 Atendido por: ${usuarioAtual}<br>
-------------------------------<br>
+${linhaSep}<br>
 <center><b>OBRIGADO, VOLTE SEMPRE!</b></center>
 </div>`
 
@@ -289,7 +294,7 @@ let w=window.open("","","width=300,height=600")
 w.document.write(`<html><body onload="window.print();window.close()" style="font-family:monospace">${html}</body></html>`)
 }
 
-// RESTANTE IGUAL
+// RESTANTE
 let caixa=0,aberto=false,rel=JSON.parse(localStorage.getItem("rel"))||[]
 
 function abrirCaixa(){caixa=Number(valorInicial.value);aberto=true;status.innerText="Caixa aberto"}
