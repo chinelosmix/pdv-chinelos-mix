@@ -1,4 +1,4 @@
-```html id="z0n9p4"
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -19,6 +19,13 @@ button{padding:10px;background:#22c55e;color:#fff;border:none;border-radius:5px;
 table{width:100%;margin-top:10px;border-collapse:collapse}
 td,th{border-bottom:1px solid #334155;padding:8px}
 #reader,#readerVenda{width:300px;margin:auto}
+
+/* IMPRESSÃO TÉRMICA */
+@media print {
+body{margin:0;font-family:monospace}
+#cupom{width:58mm;font-size:12px}
+button,nav,input{display:none}
+}
 </style>
 </head>
 
@@ -123,6 +130,7 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <script>
 
+// LOGIN
 let usuarioAtual=""
 function login(){
 usuarioAtual=user.value
@@ -177,28 +185,22 @@ localStorage.setItem("produtos",JSON.stringify(produtos))
 listarProdutos()
 }
 
-// SCANNER CORRIGIDO
+// SCANNER
 let cam=null
-
 function scanProduto(){
 if(cam){cam.stop();cam=null;reader.innerHTML="";return}
 cam=new Html5Qrcode("reader")
 cam.start({facingMode:"environment"},{fps:10},c=>{
 codigo.value=c
-cam.stop()
-reader.innerHTML=""
-cam=null
+cam.stop();reader.innerHTML="";cam=null
 })
 }
-
 function scanVenda(){
 if(cam){cam.stop();cam=null;readerVenda.innerHTML="";return}
 cam=new Html5Qrcode("readerVenda")
 cam.start({facingMode:"environment"},{fps:10},c=>{
 codVenda.value=c
-cam.stop()
-readerVenda.innerHTML=""
-cam=null
+cam.stop();readerVenda.innerHTML="";cam=null
 })
 }
 
@@ -248,36 +250,43 @@ dinheiro.oninput=atualizarVenda
 
 // CUPOM PROFISSIONAL
 function imprimir(){
-let linha="------------------------"
-let txt=`
-CHINELOS MIX
-CNPJ: 46.982.791/0001-01
-AV. LEONOR BOLSONI MARQUES DA SILVA, 45
 
-${linha}
-ITEM   QTD   VALOR
-${linha}
-`
-
+let agrupado={}
 venda.forEach(p=>{
-txt+=`${p.nome} ${p.qtd} R$${p.valor}\n`
+if(!agrupado[p.codigo]) agrupado[p.codigo]={...p,qtd:0,total:0}
+agrupado[p.codigo].qtd+=p.qtd
+agrupado[p.codigo].total+=p.valor*p.qtd
 })
 
-txt+=`
-${linha}
-TOTAL: R$${totalVenda.toFixed(2)}
-PAGAMENTO: ${pagamento.value}
-RECEBIDO: ${dinheiro.value}
-TROCO: ${(dinheiro.value-totalVenda).toFixed(2)}
+function linha(nome,qtd,total){
+nome=nome.substring(0,16)
+return nome.padEnd(16)+" "+String(qtd).padStart(2)+" "+("R$"+total.toFixed(2)).padStart(8)
+}
 
-Atendido por: ${usuarioAtual}
-
-OBRIGADO, VOLTE SEMPRE!
+let html=`<div id="cupom">
+<center><b>CHINELOS MIX</b><br>
+CNPJ: 46.982.791/0001-01<br>
+AV. LEONOR BOLSONI MARQUES DA SILVA, 45</center>
+<br>------------------------------<br>
+PRODUTO         QTD    VALOR<br>
+------------------------------<br>
 `
 
-let w=window.open()
-w.document.write("<pre>"+txt+"</pre>")
-w.print()
+Object.values(agrupado).forEach(p=>{
+html+=linha(p.nome,p.qtd,p.total)+"<br>"
+})
+
+html+=`------------------------------<br>
+TOTAL: R$ ${totalVenda.toFixed(2)}<br>
+PAGAMENTO: ${pagamento.value}<br>
+RECEBIDO: R$ ${totalVenda.toFixed(2)}<br><br>
+Atendido por: ${usuarioAtual}<br>
+------------------------------<br>
+<center><b>OBRIGADO, VOLTE SEMPRE!</b></center>
+</div>`
+
+let w=window.open("","","width=300,height=600")
+w.document.write(`<html><body onload="window.print();window.close()" style="font-family:monospace">${html}</body></html>`)
 }
 
 // RESTANTE IGUAL
