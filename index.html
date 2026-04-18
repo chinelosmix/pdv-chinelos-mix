@@ -1,4 +1,4 @@
-```html id="w2n3pd"
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -35,7 +35,6 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <button onclick="show('ven')">Venda</button>
 <button onclick="show('fun')">Funcionários</button>
 <button onclick="show('cx')">Caixa</button>
-<button onclick="show('rel')">Relatório</button>
 </nav>
 
 <!-- PRODUTOS -->
@@ -86,7 +85,6 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <input id="dinheiro" placeholder="Valor recebido">
 
 <h3>Total: R$ <span id="total">0</span></h3>
-<h3>Troco: R$ <span id="troco">0</span></h3>
 
 <button onclick="imprimir()">🧾 Cupom</button>
 <button onclick="finalizar()">Finalizar</button>
@@ -226,11 +224,16 @@ listaVenda.innerHTML=venda.map(p=>`
 document.getElementById("total").innerText=totalVenda.toFixed(2)
 }
 
-// CUPOM NOVO PADRÃO
+// CUPOM PROFISSIONAL COMPLETO
 function imprimir(){
 
-let agrupado={}
+let numeroCupom = Number(localStorage.getItem("cupomNumero") || 0) + 1
+localStorage.setItem("cupomNumero", numeroCupom)
+let numeroFormatado = String(numeroCupom).padStart(6,"0")
 
+let dataHora = new Date().toLocaleString()
+
+let agrupado={}
 venda.forEach(p=>{
 let chave=p.codigo+"_"+p.nome
 if(!agrupado[chave]){
@@ -252,8 +255,15 @@ return `${item} ${n} ${q} ${v} ${t}`
 let sep="------------------------------------------------"
 
 let html=`<div id="cupom">
-<center><b>CUPOM FISCAL</b></center>
+<center><b>CHINELOS MIX</b><br>
+CNPJ: 46.982.791/0001-01<br>
+AV. LEONOR BOLSONI MARQUES DA SILVA, 45</center>
+
 ${sep}
+CUPOM Nº: ${numeroFormatado}<br>
+DATA: ${dataHora}
+${sep}
+
 ITEM PRODUTO           QTD VALOR UNIT   TOTAL
 ${sep}
 `
