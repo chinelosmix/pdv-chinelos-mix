@@ -25,6 +25,13 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <header>PDV CHINELOS MIX</header>
 
+<!-- LOGIN -->
+<div id="loginBox">
+<input id="user" placeholder="Número funcionário">
+<input id="senha" placeholder="Senha" type="password">
+<button onclick="login()">Entrar</button>
+</div>
+
 <nav>
 <button onclick="show('prod')">Produtos</button>
 <button onclick="show('ven')">Venda</button>
@@ -80,14 +87,18 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <!-- FUNCIONARIOS -->
 <div id="fun" class="box">
-<input id="nomeF">
+<input id="numF" placeholder="Número">
+<input id="nomeF" placeholder="Nome">
+<input id="senhaF" placeholder="Senha">
+
 <button onclick="salvarFunc()">Salvar</button>
+
 <table id="listaFunc"></table>
 </div>
 
 <!-- CAIXA -->
 <div id="cx" class="box">
-<input id="valorInicial">
+<input id="valorInicial" placeholder="Valor inicial">
 <button onclick="abrirCaixa()">Abrir</button>
 <button onclick="fecharCaixa()">Fechar</button>
 <h3 id="status"></h3>
@@ -101,20 +112,35 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <script>
 
+// DADOS
 let produtos=JSON.parse(localStorage.getItem("produtos"))||[]
 let venda=[],totalVenda=0
 let funcs=JSON.parse(localStorage.getItem("funcs"))||[]
 let rel=JSON.parse(localStorage.getItem("rel"))||[]
+let usuarioAtual=""
 
+// LOGIN
+function login(){
+let f=funcs.find(x=>x.numero==user.value && x.senha==senha.value)
+if(!f)return alert("Login inválido")
+usuarioAtual=f.nome
+loginBox.style.display="none"
+}
+
+// PRODUTOS
 function salvarProduto(){
-produtos.push({codigo:codigo.value,nome:nome.value,valor:Number(valor.value)})
+produtos.push({
+codigo:codigo.value,
+nome:nome.value,
+valor:Number(valor.value)
+})
 localStorage.setItem("produtos",JSON.stringify(produtos))
 listarProdutos()
 }
 
 function listarProdutos(){
 listaProdutos.innerHTML=produtos.map(p=>`
-<tr><td>${p.codigo}</td><td>${p.nome}</td><td>${p.valor}</td></tr>`).join("")
+<tr><td>${p.codigo}</td><td>${p.nome}</td><td>R$${p.valor}</td></tr>`).join("")
 }
 
 // SCANNER
@@ -137,9 +163,9 @@ codVenda.value=c;cam.stop();cam=null;readerVenda.innerHTML=""
 // VENDA
 function addVenda(){
 let p=produtos.find(x=>x.codigo==codVenda.value)
-if(!p)return
-let q=Number(qtd.value)
+if(!p)return alert("Produto não encontrado")
 
+let q=Number(qtd.value)
 venda.push({...p,qtd:q})
 totalVenda+=p.valor*q
 
@@ -149,7 +175,8 @@ atualizarVenda()
 
 function atualizarVenda(){
 listaVenda.innerHTML=venda.map(p=>`
-<tr><td>${p.nome}</td><td>${p.qtd}</td><td>${p.valor}</td></tr>`).join("")
+<tr><td>${p.nome}</td><td>${p.qtd}</td><td>R$${p.valor}</td></tr>`).join("")
+
 total.innerText=totalVenda.toFixed(2)
 
 let r=Number(recebido.value)
@@ -158,47 +185,55 @@ troco.innerText=r?(r-totalVenda).toFixed(2):0
 
 recebido.oninput=atualizarVenda
 
-// CUPOM PERFEITO (IGUAL FOTO 2)
+// CUPOM AGRUPADO
 function imprimir(){
 
-let sep="----------------------------------------"
+let agrupado={}
+venda.forEach(p=>{
+if(!agrupado[p.codigo]){
+agrupado[p.codigo]={nome:p.nome,qtd:0,valor:p.valor,total:0}
+}
+agrupado[p.codigo].qtd+=p.qtd
+agrupado[p.codigo].total+=p.valor*p.qtd
+})
 
 function linha(i,nome,qtd,valor,total){
-let item=String(i).padStart(3,"0")
-let n=nome.padEnd(20," ")
-let q=String(qtd).padStart(3," ")
-let v=("R$ "+valor.toFixed(2)).padStart(8," ")
-let t=("R$ "+total.toFixed(2)).padStart(8," ")
-return `${item} ${n}${q} ${v} ${t}`
+return `${String(i).padStart(3,"0")} ${nome.padEnd(20)} ${String(qtd).padStart(3)} ${("R$"+valor.toFixed(2)).padStart(8)} ${("R$"+total.toFixed(2)).padStart(8)}`
 }
 
-let html="<pre>CHINELOS MIX\n"+sep+"\n"
-html+="ITEM PRODUTO           QTD VALOR UNIT TOTAL\n"+sep+"\n"
+let html="<pre>CHINELOS MIX\n----------------------------------------\n"
+html+="ITEM PRODUTO           QTD VALOR UNIT TOTAL\n----------------------------------------\n"
 
 let i=1,totalItens=0
 
-venda.forEach(p=>{
-let tot=p.valor*p.qtd
-html+=linha(i,p.nome,p.qtd,p.valor,tot)+"\n"
-i++; totalItens+=p.qtd
+Object.values(agrupado).forEach(p=>{
+html+=linha(i,p.nome,p.qtd,p.valor,p.total)+"\n"
+totalItens+=p.qtd
+i++
 })
 
-html+=sep+"\n"
+html+="----------------------------------------\n"
 html+="ITENS: "+totalItens+"\n"
 html+="TOTAL: R$ "+totalVenda.toFixed(2)+"\n"
 html+="PAGAMENTO: "+pagamento.value+"\n"
 html+="RECEBIDO: R$ "+recebido.value+"\n"
 html+="TROCO: R$ "+(recebido.value-totalVenda).toFixed(2)+"\n"
-html+=sep+"\nOBRIGADO, VOLTE SEMPRE!\n</pre>"
+html+="Atendido por: "+usuarioAtual+"\n"
+html+="----------------------------------------\nOBRIGADO, VOLTE SEMPRE!\n</pre>"
 
 let w=window.open("")
 w.document.write(html)
 w.print()
 }
 
-// FUNCIONARIO
+// FUNCIONARIOS
 function salvarFunc(){
-funcs.push({nome:nomeF.value})
+funcs.push({
+numero:numF.value,
+nome:nomeF.value,
+senha:senhaF.value,
+ponto:[]
+})
 localStorage.setItem("funcs",JSON.stringify(funcs))
 listarFunc()
 }
@@ -206,9 +241,30 @@ listarFunc()
 function listarFunc(){
 listaFunc.innerHTML=funcs.map((f,i)=>`
 <tr>
+<td>${f.numero}</td>
 <td>${f.nome}</td>
-<td><button onclick="excluirFunc(${i})">Excluir</button></td>
+<td>
+<button onclick="ponto(${i},'Entrada')">Entrada</button>
+<button onclick="ponto(${i},'Saída almoço')">Almoço</button>
+<button onclick="ponto(${i},'Volta')">Volta</button>
+<button onclick="ponto(${i},'Saída')">Saída</button>
+<button onclick="imprimirPonto(${i})">🧾</button>
+<button onclick="excluirFunc(${i})">Excluir</button>
+</td>
 </tr>`).join("")
+}
+
+function ponto(i,t){
+let h=new Date().toLocaleString()
+funcs[i].ponto.push(`${t} - ${h}`)
+localStorage.setItem("funcs",JSON.stringify(funcs))
+}
+
+function imprimirPonto(i){
+let f=funcs[i]
+let w=window.open("")
+w.document.write("<pre>"+f.nome+"\n"+f.ponto.join("\n")+"</pre>")
+w.print()
 }
 
 function excluirFunc(i){
