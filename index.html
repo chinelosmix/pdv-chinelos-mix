@@ -1,4 +1,4 @@
-```html
+```html id="sistema-pdv-final">
 <!DOCTYPE html>
 <html>
 <head>
@@ -35,6 +35,7 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <button onclick="show('ven')">Venda</button>
 <button onclick="show('fun')">Funcionários</button>
 <button onclick="show('cx')">Caixa</button>
+<button onclick="show('rel')">Relatório</button>
 </nav>
 
 <!-- PRODUTOS -->
@@ -78,7 +79,9 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <option>Dinheiro</option>
 <option>Pix</option>
 <option>Débito</option>
-<option>Crédito</option>
+<option>Crédito à vista</option>
+<option>Crédito 2x</option>
+<option>Crédito 3x</option>
 <option>Vale</option>
 </select>
 
@@ -109,6 +112,13 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <h3 id="status"></h3>
 </div>
 
+<!-- RELATORIO -->
+<div id="rel" class="box">
+<h2>Relatório</h2>
+<table id="listaRelatorio"></table>
+<h3>Total: R$ <span id="totalRelatorio">0</span></h3>
+</div>
+
 <script>
 
 // LOGIN
@@ -124,9 +134,7 @@ let edit=-1
 
 function salvarProduto(){
 let p={codigo:codigo.value,nome:nome.value,cor:cor.value,numero:numero.value,estoque:Number(estoque.value),valor:Number(valor.value)}
-
 if(edit>=0){produtos[edit]=p;edit=-1}else{produtos.push(p)}
-
 localStorage.setItem("produtos",JSON.stringify(produtos))
 listarProdutos()
 }
@@ -185,6 +193,7 @@ cam.stop();readerVenda.innerHTML="";cam=null
 
 // VENDAS
 let venda=[],totalVenda=0
+let rel=JSON.parse(localStorage.getItem("rel"))||[]
 
 function addVenda(){
 let p=produtos.find(x=>x.codigo==codVenda.value)
@@ -201,116 +210,76 @@ localStorage.setItem("produtos",JSON.stringify(produtos))
 
 codVenda.value=""
 qtd.value=1
-codVenda.focus()
-
 atualizarVenda()
 }
 
 function atualizarVenda(){
 listaVenda.innerHTML=venda.map(p=>`
-<tr>
-<td>${p.nome}</td>
-<td>${p.qtd}</td>
-<td>R$${p.valor}</td>
-</tr>`).join("")
-document.getElementById("total").innerText=totalVenda.toFixed(2)
+<tr><td>${p.nome}</td><td>${p.qtd}</td><td>R$${p.valor}</td></tr>`).join("")
+total.innerText=totalVenda.toFixed(2)
 }
 
-// CUPOM ALINHADO PROFISSIONAL
+// CUPOM PERFEITO
 function imprimir(){
-
-let numeroCupom = Number(localStorage.getItem("cupomNumero") || 0) + 1
-localStorage.setItem("cupomNumero", numeroCupom)
-
-let numeroFormatado = String(numeroCupom).padStart(6,"0")
-let dataHora = new Date().toLocaleString()
 
 let agrupado={}
 venda.forEach(p=>{
-let chave=p.codigo+"_"+p.nome
-if(!agrupado[chave]){
-agrupado[chave]={nome:p.nome,qtd:0,valor:p.valor,total:0}
-}
-agrupado[chave].qtd+=p.qtd
-agrupado[chave].total+=p.valor*p.qtd
+let k=p.codigo+p.nome
+if(!agrupado[k]) agrupado[k]={nome:p.nome,qtd:0,valor:p.valor,total:0}
+agrupado[k].qtd+=p.qtd
+agrupado[k].total+=p.valor*p.qtd
 })
 
-function linha(i,nome,qtd,valor,total){
-let item = String(i).padStart(3,"0")
-let n = nome.substring(0,18).padEnd(18," ")
-let q = String(qtd).padStart(3," ")
-let vu = ("R$"+valor.toFixed(2)).padStart(8," ")
-let tt = ("R$"+total.toFixed(2)).padStart(8," ")
-return `${item} ${n}${q} ${vu} ${tt}`
+function linha(i,n,q,v,t){
+return `${String(i).padStart(3,"0")} ${n.substring(0,18).padEnd(18)} ${String(q).padStart(3)} ${("R$"+v.toFixed(2)).padStart(8)} ${("R$"+t.toFixed(2)).padStart(8)}`
 }
 
-let sep="----------------------------------------"
-
-let html=`
-<div id="cupom">
-
-<center>
-<b>CHINELOS MIX</b><br>
-CNPJ: 46.982.791/0001-01<br>
+let html=`<pre style="font-family:monospace">
+CHINELOS MIX
+CNPJ: 46.982.791/0001-01
 AV. LEONOR BOLSONI MARQUES DA SILVA, 45
-</center>
-
-${sep}
-CUPOM Nº: ${numeroFormatado}<br>
-${dataHora}
-${sep}
-
-ITEM PRODUTO           QTD  V.UNIT   TOTAL
-${sep}
+----------------------------------------
+ITEM PRODUTO           QTD VALOR UNIT TOTAL
+----------------------------------------
 `
 
 let i=1
 Object.values(agrupado).forEach(p=>{
-html+=linha(i,p.nome,p.qtd,p.valor,p.total)+"<br>"
+html+=linha(i,p.nome,p.qtd,p.valor,p.total)+"\n"
 i++
 })
 
-html+=`
-${sep}
-TOTAL: R$ ${totalVenda.toFixed(2)}<br>
-PAGAMENTO: ${pagamento.value}<br>
-RECEBIDO: R$ ${totalVenda.toFixed(2)}<br>
+html+=`----------------------------------------
+TOTAL: R$ ${totalVenda.toFixed(2)}
+PAGAMENTO: ${pagamento.value}
+RECEBIDO: R$ ${totalVenda.toFixed(2)}
 
-Atendido por: ${usuarioAtual}<br>
+Atendido por: ${usuarioAtual}
 
-${sep}
-<center><b>OBRIGADO, VOLTE SEMPRE!</b></center>
+OBRIGADO, VOLTE SEMPRE!
+</pre>`
 
-</div>
-`
-
-let w=window.open("","","width=400,height=600")
-w.document.write(`
-<html>
-<head>
-<style>
-body{font-family:monospace;margin:0}
-#cupom{width:80mm;font-size:12px}
-</style>
-</head>
-<body onload="window.print();window.close()">
-${html}
-</body>
-</html>
-`)
+let w=window.open("")
+w.document.write(html)
+w.print()
 }
 
-// CAIXA
-let caixa=0,aberto=false
-
-function abrirCaixa(){caixa=Number(valorInicial.value);aberto=true;status.innerText="Caixa aberto"}
-function fecharCaixa(){aberto=false;status.innerText="Total: R$"+caixa}
-
+// FINALIZAR
 function finalizar(){
-if(!aberto)return alert("Abra o caixa")
-caixa+=totalVenda
+rel.push({data:new Date().toLocaleString(),total:totalVenda,pagamento:pagamento.value})
+localStorage.setItem("rel",JSON.stringify(rel))
 venda=[];totalVenda=0;atualizarVenda()
 alert("Venda finalizada")
+}
+
+// RELATORIO
+function listarRelatorio(){
+let t=0
+listaRelatorio.innerHTML=rel.map(r=>{
+t+=r.total
+return `<tr><td>${r.data}</td><td>R$${r.total}</td><td>${r.pagamento}</td></tr>`
+}).join("")
+totalRelatorio.innerText=t.toFixed(2)
 }
 
 // FUNCIONARIOS
@@ -323,18 +292,29 @@ listarFunc()
 }
 
 function listarFunc(){
-listaFunc.innerHTML=funcs.map(f=>`
+listaFunc.innerHTML=funcs.map((f,i)=>`
 <tr>
 <td>${f.nome}</td>
 <td>${f.cargo}</td>
+<td>
+<button onclick="excluirFunc(${i})">Excluir</button>
+</td>
 </tr>`).join("")
 }
 
+function excluirFunc(i){
+funcs.splice(i,1)
+localStorage.setItem("funcs",JSON.stringify(funcs))
+listarFunc()
+}
+
+// NAV
 function show(t){
 document.querySelectorAll(".box").forEach(x=>x.style.display="none")
 document.getElementById(t).style.display="block"
 listarProdutos()
 listarFunc()
+listarRelatorio()
 }
 
 show("ven")
