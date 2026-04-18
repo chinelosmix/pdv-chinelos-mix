@@ -82,11 +82,9 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <option>Vale</option>
 </select>
 
-<input id="dinheiro" placeholder="Valor recebido">
-
 <h3>Total: R$ <span id="total">0</span></h3>
 
-<button onclick="imprimir()">🧾 Cupom</button>
+<button onclick="imprimir()">🧾 Imprimir Cupom</button>
 <button onclick="finalizar()">Finalizar</button>
 
 <table id="listaVenda"></table>
@@ -196,7 +194,6 @@ let q=Number(qtd.value)
 if(p.estoque<q)return alert("Sem estoque")
 
 p.estoque-=q
-
 venda.push({...p,qtd:q})
 totalVenda+=p.valor*q
 
@@ -209,10 +206,6 @@ codVenda.focus()
 atualizarVenda()
 }
 
-codVenda.addEventListener("keypress",e=>{
-if(e.key==="Enter") addVenda()
-})
-
 function atualizarVenda(){
 listaVenda.innerHTML=venda.map(p=>`
 <tr>
@@ -220,17 +213,16 @@ listaVenda.innerHTML=venda.map(p=>`
 <td>${p.qtd}</td>
 <td>R$${p.valor}</td>
 </tr>`).join("")
-
 document.getElementById("total").innerText=totalVenda.toFixed(2)
 }
 
-// CUPOM PROFISSIONAL COMPLETO
+// CUPOM ALINHADO PROFISSIONAL
 function imprimir(){
 
 let numeroCupom = Number(localStorage.getItem("cupomNumero") || 0) + 1
 localStorage.setItem("cupomNumero", numeroCupom)
-let numeroFormatado = String(numeroCupom).padStart(6,"0")
 
+let numeroFormatado = String(numeroCupom).padStart(6,"0")
 let dataHora = new Date().toLocaleString()
 
 let agrupado={}
@@ -239,32 +231,36 @@ let chave=p.codigo+"_"+p.nome
 if(!agrupado[chave]){
 agrupado[chave]={nome:p.nome,qtd:0,valor:p.valor,total:0}
 }
-agrupado[chave].qtd+=Number(p.qtd)
+agrupado[chave].qtd+=p.qtd
 agrupado[chave].total+=p.valor*p.qtd
 })
 
 function linha(i,nome,qtd,valor,total){
-let item=String(i).padStart(3,"0")
-let n=nome.substring(0,16).padEnd(16," ")
-let q=String(qtd).padStart(3," ")
-let v=("R$ "+valor.toFixed(2)).padStart(10," ")
-let t=("R$ "+total.toFixed(2)).padStart(10," ")
-return `${item} ${n} ${q} ${v} ${t}`
+let item = String(i).padStart(3,"0")
+let n = nome.substring(0,18).padEnd(18," ")
+let q = String(qtd).padStart(3," ")
+let vu = ("R$"+valor.toFixed(2)).padStart(8," ")
+let tt = ("R$"+total.toFixed(2)).padStart(8," ")
+return `${item} ${n}${q} ${vu} ${tt}`
 }
 
-let sep="------------------------------------------------"
+let sep="----------------------------------------"
 
-let html=`<div id="cupom">
-<center><b>CHINELOS MIX</b><br>
+let html=`
+<div id="cupom">
+
+<center>
+<b>CHINELOS MIX</b><br>
 CNPJ: 46.982.791/0001-01<br>
-AV. LEONOR BOLSONI MARQUES DA SILVA, 45</center>
+AV. LEONOR BOLSONI MARQUES DA SILVA, 45
+</center>
 
 ${sep}
 CUPOM Nº: ${numeroFormatado}<br>
-DATA: ${dataHora}
+${dataHora}
 ${sep}
 
-ITEM PRODUTO           QTD VALOR UNIT   TOTAL
+ITEM PRODUTO           QTD  V.UNIT   TOTAL
 ${sep}
 `
 
@@ -274,7 +270,8 @@ html+=linha(i,p.nome,p.qtd,p.valor,p.total)+"<br>"
 i++
 })
 
-html+=`${sep}
+html+=`
+${sep}
 TOTAL: R$ ${totalVenda.toFixed(2)}<br>
 PAGAMENTO: ${pagamento.value}<br>
 RECEBIDO: R$ ${totalVenda.toFixed(2)}<br>
@@ -283,7 +280,9 @@ Atendido por: ${usuarioAtual}<br>
 
 ${sep}
 <center><b>OBRIGADO, VOLTE SEMPRE!</b></center>
-</div>`
+
+</div>
+`
 
 let w=window.open("","","width=400,height=600")
 w.document.write(`
@@ -301,7 +300,7 @@ ${html}
 `)
 }
 
-// RESTANTE
+// CAIXA
 let caixa=0,aberto=false
 
 function abrirCaixa(){caixa=Number(valorInicial.value);aberto=true;status.innerText="Caixa aberto"}
