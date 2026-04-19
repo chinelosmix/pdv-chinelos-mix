@@ -1,7 +1,15 @@
 const express = require('express');
 const app = express();
+const path = require('path');
 
 app.use(express.json());
+
+// 👇 SERVIR FRONTEND
+app.use(express.static(__dirname));
+
+app.get('/', (req,res)=>{
+  res.sendFile(path.join(__dirname,'index.html'));
+});
 
 let produtos = [];
 let vendas = [];
@@ -37,6 +45,5 @@ app.post('/funcionario',(req,res)=>{
   res.json({ok:true});
 });
 
-// 🚨 PORTA CORRETA (IMPORTANTE)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Servidor rodando na porta " + PORT));
