@@ -25,7 +25,6 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <header>PDV CHINELOS MIX</header>
 
-<!-- LOGIN -->
 <div id="loginBox">
 <input id="user" placeholder="Nome">
 <input id="senha" placeholder="Senha" type="password">
@@ -40,7 +39,6 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <button onclick="show('rel')">Relatório</button>
 </nav>
 
-<!-- PRODUTOS -->
 <div id="prod" class="box">
 <input id="codigo" placeholder="Código">
 <button onclick="scanProduto()">📷 Scanner</button>
@@ -56,9 +54,7 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <table id="listaProdutos"></table>
 </div>
 
-<!-- VENDA -->
 <div id="ven" class="box">
-
 <input id="codVenda" placeholder="Código">
 <button onclick="scanVenda()">📷 Scanner</button>
 <div id="readerVenda"></div>
@@ -86,7 +82,6 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <table id="listaVenda"></table>
 </div>
 
-<!-- FUNCIONARIOS -->
 <div id="fun" class="box">
 <input id="nomeF" placeholder="Nome">
 <input id="senhaF" placeholder="Senha">
@@ -94,7 +89,6 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <table id="listaFunc"></table>
 </div>
 
-<!-- CAIXA -->
 <div id="cx" class="box">
 <input id="valorInicial" placeholder="Valor inicial">
 <button onclick="abrirCaixa()">Abrir Caixa</button>
@@ -102,7 +96,6 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <h3 id="status"></h3>
 </div>
 
-<!-- RELATORIO -->
 <div id="rel" class="box">
 <table id="listaRelatorio"></table>
 <h3 id="totalRelatorio"></h3>
@@ -110,38 +103,54 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <script>
 
-let produtos=JSON.parse(localStorage.getItem("produtos"))||[]
+const API = window.location.origin
+
+let produtos=[]
 let venda=[],totalVenda=0
-let funcs=JSON.parse(localStorage.getItem("funcs"))||[]
-let rel=JSON.parse(localStorage.getItem("rel"))||[]
-let fechamento=JSON.parse(localStorage.getItem("fechamento"))||[]
+let funcs=[]
+let rel=[]
+let fechamento=[]
 let usuarioAtual=""
 
-// LOGIN
-function login(){
-let nomeDigitado=user.value.trim()
-let senhaDigitada=senha.value.trim()
+// LOGIN ONLINE
+async function login(){
+let res = await fetch(API+"/login",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({nome:user.value,senha:senha.value})
+})
 
-let f=funcs.find(x=>x.nome.toLowerCase()===nomeDigitado.toLowerCase() && x.senha===senhaDigitada)
+if(res.status!==200){alert("Login inválido");return}
 
-if(!f){alert("Login inválido");return}
-
+let f = await res.json()
 usuarioAtual=f.nome
 loginBox.style.display="none"
 }
 
-// PRODUTOS
-function salvarProduto(){
-produtos.push({
+// PRODUTOS ONLINE
+async function carregarProdutos(){
+let res = await fetch(API+"/produtos")
+produtos = await res.json()
+listarProdutos()
+}
+
+async function salvarProduto(){
+let produto={
 codigo:codigo.value,
 nome:nome.value,
 cor:cor.value,
 numero:numero.value,
 estoque:Number(estoque.value),
 valor:Number(valor.value)
+}
+
+await fetch(API+"/produtos",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(produto)
 })
-localStorage.setItem("produtos",JSON.stringify(produtos))
-listarProdutos()
+
+carregarProdutos()
 }
 
 function listarProdutos(){
@@ -154,23 +163,6 @@ listaProdutos.innerHTML=produtos.map(p=>`
 <td>${p.estoque}</td>
 <td>R$${p.valor}</td>
 </tr>`).join("")
-}
-
-// SCANNER
-let cam=null
-function scanProduto(){
-if(cam){cam.stop();cam=null;reader.innerHTML="";return}
-cam=new Html5Qrcode("reader")
-cam.start({facingMode:"environment"},{fps:10},c=>{
-codigo.value=c;cam.stop();reader.innerHTML="";cam=null
-})
-}
-function scanVenda(){
-if(cam){cam.stop();cam=null;readerVenda.innerHTML="";return}
-cam=new Html5Qrcode("readerVenda")
-cam.start({facingMode:"environment"},{fps:10},c=>{
-codVenda.value=c;cam.stop();readerVenda.innerHTML="";cam=null
-})
 }
 
 // VENDA
@@ -194,159 +186,40 @@ total.innerText=totalVenda.toFixed(2)
 let r=Number(recebido.value)
 troco.innerText=r?(r-totalVenda).toFixed(2):0
 }
-recebido.oninput=atualizarVenda
 
-// CUPOM
-function imprimir(){
+async function finalizar(){
 
-let numero=Number(localStorage.getItem("cupom")||0)+1
-localStorage.setItem("cupom",numero)
-
-let agrupado={}
-venda.forEach(p=>{
-if(!agrupado[p.codigo]){
-agrupado[p.codigo]={nome:p.nome,qtd:0,valor:p.valor,total:0}
-}
-agrupado[p.codigo].qtd+=p.qtd
-agrupado[p.codigo].total+=p.valor*p.qtd
+await fetch(API+"/venda",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({itens:venda,total:totalVenda})
 })
 
-function linha(i,nome,qtd,valor,total){
-let item=String(i).padStart(3,"0")
-let n=nome.substring(0,20).padEnd(20," ")
-let q=String(qtd).padStart(3," ")
-let v=("R$"+valor.toFixed(2)).padStart(8," ")
-let t=("R$"+total.toFixed(2)).padStart(10," ")
-return `${item} ${n}${q} ${v} ${t}`
+venda=[];totalVenda=0
+atualizarVenda()
+alert("Venda salva online")
 }
 
-let sep="----------------------------------------"
+// RELATORIO ONLINE
+async function listarRelatorio(){
+let res = await fetch(API+"/relatorio")
+rel = await res.json()
 
-let html="<pre>CHINELOS MIX\nCNPJ: 46.982.791/0001-01\nAV. LEONOR BOLSONI MARQUES DA SILVA, 45\n"+sep+"\n"
-html+="CUPOM Nº: "+String(numero).padStart(6,"0")+"\n"
-html+="DATA: "+new Date().toLocaleString()+"\n"+sep+"\n"
-
-html+="ITEM PRODUTO           QTD VALOR UNIT   TOTAL\n"+sep+"\n"
-
-let i=1,totalItens=0
-
-Object.values(agrupado).forEach(p=>{
-html+=linha(i,p.nome,p.qtd,p.valor,p.total)+"\n"
-totalItens+=p.qtd
-i++
-})
-
-html+=sep+"\n"
-html+="ITENS: "+totalItens+"\n"
-html+="TOTAL: R$ "+totalVenda.toFixed(2)+"\n"
-html+="PAGAMENTO: "+pagamento.value+"\n"
-html+="Atendido por: "+usuarioAtual+"\n"
-html+=sep+"\nOBRIGADO, VOLTE SEMPRE!\n</pre>"
-
-let w=window.open("")
-w.document.write(html)
-w.print()
-}
-
-// FINALIZAR
-function finalizar(){
-rel.push({
-data:new Date().toLocaleDateString(),
-total:totalVenda
-})
-localStorage.setItem("rel",JSON.stringify(rel))
-
-venda=[];totalVenda=0;atualizarVenda()
-alert("Venda finalizada")
-}
-
-// CAIXA
-function abrirCaixa(){
-alert("✅ Caixa aberto")
-}
-
-function fecharCaixa(){
-
-if(rel.length===0){
-alert("Sem vendas no dia")
-return
-}
-
-let total=0
-rel.forEach(v=>total+=v.total)
-
-let qtd=rel.length
-let data=new Date().toLocaleDateString()
-
-fechamento.push({data,total,qtd})
-localStorage.setItem("fechamento",JSON.stringify(fechamento))
-
-alert(`📊 FECHAMENTO\nData: ${data}\nVendas: ${qtd}\nTotal: R$ ${total.toFixed(2)}`)
-
-rel=[]
-localStorage.setItem("rel",JSON.stringify(rel))
-
-listarRelatorio()
-status.innerText="Caixa fechado"
-}
-
-// RELATORIO
-function listarRelatorio(){
 let t=0
 listaRelatorio.innerHTML=rel.map(r=>{
 t+=r.total
-return `<tr><td>${r.data}</td><td>R$${r.total}</td></tr>`
+return `<tr><td>${r.total}</td></tr>`
 }).join("")
 totalRelatorio.innerText="Total: R$ "+t.toFixed(2)
-}
-
-// FUNCIONARIOS
-function salvarFunc(){
-funcs.push({nome:nomeF.value,senha:senhaF.value,ponto:[]})
-localStorage.setItem("funcs",JSON.stringify(funcs))
-listarFunc()
-}
-
-function listarFunc(){
-listaFunc.innerHTML=funcs.map((f,i)=>`
-<tr>
-<td>${f.nome}</td>
-<td>
-<button onclick="ponto(${i},'Entrada')">Entrada</button>
-<button onclick="ponto(${i},'Saída almoço')">Almoço</button>
-<button onclick="ponto(${i},'Volta')">Volta</button>
-<button onclick="ponto(${i},'Saída')">Saída</button>
-<button onclick="imprimirPonto(${i})">🧾</button>
-<button onclick="excluirFunc(${i})">Excluir</button>
-</td>
-</tr>
-`).join("")
-}
-
-function ponto(i,t){
-let h=new Date().toLocaleString()
-funcs[i].ponto.push(`${t} - ${h}`)
-localStorage.setItem("funcs",JSON.stringify(funcs))
-}
-
-function imprimirPonto(i){
-let f=funcs[i]
-let w=window.open("")
-w.document.write("<pre>"+f.nome+"\n"+f.ponto.join("\n")+"</pre>")
-w.print()
-}
-
-function excluirFunc(i){
-funcs.splice(i,1)
-localStorage.setItem("funcs",JSON.stringify(funcs))
-listarFunc()
 }
 
 // NAV
 function show(t){
 document.querySelectorAll(".box").forEach(x=>x.style.display="none")
 document.getElementById(t).style.display="block"
-listarProdutos();listarRelatorio();listarFunc()
+
+carregarProdutos()
+listarRelatorio()
 }
 
 show("ven")
