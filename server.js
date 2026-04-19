@@ -4,7 +4,7 @@ const path = require('path');
 
 app.use(express.json());
 
-// 👇 SERVIR FRONTEND
+// 🔥 SERVIR SEU SISTEMA (index.html)
 app.use(express.static(__dirname));
 
 app.get('/', (req,res)=>{
@@ -23,15 +23,36 @@ app.post('/login',(req,res)=>{
   res.json(f);
 });
 
-// PRODUTOS
+// ================= PRODUTOS =================
+
+// LISTAR
 app.get('/produtos',(req,res)=> res.json(produtos));
 
+// CADASTRAR
 app.post('/produtos',(req,res)=>{
   produtos.push(req.body);
   res.json({ok:true});
 });
 
-// VENDAS
+// 🔥 EDITAR PRODUTO
+app.put('/produtos/:codigo',(req,res)=>{
+  let i = produtos.findIndex(p=>p.codigo==req.params.codigo);
+  if(i>=0){
+    produtos[i] = req.body;
+    res.json({ok:true});
+  }else{
+    res.status(404).json({erro:true});
+  }
+});
+
+// 🔥 EXCLUIR PRODUTO
+app.delete('/produtos/:codigo',(req,res)=>{
+  produtos = produtos.filter(p=>p.codigo!=req.params.codigo);
+  res.json({ok:true});
+});
+
+// ================= VENDAS =================
+
 app.post('/venda',(req,res)=>{
   vendas.push(req.body);
   res.json({ok:true});
@@ -39,11 +60,13 @@ app.post('/venda',(req,res)=>{
 
 app.get('/relatorio',(req,res)=> res.json(vendas));
 
-// FUNCIONARIOS
+// ================= FUNCIONARIOS =================
+
 app.post('/funcionario',(req,res)=>{
   funcionarios.push(req.body);
   res.json({ok:true});
 });
 
+// 🔥 PORTA CORRETA PRA RAILWAY
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Servidor rodando na porta " + PORT));
