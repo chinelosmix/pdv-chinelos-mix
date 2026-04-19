@@ -6,6 +6,7 @@
 <title>PDV CHINELOS MIX</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
 <style>
 body{margin:0;font-family:Arial;background:#0f172a;color:#fff}
@@ -107,12 +108,14 @@ const API = window.location.origin
 
 let produtos=[]
 let venda=[],totalVenda=0
-let funcs=[]
-let rel=[]
-let fechamento=[]
 let usuarioAtual=""
 
-// LOGIN ONLINE
+// GERAR CÓDIGO BARRAS
+function gerarCodigoBarras(){
+return Date.now().toString()
+}
+
+// LOGIN
 async function login(){
 let res = await fetch(API+"/login",{
 method:"POST",
@@ -121,13 +124,12 @@ body:JSON.stringify({nome:user.value,senha:senha.value})
 })
 
 if(res.status!==200){alert("Login inválido");return}
-
 let f = await res.json()
 usuarioAtual=f.nome
 loginBox.style.display="none"
 }
 
-// PRODUTOS ONLINE
+// PRODUTOS
 async function carregarProdutos(){
 let res = await fetch(API+"/produtos")
 produtos = await res.json()
@@ -135,8 +137,10 @@ listarProdutos()
 }
 
 async function salvarProduto(){
+
 let produto={
-codigo:codigo.value,
+codigo:codigo.value || Date.now(),
+codigoBarras: gerarCodigoBarras(),
 nome:nome.value,
 cor:cor.value,
 numero:numero.value,
@@ -162,18 +166,84 @@ listaProdutos.innerHTML=produtos.map(p=>`
 <td>${p.numero}</td>
 <td>${p.estoque}</td>
 <td>R$${p.valor}</td>
-</tr>`).join("")
+<td>
+<button onclick="editar('${p.codigo}')">✏️</button>
+<button onclick="excluir('${p.codigo}')">🗑️</button>
+<button onclick="etiqueta('${p.codigo}')">🏷️</button>
+</td>
+</tr>
+`).join("")
+}
+
+// EDITAR
+function editar(cod){
+let p = produtos.find(x=>x.codigo==cod)
+codigo.value=p.codigo
+nome.value=p.nome
+cor.value=p.cor
+numero.value=p.numero
+estoque.value=p.estoque
+valor.value=p.valor
+}
+
+// EXCLUIR
+async function excluir(cod){
+if(!confirm("Excluir produto?")) return
+await fetch(API+"/produtos/"+cod,{method:"DELETE"})
+carregarProdutos()
+}
+
+// ETIQUETA
+function etiqueta(cod){
+let p = produtos.find(x=>x.codigo==cod)
+
+let html = `
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<style>
+body{font-family:monospace;text-align:center}
+.etq{width:60mm}
+.valor{font-size:18px;font-weight:bold}
+</style>
+</head>
+<body>
+
+<div class="etq">
+<b>CHINELOS MIX</b><br>
+${p.nome}<br>
+${p.cor} | ${p.numero}<br>
+<div class="valor">R$ ${p.valor.toFixed(2)}</div>
+<svg id="barcode"></svg><br>
+${p.codigoBarras}
+</div>
+
+<script>
+JsBarcode("#barcode","${p.codigoBarras}",{
+format:"CODE128",
+width:2,
+height:40,
+displayValue:false
+})
+window.print()
+<\/script>
+
+</body>
+</html>
+`
+
+let w=window.open("")
+w.document.write(html)
 }
 
 // VENDA
 function addVenda(){
-let p=produtos.find(x=>x.codigo==codVenda.value)
+let p=produtos.find(x=>x.codigo==codVenda.value || x.codigoBarras==codVenda.value)
 if(!p)return alert("Produto não encontrado")
 
 let q=Number(qtd.value)
 venda.push({...p,qtd:q})
 totalVenda+=p.valor*q
-
 codVenda.value=""
 atualizarVenda()
 }
@@ -187,8 +257,8 @@ let r=Number(recebido.value)
 troco.innerText=r?(r-totalVenda).toFixed(2):0
 }
 
+// FINALIZAR
 async function finalizar(){
-
 await fetch(API+"/venda",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
@@ -197,19 +267,20 @@ body:JSON.stringify({itens:venda,total:totalVenda})
 
 venda=[];totalVenda=0
 atualizarVenda()
-alert("Venda salva online")
+alert("Venda salva")
 }
 
-// RELATORIO ONLINE
+// RELATORIO
 async function listarRelatorio(){
 let res = await fetch(API+"/relatorio")
-rel = await res.json()
+let dados = await res.json()
 
 let t=0
-listaRelatorio.innerHTML=rel.map(r=>{
+listaRelatorio.innerHTML=dados.map(r=>{
 t+=r.total
-return `<tr><td>${r.total}</td></tr>`
+return `<tr><td>R$${r.total}</td></tr>`
 }).join("")
+
 totalRelatorio.innerText="Total: R$ "+t.toFixed(2)
 }
 
