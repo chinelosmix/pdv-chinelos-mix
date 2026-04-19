@@ -18,7 +18,6 @@ input,select{width:100%;padding:10px;margin:5px 0;border-radius:5px;border:none}
 button{padding:10px;background:#22c55e;color:#fff;border:none;border-radius:5px;margin-top:5px}
 table{width:100%;margin-top:10px;border-collapse:collapse}
 td,th{border-bottom:1px solid #334155;padding:8px}
-#reader,#readerVenda{width:300px;margin:auto}
 </style>
 </head>
 
@@ -35,16 +34,12 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <nav>
 <button onclick="show('prod')">Produtos</button>
 <button onclick="show('ven')">Venda</button>
-<button onclick="show('fun')">Funcionários</button>
-<button onclick="show('cx')">Caixa</button>
 <button onclick="show('rel')">Relatório</button>
 </nav>
 
 <div id="prod" class="box">
-<input id="codigo" placeholder="Código">
-<button onclick="scanProduto()">📷 Scanner</button>
-<div id="reader"></div>
 
+<input id="codigo" placeholder="Código">
 <input id="nome" placeholder="Nome">
 <input id="cor" placeholder="Cor">
 <input id="numero" placeholder="Numeração">
@@ -52,49 +47,33 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <input id="valor" placeholder="Valor">
 
 <button onclick="salvarProduto()">Salvar</button>
-<table id="listaProdutos"></table>
+
+<table>
+<thead>
+<tr>
+<th>Código</th><th>Nome</th><th>Cor</th><th>Nº</th><th>Qtd</th><th>Valor</th><th>Ações</th>
+</tr>
+</thead>
+<tbody id="listaProdutos"></tbody>
+</table>
+
 </div>
 
 <div id="ven" class="box">
-<input id="codVenda" placeholder="Código">
-<button onclick="scanVenda()">📷 Scanner</button>
-<div id="readerVenda"></div>
 
+<input id="codVenda" placeholder="Código ou Código de Barras">
 <input id="qtd" value="1">
+
 <button onclick="addVenda()">Adicionar</button>
 
-<select id="pagamento">
-<option>Dinheiro</option>
-<option>Pix</option>
-<option>Débito</option>
-<option>Crédito à vista</option>
-<option>Crédito 2x</option>
-<option>Crédito 3x</option>
-</select>
-
-<input id="recebido" placeholder="Valor recebido">
-
 <h3>Total: R$ <span id="total">0</span></h3>
-<h3>Troco: R$ <span id="troco">0</span></h3>
 
-<button onclick="imprimir()">🧾 Imprimir</button>
-<button onclick="finalizar()">Finalizar</button>
+<table>
+<tbody id="listaVenda"></tbody>
+</table>
 
-<table id="listaVenda"></table>
-</div>
+<button onclick="finalizar()">Finalizar Venda</button>
 
-<div id="fun" class="box">
-<input id="nomeF" placeholder="Nome">
-<input id="senhaF" placeholder="Senha">
-<button onclick="salvarFunc()">Salvar</button>
-<table id="listaFunc"></table>
-</div>
-
-<div id="cx" class="box">
-<input id="valorInicial" placeholder="Valor inicial">
-<button onclick="abrirCaixa()">Abrir Caixa</button>
-<button onclick="fecharCaixa()">Fechar Caixa</button>
-<h3 id="status"></h3>
 </div>
 
 <div id="rel" class="box">
@@ -107,13 +86,8 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 const API = window.location.origin
 
 let produtos=[]
-let venda=[],totalVenda=0
-let usuarioAtual=""
-
-// GERAR CÓDIGO BARRAS
-function gerarCodigoBarras(){
-return Date.now().toString()
-}
+let venda=[]
+let totalVenda=0
 
 // LOGIN
 async function login(){
@@ -124,8 +98,6 @@ body:JSON.stringify({nome:user.value,senha:senha.value})
 })
 
 if(res.status!==200){alert("Login inválido");return}
-let f = await res.json()
-usuarioAtual=f.nome
 loginBox.style.display="none"
 }
 
@@ -139,13 +111,13 @@ listarProdutos()
 async function salvarProduto(){
 
 let produto={
-codigo:codigo.value || Date.now(),
-codigoBarras: gerarCodigoBarras(),
-nome:nome.value,
-cor:cor.value,
-numero:numero.value,
-estoque:Number(estoque.value),
-valor:Number(valor.value)
+codigo: codigo.value || Date.now().toString(),
+codigoBarras: Date.now().toString(),
+nome: nome.value,
+cor: cor.value,
+numero: numero.value,
+estoque: Number(estoque.value||0),
+valor: Number(valor.value||0)
 }
 
 await fetch(API+"/produtos",{
@@ -154,18 +126,25 @@ headers:{"Content-Type":"application/json"},
 body:JSON.stringify(produto)
 })
 
+limparCampos()
 carregarProdutos()
 }
 
 function listarProdutos(){
-listaProdutos.innerHTML=produtos.map(p=>`
+
+if(produtos.length===0){
+listaProdutos.innerHTML="<tr><td colspan='7'>Nenhum produto</td></tr>"
+return
+}
+
+listaProdutos.innerHTML = produtos.map(p=>`
 <tr>
 <td>${p.codigo}</td>
 <td>${p.nome}</td>
 <td>${p.cor}</td>
 <td>${p.numero}</td>
 <td>${p.estoque}</td>
-<td>R$${p.valor}</td>
+<td>R$ ${Number(p.valor).toFixed(2)}</td>
 <td>
 <button onclick="editar('${p.codigo}')">✏️</button>
 <button onclick="excluir('${p.codigo}')">🗑️</button>
@@ -178,6 +157,8 @@ listaProdutos.innerHTML=produtos.map(p=>`
 // EDITAR
 function editar(cod){
 let p = produtos.find(x=>x.codigo==cod)
+if(!p) return
+
 codigo.value=p.codigo
 nome.value=p.nome
 cor.value=p.cor
@@ -189,37 +170,33 @@ valor.value=p.valor
 // EXCLUIR
 async function excluir(cod){
 if(!confirm("Excluir produto?")) return
+
 await fetch(API+"/produtos/"+cod,{method:"DELETE"})
 carregarProdutos()
 }
 
 // ETIQUETA
 function etiqueta(cod){
+
 let p = produtos.find(x=>x.codigo==cod)
+if(!p) return
 
 let html = `
 <html>
 <head>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-<style>
-body{font-family:monospace;text-align:center}
-.etq{width:60mm}
-.valor{font-size:18px;font-weight:bold}
-</style>
 </head>
-<body>
+<body style="font-family:monospace;text-align:center">
 
-<div class="etq">
 <b>CHINELOS MIX</b><br>
 ${p.nome}<br>
 ${p.cor} | ${p.numero}<br>
-<div class="valor">R$ ${p.valor.toFixed(2)}</div>
-<svg id="barcode"></svg><br>
-${p.codigoBarras}
-</div>
+<b>R$ ${Number(p.valor).toFixed(2)}</b><br>
+
+<svg id="barcode"></svg>
 
 <script>
-JsBarcode("#barcode","${p.codigoBarras}",{
+JsBarcode("#barcode","${p.codigoBarras || p.codigo}",{
 format:"CODE128",
 width:2,
 height:40,
@@ -238,23 +215,29 @@ w.document.write(html)
 
 // VENDA
 function addVenda(){
-let p=produtos.find(x=>x.codigo==codVenda.value || x.codigoBarras==codVenda.value)
-if(!p)return alert("Produto não encontrado")
+
+let p = produtos.find(x =>
+x.codigo==codVenda.value ||
+x.codigoBarras==codVenda.value
+)
+
+if(!p) return alert("Produto não encontrado")
 
 let q=Number(qtd.value)
+
 venda.push({...p,qtd:q})
 totalVenda+=p.valor*q
-codVenda.value=""
+
 atualizarVenda()
+codVenda.value=""
 }
 
 function atualizarVenda(){
 listaVenda.innerHTML=venda.map(p=>`
-<tr><td>${p.nome}</td><td>${p.qtd}</td><td>R$${p.valor}</td></tr>`).join("")
-total.innerText=totalVenda.toFixed(2)
+<tr><td>${p.nome}</td><td>${p.qtd}</td><td>R$${p.valor}</td></tr>
+`).join("")
 
-let r=Number(recebido.value)
-troco.innerText=r?(r-totalVenda).toFixed(2):0
+total.innerText=totalVenda.toFixed(2)
 }
 
 // FINALIZAR
@@ -265,7 +248,8 @@ headers:{"Content-Type":"application/json"},
 body:JSON.stringify({itens:venda,total:totalVenda})
 })
 
-venda=[];totalVenda=0
+venda=[]
+totalVenda=0
 atualizarVenda()
 alert("Venda salva")
 }
@@ -293,7 +277,17 @@ carregarProdutos()
 listarRelatorio()
 }
 
-show("ven")
+// LIMPAR
+function limparCampos(){
+codigo.value=""
+nome.value=""
+cor.value=""
+numero.value=""
+estoque.value=""
+valor.value=""
+}
+
+show("prod")
 
 </script>
 
