@@ -53,7 +53,6 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <input id="valor" placeholder="Valor">
 
 <button onclick="salvarProduto()">Salvar</button>
-
 <table id="listaProdutos"></table>
 </div>
 
@@ -92,7 +91,6 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <input id="nomeF" placeholder="Nome">
 <input id="senhaF" placeholder="Senha">
 <button onclick="salvarFunc()">Salvar</button>
-
 <table id="listaFunc"></table>
 </div>
 
@@ -112,17 +110,22 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <script>
 
-// DADOS
 let produtos=JSON.parse(localStorage.getItem("produtos"))||[]
 let venda=[],totalVenda=0
 let funcs=JSON.parse(localStorage.getItem("funcs"))||[]
 let rel=JSON.parse(localStorage.getItem("rel"))||[]
+let fechamento=JSON.parse(localStorage.getItem("fechamento"))||[]
 let usuarioAtual=""
 
 // LOGIN
 function login(){
-let f=funcs.find(x=>x.nome==user.value && x.senha==senha.value)
+let nomeDigitado=user.value.trim()
+let senhaDigitada=senha.value.trim()
+
+let f=funcs.find(x=>x.nome.toLowerCase()===nomeDigitado.toLowerCase() && x.senha===senhaDigitada)
+
 if(!f){alert("Login inválido");return}
+
 usuarioAtual=f.nome
 loginBox.style.display="none"
 }
@@ -193,7 +196,7 @@ troco.innerText=r?(r-totalVenda).toFixed(2):0
 }
 recebido.oninput=atualizarVenda
 
-// CUPOM PROFISSIONAL
+// CUPOM
 function imprimir(){
 
 let numero=Number(localStorage.getItem("cupom")||0)+1
@@ -218,14 +221,15 @@ return `${item} ${n}${q} ${v} ${t}`
 }
 
 let sep="----------------------------------------"
-let html="<pre>CHINELOS MIX\nCNPJ: 46.982.791/0001-01\nAV. LEONOR BOLSONI MARQUES DA SILVA, 45\n"+sep+"\n"
 
+let html="<pre>CHINELOS MIX\nCNPJ: 46.982.791/0001-01\nAV. LEONOR BOLSONI MARQUES DA SILVA, 45\n"+sep+"\n"
 html+="CUPOM Nº: "+String(numero).padStart(6,"0")+"\n"
 html+="DATA: "+new Date().toLocaleString()+"\n"+sep+"\n"
 
 html+="ITEM PRODUTO           QTD VALOR UNIT   TOTAL\n"+sep+"\n"
 
 let i=1,totalItens=0
+
 Object.values(agrupado).forEach(p=>{
 html+=linha(i,p.nome,p.qtd,p.valor,p.total)+"\n"
 totalItens+=p.qtd
@@ -257,13 +261,33 @@ alert("Venda finalizada")
 }
 
 // CAIXA
-let caixa=0
 function abrirCaixa(){
-caixa=Number(valorInicial.value)
 alert("✅ Caixa aberto")
 }
+
 function fecharCaixa(){
-status.innerText="Total em caixa: R$ "+(caixa+totalVenda)
+
+if(rel.length===0){
+alert("Sem vendas no dia")
+return
+}
+
+let total=0
+rel.forEach(v=>total+=v.total)
+
+let qtd=rel.length
+let data=new Date().toLocaleDateString()
+
+fechamento.push({data,total,qtd})
+localStorage.setItem("fechamento",JSON.stringify(fechamento))
+
+alert(`📊 FECHAMENTO\nData: ${data}\nVendas: ${qtd}\nTotal: R$ ${total.toFixed(2)}`)
+
+rel=[]
+localStorage.setItem("rel",JSON.stringify(rel))
+
+listarRelatorio()
+status.innerText="Caixa fechado"
 }
 
 // RELATORIO
@@ -278,14 +302,44 @@ totalRelatorio.innerText="Total: R$ "+t.toFixed(2)
 
 // FUNCIONARIOS
 function salvarFunc(){
-funcs.push({nome:nomeF.value,senha:senhaF.value})
+funcs.push({nome:nomeF.value,senha:senhaF.value,ponto:[]})
 localStorage.setItem("funcs",JSON.stringify(funcs))
 listarFunc()
 }
 
 function listarFunc(){
-listaFunc.innerHTML=funcs.map(f=>`
-<tr><td>${f.nome}</td></tr>`).join("")
+listaFunc.innerHTML=funcs.map((f,i)=>`
+<tr>
+<td>${f.nome}</td>
+<td>
+<button onclick="ponto(${i},'Entrada')">Entrada</button>
+<button onclick="ponto(${i},'Saída almoço')">Almoço</button>
+<button onclick="ponto(${i},'Volta')">Volta</button>
+<button onclick="ponto(${i},'Saída')">Saída</button>
+<button onclick="imprimirPonto(${i})">🧾</button>
+<button onclick="excluirFunc(${i})">Excluir</button>
+</td>
+</tr>
+`).join("")
+}
+
+function ponto(i,t){
+let h=new Date().toLocaleString()
+funcs[i].ponto.push(`${t} - ${h}`)
+localStorage.setItem("funcs",JSON.stringify(funcs))
+}
+
+function imprimirPonto(i){
+let f=funcs[i]
+let w=window.open("")
+w.document.write("<pre>"+f.nome+"\n"+f.ponto.join("\n")+"</pre>")
+w.print()
+}
+
+function excluirFunc(i){
+funcs.splice(i,1)
+localStorage.setItem("funcs",JSON.stringify(funcs))
+listarFunc()
 }
 
 // NAV
