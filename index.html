@@ -171,6 +171,24 @@ ex?await db.collection("produtos").doc(ex.id).set(p):await db.collection("produt
 limparCampos()
 }
 
+// EDITAR
+function editar(cod){
+let p=produtos.find(x=>x.codigo==cod)
+codigo.value=p.codigo
+nome.value=p.nome
+cor.value=p.cor
+numero.value=p.numero
+estoque.value=p.estoque
+valor.value=p.valor
+}
+
+// EXCLUIR
+async function excluir(cod){
+if(!confirm("Excluir produto?")) return
+let p=produtos.find(x=>x.codigo==cod)
+await db.collection("produtos").doc(p.id).delete()
+}
+
 // LISTAR
 function listarProdutos(){
 listaProdutos.innerHTML=produtos.map(p=>`
@@ -182,6 +200,8 @@ listaProdutos.innerHTML=produtos.map(p=>`
 <td>${p.estoque}</td>
 <td>R$ ${p.valor.toFixed(2)}</td>
 <td>
+<button onclick="editar('${p.codigo}')">✏️</button>
+<button onclick="excluir('${p.codigo}')">🗑️</button>
 <button onclick="etiqueta('${p.codigo}')">🏷️</button>
 </td>
 </tr>`).join("")
@@ -194,7 +214,8 @@ let w=window.open("")
 w.document.write(`
 <b>CHINELOS MIX</b><br>
 ${p.nome}<br>
-R$${p.valor}<br>
+${p.cor} | ${p.numero}<br>
+<b>R$${p.valor}</b><br>
 <svg id="b"></svg>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
 <script>JsBarcode("#b","${p.codigo}");window.print()<\/script>
@@ -231,8 +252,6 @@ let pagamentos=[{tipo:pagamento.value,valor:+valorPago.value||0}]
 
 if(pagamento2.style.display=="block"){
 pagamentos.push({tipo:pagamentoExtra.value,valor:+valorExtra.value||0})
-let soma=pagamentos.reduce((t,p)=>t+p.valor,0)
-if(soma<totalVenda)return alert("Pagamento insuficiente")
 }
 
 await db.collection("vendas").add({itens:venda,total:totalVenda,usuario:usuarioAtual})
