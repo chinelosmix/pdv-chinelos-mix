@@ -20,7 +20,7 @@ input,select{width:100%;padding:10px;margin:5px 0;border-radius:5px;border:none}
 button{padding:10px;background:#22c55e;color:#fff;border:none;border-radius:5px;margin-top:5px}
 table{width:100%;margin-top:10px;border-collapse:collapse}
 td,th{border-bottom:1px solid #334155;padding:8px}
-#reader{width:300px;margin:auto}
+#reader,#readerVenda{width:300px;margin:auto}
 </style>
 </head>
 
@@ -68,16 +68,45 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 </div>
 
-<!-- VENDA -->
+<!-- VENDA COMPLETA -->
 <div id="ven" class="box">
 
 <input id="codVenda" placeholder="Passe o código">
 <input id="qtd" value="1">
 <button onclick="addVenda()">Adicionar</button>
 
+<button onclick="iniciarScannerVenda()">📷 Scanner</button>
+<div id="readerVenda"></div>
+
 <h3>Total: R$ <span id="total">0</span></h3>
 
 <table id="listaVenda"></table>
+
+<h3>Pagamento</h3>
+
+<select id="pagamento">
+<option>Dinheiro</option>
+<option>PIX</option>
+<option>Débito</option>
+<option>Crédito à vista</option>
+<option>2x</option>
+<option>3x</option>
+<option>Vale</option>
+</select>
+
+<input id="valorPago" placeholder="Valor pago">
+
+<button onclick="usar2Pagamentos()">💳 2 Formas</button>
+
+<div id="pagamento2" style="display:none">
+<select id="pagamentoExtra">
+<option>Dinheiro</option>
+<option>PIX</option>
+<option>Débito</option>
+<option>Crédito</option>
+</select>
+<input id="valorExtra" placeholder="Valor">
+</div>
 
 <button onclick="finalizar()">Finalizar</button>
 
@@ -115,37 +144,38 @@ usuarioAtual=user.value
 loginBox.style.display="none"
 }
 
-// GERAR CODIGO
+// CODIGO
 function gerarCodigo(){
 codigo.value = "789" + Math.floor(Math.random()*1000000000)
 }
 
-// SCANNER CAMERA
+// SCANNER PRODUTO
 function iniciarScanner(){
 let scanner = new Html5Qrcode("reader")
-
-scanner.start(
-{ facingMode: "environment" },
-{ fps: 10, qrbox: 250 },
-(codigoLido)=>{
-codigo.value = codigoLido
+scanner.start({ facingMode: "environment" },{ fps:10, qrbox:250 },(c)=>{
+codigo.value=c
 scanner.stop()
-}
-)
+})
 }
 
-// FIREBASE REALTIME
+// SCANNER VENDA
+function iniciarScannerVenda(){
+let scanner = new Html5Qrcode("readerVenda")
+scanner.start({ facingMode: "environment" },{ fps:10, qrbox:250 },(c)=>{
+codVenda.value=c
+addVenda()
+scanner.stop()
+})
+}
+
+// FIREBASE
 db.collection("produtos").onSnapshot(snapshot=>{
-produtos = snapshot.docs.map(doc=>({
-id:doc.id,
-...doc.data()
-}))
+produtos = snapshot.docs.map(doc=>({id:doc.id,...doc.data()}))
 listarProdutos()
 })
 
 // SALVAR
 async function salvarProduto(){
-
 let cod = codigo.value || Date.now().toString()
 
 let produto={
@@ -173,7 +203,6 @@ limparCampos()
 function editar(cod){
 let p = produtos.find(x=>x.codigo==cod)
 if(!p)return
-
 codigo.value=p.codigo
 nome.value=p.nome
 cor.value=p.cor
@@ -192,12 +221,10 @@ await db.collection("produtos").doc(p.id).delete()
 
 // LISTAR
 function listarProdutos(){
-
 if(!produtos.length){
 listaProdutos.innerHTML="<tr><td colspan='7'>Nenhum produto</td></tr>"
 return
 }
-
 listaProdutos.innerHTML = produtos.map(p=>`
 <tr>
 <td>${p.codigo}</td>
@@ -234,64 +261,112 @@ JsBarcode("#barcode","${p.codigo}",{width:2,height:40,displayValue:false})
 window.print()
 <\/script>
 </body>
-</html>
-`
+</html>`
 let w=window.open("")
 w.document.write(html)
 }
 
 // VENDA
 function addVenda(){
-
-let p = produtos.find(x =>
-x.codigo==codVenda.value ||
-x.codigoBarras==codVenda.value
-)
-
+let p = produtos.find(x => x.codigo==codVenda.value || x.codigoBarras==codVenda.value)
 if(!p)return alert("Produto não encontrado")
 
 let q=Number(qtd.value)
-
 venda.push({...p,qtd:q})
 totalVenda+=p.valor*q
-
 codVenda.value=""
 atualizarVenda()
 }
 
+function removerItem(i){
+let item=venda[i]
+totalVenda-=item.valor*item.qtd
+venda.splice(i,1)
+atualizarVenda()
+}
+
 function atualizarVenda(){
-listaVenda.innerHTML=venda.map(p=>`
-<tr><td>${p.nome}</td><td>${p.qtd}</td><td>R$${p.valor}</td></tr>
+listaVenda.innerHTML=venda.map((p,i)=>`
+<tr>
+<td>${p.nome}</td>
+<td>${p.qtd}</td>
+<td>R$${p.valor}</td>
+<td><button onclick="removerItem(${i})">❌</button></td>
+</tr>
 `).join("")
 total.innerText=totalVenda.toFixed(2)
 }
 
+// 2 PAGAMENTOS
+function usar2Pagamentos(){
+pagamento2.style.display="block"
+}
+
 // FINALIZAR
 async function finalizar(){
+
+let pagamentos=[{
+tipo:pagamento.value,
+valor:Number(valorPago.value||0)
+}]
+
+if(pagamento2.style.display=="block"){
+pagamentos.push({
+tipo:pagamentoExtra.value,
+valor:Number(valorExtra.value||0)
+})
+}
+
 await db.collection("vendas").add({
 itens:venda,
 total:totalVenda,
+pagamentos:pagamentos,
 data:new Date(),
 usuario:usuarioAtual
 })
 
+imprimirCupom(pagamentos)
+
 venda=[];totalVenda=0
 atualizarVenda()
-alert("Venda salva")
+valorPago.value=""
+valorExtra.value=""
+
+alert("Venda finalizada")
+}
+
+// CUPOM
+function imprimirCupom(pagamentos){
+
+let itens=venda.map(p=>`${p.nome} x${p.qtd} - R$${p.valor}`).join("<br>")
+let pag=pagamentos.map(p=>`${p.tipo}: R$${p.valor}`).join("<br>")
+
+let html=`
+<html>
+<body style="font-family:monospace">
+<center><b>CHINELOS MIX</b></center><br>
+${itens}
+<br><br>
+TOTAL: R$${totalVenda.toFixed(2)}<br><br>
+${pag}
+<br><br>Obrigado!
+<script>window.print()<\/script>
+</body>
+</html>`
+
+let w=window.open("")
+w.document.write(html)
 }
 
 // RELATORIO
 async function listarRelatorio(){
-
 let snap = await db.collection("vendas").get()
-
 let t=0
 listaRelatorio.innerHTML=snap.docs.map(doc=>{
 let r = doc.data()
 t+=r.total
 return `<tr><td>R$${r.total}</td></tr>`
 }).join("")
-
 totalRelatorio.innerText="Total: R$ "+t.toFixed(2)
 }
 
