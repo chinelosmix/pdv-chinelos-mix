@@ -207,19 +207,42 @@ listaProdutos.innerHTML=produtos.map(p=>`
 </tr>`).join("")
 }
 
-// ETIQUETA
+// ETIQUETA 40x50
 function etiqueta(c){
-let p=produtos.find(x=>x.codigo==c)
-let w=window.open("")
-w.document.write(`
-<b>CHINELOS MIX</b><br>
-${p.nome}<br>
-${p.cor} | ${p.numero}<br>
-<b>R$${p.valor}</b><br>
-<svg id="b"></svg>
+let p = produtos.find(x=>x.codigo==c)
+
+let html = `
+<html>
+<head>
+<style>
+body{margin:0;width:40mm;height:50mm;font-family:Arial;text-align:center}
+.nome{font-size:10px;font-weight:bold}
+.info{font-size:9px}
+.preco{font-size:12px;font-weight:bold}
+svg{width:100%;height:20mm}
+</style>
+</head>
+<body>
+
+<div class="nome">CHINELOS MIX</div>
+<div class="info">${p.nome}</div>
+<div class="info">${p.cor} | ${p.numero}</div>
+<div class="preco">R$ ${p.valor.toFixed(2)}</div>
+
+<svg id="barcode"></svg>
+
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
-<script>JsBarcode("#b","${p.codigo}");window.print()<\/script>
-`)
+<script>
+JsBarcode("#barcode","${p.codigo}",{width:1.5,height:40,displayValue:false})
+window.print()
+<\/script>
+
+</body>
+</html>
+`
+
+let w=window.open("")
+w.document.write(html)
 }
 
 // VENDA
@@ -240,60 +263,64 @@ listaVenda.innerHTML=venda.map(p=>`
 total.innerText=totalVenda.toFixed(2)
 }
 
-// 2 PAGAMENTOS
-function usar2Pagamentos(){
-pagamento2.style.display="block"
-}
-
 // FINALIZAR
 async function finalizar(){
-
 let pagamentos=[{tipo:pagamento.value,valor:+valorPago.value||0}]
-
-if(pagamento2.style.display=="block"){
-pagamentos.push({tipo:pagamentoExtra.value,valor:+valorExtra.value||0})
-}
-
 await db.collection("vendas").add({itens:venda,total:totalVenda,usuario:usuarioAtual})
-
 cupom(pagamentos)
-
 venda=[];totalVenda=0;renderVenda()
 }
 
-// CUPOM
-function cupom(pag){
+// CUPOM PROFISSIONAL
+function cupom(pagamentos){
 
-let itens=venda.map(p=>`
-<tr><td>${p.nome}</td><td>${p.qtd}</td><td>R$${p.valor.toFixed(2)}</td></tr>
-`).join("")
+let data=new Date().toLocaleString()
+let totalItens=venda.reduce((t,p)=>t+p.qtd,0)
 
-let w=window.open("","","width=300")
-w.document.write(`
-<html><body style="font-family:monospace;font-size:12px">
-<center>
-<b>CHINELOS MIX</b><br>
+let itens=venda.map(p=>{
+let sub=p.qtd*p.valor
+return `<tr><td>${p.nome}</td><td align="center">${p.qtd}</td><td align="right">R$${sub.toFixed(2)}</td></tr>`
+}).join("")
+
+let html=`
+<html><body style="font-family:monospace;font-size:12px;width:300px">
+
+<center><b>CHINELOS MIX</b><br>
 CNPJ: 46.982.791/0001-01<br>
-Av Leonor Bosone Marques da Silva, 45<br>
-Centro - Poá/SP
-</center><hr>
+Av. Leonor Bosone Marques da Silva, 45<br>
+Centro - Poá/SP</center>
 
-Funcionário: ${usuarioAtual}<br><hr>
+<hr>
+
+Data: ${data}<br>
+Operador: ${usuarioAtual}
+
+<hr>
 
 <table width="100%">
-${itens}
+<tr><td>Produto</td><td align="center">Qtd</td><td align="right">Total</td></tr>
 </table>
 
 <hr>
-TOTAL: R$${totalVenda.toFixed(2)}<br>
+
+<table width="100%">${itens}</table>
 
 <hr>
-<center>Obrigado e volte sempre</center>
+
+Itens: ${totalItens}<br>
+<b>TOTAL: R$ ${totalVenda.toFixed(2)}</b>
+
+<hr>
+
+<center>OBRIGADO PELA PREFERÊNCIA<br>VOLTE SEMPRE</center>
 
 <script>window.print()<\/script>
 
 </body></html>
-`)
+`
+
+let w=window.open("","","width=350,height=600")
+w.document.write(html)
 }
 
 // LIMPAR
