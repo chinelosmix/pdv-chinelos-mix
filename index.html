@@ -7,7 +7,6 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
@@ -21,7 +20,7 @@ input,select{width:100%;padding:10px;margin:5px 0;border-radius:5px;border:none}
 button{padding:10px;background:#22c55e;color:#fff;border:none;border-radius:5px;margin-top:5px}
 table{width:100%;margin-top:10px;border-collapse:collapse}
 td,th{border-bottom:1px solid #334155;padding:8px}
-#reader,#readerVenda{width:300px;margin:auto}
+#reader{width:300px;margin:auto}
 </style>
 </head>
 
@@ -44,7 +43,12 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <!-- PRODUTOS -->
 <div id="prod" class="box">
 
-<input id="codigo" placeholder="Código">
+<input id="codigo" placeholder="Código ou escaneie">
+<button onclick="gerarCodigo()">Gerar Código</button>
+<button onclick="iniciarScanner()">📷 Escanear</button>
+
+<div id="reader"></div>
+
 <input id="nome" placeholder="Nome">
 <input id="cor" placeholder="Cor">
 <input id="numero" placeholder="Numeração">
@@ -67,7 +71,7 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <!-- VENDA -->
 <div id="ven" class="box">
 
-<input id="codVenda" placeholder="Código ou código de barras">
+<input id="codVenda" placeholder="Passe o código">
 <input id="qtd" value="1">
 <button onclick="addVenda()">Adicionar</button>
 
@@ -87,7 +91,7 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <script>
 
-// 🔥 FIREBASE CONFIG
+// FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyARpePSrPuvzOwLP6v9gzmhWfzdo0JZJK4",
   authDomain: "pdv-chinelos.firebaseapp.com",
@@ -101,7 +105,7 @@ let produtos=[]
 let venda=[],totalVenda=0
 let usuarioAtual=""
 
-// LOGIN SIMPLES
+// LOGIN
 function login(){
 if(!user.value || !senha.value){
 alert("Preencha os dados")
@@ -111,7 +115,26 @@ usuarioAtual=user.value
 loginBox.style.display="none"
 }
 
-// 🔥 SINCRONIZAÇÃO REAL
+// GERAR CODIGO
+function gerarCodigo(){
+codigo.value = "789" + Math.floor(Math.random()*1000000000)
+}
+
+// SCANNER CAMERA
+function iniciarScanner(){
+let scanner = new Html5Qrcode("reader")
+
+scanner.start(
+{ facingMode: "environment" },
+{ fps: 10, qrbox: 250 },
+(codigoLido)=>{
+codigo.value = codigoLido
+scanner.stop()
+}
+)
+}
+
+// FIREBASE REALTIME
 db.collection("produtos").onSnapshot(snapshot=>{
 produtos = snapshot.docs.map(doc=>({
 id:doc.id,
@@ -120,12 +143,14 @@ id:doc.id,
 listarProdutos()
 })
 
-// SALVAR / EDITAR
+// SALVAR
 async function salvarProduto(){
 
+let cod = codigo.value || Date.now().toString()
+
 let produto={
-codigo: codigo.value || Date.now().toString(),
-codigoBarras: codigo.value || Date.now().toString(),
+codigo: cod,
+codigoBarras: cod,
 nome: nome.value,
 cor: cor.value,
 numero: numero.value,
@@ -133,7 +158,7 @@ estoque: Number(estoque.value||0),
 valor: Number(valor.value||0)
 }
 
-let existente = produtos.find(p=>p.codigo==produto.codigo)
+let existente = produtos.find(p=>p.codigo==cod)
 
 if(existente){
 await db.collection("produtos").doc(existente.id).set(produto)
@@ -198,24 +223,19 @@ if(!p)return
 let html = `
 <html>
 <body style="font-family:monospace;text-align:center">
-
 <b>CHINELOS MIX</b><br>
 ${p.nome}<br>
 ${p.cor} | ${p.numero}<br>
 <b>R$ ${Number(p.valor).toFixed(2)}</b><br>
-
 <svg id="barcode"></svg>
-
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
 <script>
 JsBarcode("#barcode","${p.codigo}",{width:2,height:40,displayValue:false})
 window.print()
 <\/script>
-
 </body>
 </html>
 `
-
 let w=window.open("")
 w.document.write(html)
 }
@@ -251,7 +271,8 @@ async function finalizar(){
 await db.collection("vendas").add({
 itens:venda,
 total:totalVenda,
-data:new Date()
+data:new Date(),
+usuario:usuarioAtual
 })
 
 venda=[];totalVenda=0
@@ -288,7 +309,6 @@ valor.value=""
 function show(t){
 document.querySelectorAll(".box").forEach(x=>x.style.display="none")
 document.getElementById(t).style.display="block"
-
 listarRelatorio()
 }
 
