@@ -493,15 +493,41 @@ function addVenda(){
 
   tocarBeep();
 
-  venda.push({
-    id: p.id,
-    codigo: p.codigo,
-    nome: p.nome,
-    cor: p.cor,
-    numero: p.numero,
-    qtd: q,
-    valor: Number(p.valor || 0)
-  });
+  function addVenda(){
+
+let p = produtos.find(x=>x.codigo==codVenda.value)
+
+if(!p){
+alert("Produto não encontrado")
+return
+}
+
+let q = Number(qtd.value)
+
+// verifica estoque
+if(p.estoque < q){
+alert("Estoque insuficiente")
+return
+}
+
+beep.play()
+
+// 🔥 VERIFICA SE JÁ EXISTE NA VENDA
+let itemExistente = venda.find(x=>x.codigo == p.codigo)
+
+if(itemExistente){
+itemExistente.qtd += q
+}else{
+venda.push({...p, qtd:q})
+}
+
+totalVenda += p.valor * q
+
+codVenda.value=""
+qtd.value=1
+
+renderVenda()
+}
 
   totalVenda += Number(p.valor || 0) * q;
 
