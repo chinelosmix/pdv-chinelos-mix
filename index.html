@@ -212,8 +212,8 @@ w.document.write(`
 <style>@page{size:40mm 50mm;margin:0}</style>
 <b>CHINELOS MIX</b><br>
 ${p.nome}<br>
-${p.cor}|${p.numero}<br>
-<div style="font-size:18px;background:black;color:white">R$${p.valor.toFixed(2)}</div>
+${p.cor} | ${p.numero}<br>
+<div style="font-size:20px;font-weight:900;background:black;color:white;padding:5px">R$${p.valor.toFixed(2)}</div>
 <svg id=b></svg>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
 <script>JsBarcode("#b","${p.codigo}");window.print()<\/script>
@@ -241,31 +241,78 @@ function usar2Pagamentos(){
 pagamento2.style.display="block"
 }
 
-// CUPOM
-function cupom(){
-let linhas=venda.map((p,i)=>`${String(i+1).padStart(3,"0")} ${p.nome.padEnd(20)} ${p.qtd} ${p.valor.toFixed(2)}`).join("\n")
+// CUPOM COMPLETO
+function cupom(pagamentos){
+
+let data=new Date().toLocaleString()
+let numeroCupom=Math.floor(Math.random()*999999).toString().padStart(6,"0")
+
+function linha(){return "-".repeat(42)}
+function padDir(t,s){return (t+" ".repeat(s)).substring(0,s)}
+function padEsq(t,s){return (" ".repeat(s)+t).slice(-s)}
+
+let itens=venda.map((p,i)=>{
+let cod=String(i+1).padStart(3,"0")
+let nome=padDir(p.nome,20)
+let qtd=padEsq(p.qtd,3)
+let unit=padEsq(p.valor.toFixed(2),8)
+let total=padEsq((p.qtd*p.valor).toFixed(2),9)
+return `${cod} ${nome}${qtd}${unit}${total}`
+}).join("\n")
+
+let totalItens=venda.reduce((t,p)=>t+p.qtd,0)
+
+let pagamentoTexto=pagamentos.map(p=>p.tipo).join(" / ")
+
 let w=window.open("")
 w.document.write(`<pre>
 CHINELOS MIX
 CNPJ: 46.982.791/0001-01
---------------------------------
-${linhas}
---------------------------------
-TOTAL: ${totalVenda.toFixed(2)}
-ATENDIDO: ${usuarioAtual}
---------------------------------
-OBRIGADO VOLTE SEMPRE
+AV. LEONOR BOSONE MARQUES DA SILVA, 45
+
+${linha()}
+
+CUPOM Nº: ${numeroCupom}
+DATA: ${data}
+
+${linha()}
+
+ITEM PRODUTO           QTD VALOR UNIT   TOTAL
+
+${linha()}
+
+${itens}
+
+${linha()}
+
+ITENS: ${totalItens}
+TOTAL: R$ ${totalVenda.toFixed(2)}
+
+PAGAMENTO: ${pagamentoTexto}
+ATENDIDO POR: ${usuarioAtual}
+
+${linha()}
+
+OBRIGADO, VOLTE SEMPRE
 </pre><script>window.print()<\/script>`)
 }
 
+// FINALIZAR
 function finalizar(){
-cupom()
+let pagamentos=[{tipo:pagamento.value,valor:+valorPago.value||totalVenda}]
+
+if(pagamento2.style.display=="block"){
+pagamentos.push({tipo:pagamentoExtra.value,valor:+valorExtra.value||0})
+}
+
+cupom(pagamentos)
+
 venda=[];totalVenda=0;renderVenda()
 }
 
-function imprimirCupomSeparado(){cupom()}
+// BOTÕES
+function imprimirCupomSeparado(){cupom([{tipo:pagamento.value,valor:totalVenda}])}
 
-// NOTA
 function gerarNota(){
 let w=window.open("")
 w.document.write(`<h2>NOTA</h2>Total R$${totalVenda.toFixed(2)}<script>window.print()<\/script>`)
