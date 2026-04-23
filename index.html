@@ -37,7 +37,6 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <nav>
 <button onclick="show('prod')">Produtos</button>
 <button onclick="show('ven')">Venda</button>
-<button onclick="show('rel')">Relatório</button>
 </nav>
 
 <!-- PRODUTOS -->
@@ -108,7 +107,9 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <input id="valorExtra" placeholder="Valor">
 </div>
 
-<button onclick="finalizar()">Finalizar</button>
+<button onclick="finalizar()">Finalizar + Cupom</button>
+<button onclick="imprimirCupomSeparado()">🧾 Cupom</button>
+<button onclick="gerarNota()">📄 Nota</button>
 
 </div>
 
@@ -116,9 +117,9 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 // FIREBASE
 const firebaseConfig = {
-  apiKey: "AIzaSyARpePSrPuvzOwLP6v9gzmhWfzdo0JZJK4",
-  authDomain: "pdv-chinelos.firebaseapp.com",
-  projectId: "pdv-chinelos-2"
+apiKey: "AIzaSyARpe...",
+authDomain: "pdv-chinelos.firebaseapp.com",
+projectId: "pdv-chinelos-2"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -171,7 +172,7 @@ ex?await db.collection("produtos").doc(ex.id).set(p):await db.collection("produt
 limparCampos()
 }
 
-// EDITAR
+// EDITAR / EXCLUIR
 function editar(cod){
 let p=produtos.find(x=>x.codigo==cod)
 codigo.value=p.codigo
@@ -182,9 +183,7 @@ estoque.value=p.estoque
 valor.value=p.valor
 }
 
-// EXCLUIR
 async function excluir(cod){
-if(!confirm("Excluir produto?")) return
 let p=produtos.find(x=>x.codigo==cod)
 await db.collection("produtos").doc(p.id).delete()
 }
@@ -209,60 +208,19 @@ listaProdutos.innerHTML=produtos.map(p=>`
 
 // ETIQUETA 40x50
 function etiqueta(c){
-let p = produtos.find(x=>x.codigo==c)
-
-let html = `
-<html>
-<head>
-<style>
-@page { size: 40mm 50mm; margin:0; }
-body{
-margin:0;
-width:40mm;
-height:50mm;
-font-family:Arial;
-display:flex;
-align-items:center;
-justify-content:center;
-}
-.container{
-text-align:center;
-width:100%;
-}
-.nome{font-size:9px;font-weight:bold}
-.info{font-size:8px}
-.preco{font-size:11px;font-weight:bold;margin:2px 0}
-svg{width:100%;height:18mm}
-</style>
-</head>
-<body>
-
-<div class="container">
-<div class="nome">CHINELOS MIX</div>
-<div class="info">${p.nome}</div>
-<div class="info">${p.cor} | ${p.numero}</div>
-<div class="preco">R$ ${p.valor.toFixed(2)}</div>
-
-<svg id="barcode"></svg>
-</div>
-
+let p=produtos.find(x=>x.codigo==c)
+let w=window.open("")
+w.document.write(`
+<html><body style="margin:0;width:40mm;height:50mm;font-family:Arial;text-align:center">
+<b>CHINELOS MIX</b><br>
+${p.nome}<br>
+${p.cor} | ${p.numero}<br>
+<b>R$ ${p.valor.toFixed(2)}</b><br>
+<svg id="b"></svg>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
-<script>
-JsBarcode("#barcode","${p.codigo}",{
-format:"CODE128",
-width:1.3,
-height:35,
-displayValue:false
-})
-window.print()
-<\/script>
-
-</body>
-</html>
-`
-
-let w=window.open("","","width=400,height=600")
-w.document.write(html)
+<script>JsBarcode("#b","${p.codigo}",{width:1.3,height:35});window.print()<\/script>
+</body></html>
+`)
 }
 
 // VENDA
@@ -283,85 +241,98 @@ listaVenda.innerHTML=venda.map(p=>`
 total.innerText=totalVenda.toFixed(2)
 }
 
+// 2 PAGAMENTOS
+function usar2Pagamentos(){
+pagamento2.style.display="block"
+}
+
 // FINALIZAR
 async function finalizar(){
-let pagamentos=[{tipo:pagamento.value,valor:+valorPago.value||0}]
+
+let pagamentos=[]
+let v1=+valorPago.value||0
+
+if(pagamento2.style.display=="block"){
+let v2=+valorExtra.value||0
+if(v1+v2<totalVenda)return alert("Valor insuficiente")
+pagamentos.push({tipo:pagamento.value,valor:v1})
+pagamentos.push({tipo:pagamentoExtra.value,valor:v2})
+}else{
+if(v1<totalVenda)return alert("Valor insuficiente")
+pagamentos.push({tipo:pagamento.value,valor:v1})
+}
+
 await db.collection("vendas").add({itens:venda,total:totalVenda,usuario:usuarioAtual})
+
 cupom(pagamentos)
+
 venda=[];totalVenda=0;renderVenda()
 }
 
-// CUPOM PROFISSIONAL
+// CUPOM
 function cupom(pagamentos){
 
 let data=new Date().toLocaleString()
 let totalItens=venda.reduce((t,p)=>t+p.qtd,0)
 
-let itens=venda.map(p=>{
-let sub=p.qtd*p.valor
-return `<tr>
-<td>${p.nome}</td>
-<td align="center">${p.qtd}</td>
-<td align="right">R$${sub.toFixed(2)}</td>
-</tr>`
-}).join("")
+let itens=venda.map((p,i)=>{
+let cod=String(i+1).padStart(3,"0")
+let totalItem=(p.qtd*p.valor).toFixed(2)
+return `${cod} ${p.nome}\n   ${p.qtd}  R$${p.valor.toFixed(2)}  R$${totalItem}`
+}).join("\n")
 
 let html=`
-<html>
-<body style="font-family:monospace;font-size:12px;width:280px">
-
+<html><body style="font-family:monospace;width:280px">
 <center>
-<b style="font-size:14px">CHINELOS MIX</b><br>
+CHINELOS MIX<br>
 CNPJ: 46.982.791/0001-01<br>
-Av. Leonor Bosone Marques da Silva, 45<br>
-Centro - Poá/SP
+AV. LEONOR BOSONE MARQUES DA SILVA, 45
 </center>
 
 --------------------------------
 
-Data: ${data}<br>
-Operador: ${usuarioAtual}
+DATA: ${data}
 
 --------------------------------
 
-<table width="100%">
-<tr>
-<td><b>PRODUTO</b></td>
-<td align="center"><b>QTD</b></td>
-<td align="right"><b>VALOR</b></td>
-</tr>
-</table>
-
---------------------------------
-
-<table width="100%">
 ${itens}
-</table>
 
 --------------------------------
 
-Itens: ${totalItens}<br>
-<b style="font-size:14px">TOTAL: R$ ${totalVenda.toFixed(2)}</b>
+ITENS: ${totalItens}
+TOTAL: R$ ${totalVenda.toFixed(2)}
+
+ATENDIDO POR: ${usuarioAtual}
 
 --------------------------------
 
-<center>
-*** OBRIGADO PELA PREFERÊNCIA ***<br>
-VOLTE SEMPRE
-</center>
+OBRIGADO, VOLTE SEMPRE!
 
-<br><br><br>
+<script>window.print()<\/script>
 
-<script>
-window.print()
-<\/script>
-
-</body>
-</html>
+</body></html>
 `
-
-let w=window.open("","","width=350,height=600")
+let w=window.open("")
 w.document.write(html)
+}
+
+// CUPOM BOTÃO
+function imprimirCupomSeparado(){
+cupom([{tipo:pagamento.value,valor:totalVenda}])
+}
+
+// NOTA
+function gerarNota(){
+let itens=venda.map(p=>`
+<tr><td>${p.nome}</td><td>${p.qtd}</td><td>R$${p.valor}</td></tr>
+`).join("")
+let w=window.open("")
+w.document.write(`
+<h2>NOTA</h2>
+<table border=1>${itens}</table>
+Total: R$${totalVenda.toFixed(2)}
+<script>window.print()<\/script>
+`)
 }
 
 // LIMPAR
