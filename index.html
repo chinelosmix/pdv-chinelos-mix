@@ -162,8 +162,11 @@ th{text-align:left}
 <!-- RELATORIO -->
 <div id="rel" class="box">
 <h3>Relatório de vendas</h3>
-<button onclick="relatorioPorFuncionario()">Por Funcionário</button>
+
 <div class="small" id="resumoRel"></div>
+
+<button onclick="relatorioPorFuncionario()">Por Funcionário</button>
+<button onclick="fecharCaixa()">Fechamento de Caixa</button>
 
 <table>
 <thead>
@@ -970,6 +973,49 @@ alert("Bem-vindo " + usuarioAtual)
 async function excluirFunc(id){
 if(!confirm("Excluir funcionário?")) return
 await db.collection("funcionarios").doc(id).delete()
+}
+// FECHAMENTO DE CAIXA PROFISSIONAL
+async function fecharCaixa(){
+
+let snap = await db.collection("vendas").get()
+let vendas = snap.docs.map(d=>d.data())
+
+if(vendas.length === 0){
+alert("Sem vendas")
+return
+}
+
+let total = 0
+let totalItens = 0
+let pagamentos = {}
+
+vendas.forEach(v=>{
+
+total += v.total
+
+// soma itens
+v.itens.forEach(i=>{
+totalItens += i.qtd
+})
+
+// soma pagamentos
+v.pagamentos.forEach(p=>{
+pagamentos[p.tipo] = (pagamentos[p.tipo] || 0) + p.valor
+})
+
+})
+
+// monta relatório
+let texto = `FECHAMENTO DE CAIXA\n\n`
+
+texto += `TOTAL: R$ ${total.toFixed(2)}\n`
+texto += `ITENS VENDIDOS: ${totalItens}\n\n`
+
+for(let tipo in pagamentos){
+texto += `${tipo}: R$ ${pagamentos[tipo].toFixed(2)}\n`
+}
+
+alert(texto)
 }
 </script>
 
