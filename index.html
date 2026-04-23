@@ -1218,6 +1218,64 @@ alert("Produto inválido")
 return
 }
 
+let totalEntrada = pEntrada.valor * qEnt
+let totalSaida = pSaida.valor * qSai
+let diferenca = totalSaida - totalEntrada
+
+// estoque
+await db.collection("produtos").doc(pEntrada.id).update({
+estoque: pEntrada.estoque + qEnt
+})
+
+if(pSaida.estoque < qSai){
+alert("Estoque insuficiente")
+return
+}
+
+await db.collection("produtos").doc(pSaida.id).update({
+estoque: pSaida.estoque - qSai
+})
+
+// 💰 REGISTRO NO CAIXA (IGUAL VENDA)
+let pagamento = pagTroca.value
+
+let pagamentos = []
+
+if(diferenca > 0){
+pagamentos.push({
+tipo: pagamento,
+valor: diferenca
+})
+}
+
+if(diferenca < 0){
+pagamentos.push({
+tipo: "Troco",
+valor: Math.abs(diferenca)
+})
+}
+
+// 🔥 SALVA COMO VENDA (ENTRA NO FECHAMENTO)
+await db.collection("vendas").add({
+tipo: "troca",
+itens: [
+{
+nome: pSaida.nome,
+qtd: qSai,
+valor: pSaida.valor
+}
+],
+total: diferenca > 0 ? diferenca : 0,
+pagamentos: pagamentos,
+usuario: usuarioAtual,
+data: new Date()
+})
+
+alert("Troca registrada no caixa")
+
+show("ven")
+}
+
 // entra no estoque
 await db.collection("produtos").doc(pEntrada.id).update({
 estoque: pEntrada.estoque + qEnt
@@ -1248,6 +1306,52 @@ data: new Date()
 alert("Troca realizada com sucesso")
 
 show("ven")
+}
+function imprimirTroca(){
+
+let pEntrada = produtos.find(p=>p.codigo == codEntrada.value)
+let pSaida = produtos.find(p=>p.codigo == codSaida.value)
+
+let qEnt = Number(qtdEntrada.value || 1)
+let qSai = Number(qtdSaida.value || 1)
+
+let totalEntrada = pEntrada.valor * qEnt
+let totalSaida = pSaida.valor * qSai
+let diferenca = totalSaida - totalEntrada
+
+let w = window.open("")
+
+w.document.write(`
+<pre style="font-family:monospace">
+
+CHINELOS MIX
+
+TROCA DE PRODUTO
+----------------------------
+
+DEVOLVIDO:
+${pEntrada.nome} x${qEnt}
+R$ ${totalEntrada.toFixed(2)}
+
+NOVO:
+${pSaida.nome} x${qSai}
+R$ ${totalSaida.toFixed(2)}
+
+----------------------------
+DIFERENÇA: R$ ${diferenca.toFixed(2)}
+
+PAGAMENTO: ${pagTroca.value}
+ATENDIDO POR: ${usuarioAtual}
+
+----------------------------
+OBRIGADO, VOLTE SEMPRE!
+
+<script>
+window.print()
+<\/script>
+
+</pre>
+`)
 }
 </script>
 
