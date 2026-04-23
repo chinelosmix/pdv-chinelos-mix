@@ -942,7 +942,31 @@ listaFunc.innerHTML=funcionarios.map(f=>`
 </tr>
 `).join("")
 }
+sync function login(){
 
+let nomeLogin = user.value.trim()
+let senhaLogin = senha.value.trim()
+
+if(!nomeLogin || !senhaLogin){
+alert("Preencha usuário e senha")
+return
+}
+
+// procura no banco carregado
+let f = funcionarios.find(x=>x.nome==nomeLogin && x.senha==senhaLogin)
+
+if(!f){
+alert("Login inválido")
+return
+}
+
+// login ok
+usuarioAtual = f.nome
+
+loginBox.style.display = "none"
+
+alert("Bem-vindo " + usuarioAtual)
+}
 // EXCLUIR
 async function excluirFunc(id){
 if(!confirm("Excluir funcionário?")) return
