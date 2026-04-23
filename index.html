@@ -625,7 +625,7 @@ function montarCupomHTML(vendaFinalizada){
 
   const linhasItens = itens.map((p, i) => {
     const cod = String(i + 1).padStart(3, "0");
-    const nome = padDir(p.nome, 20);
+    const nome = padDir(p.nome, 18);
     const qtdItem = padEsq(p.qtd, 3);
     const unit = padEsq(Number(p.valor).toFixed(2), 8);
     const totalItem = padEsq((Number(p.qtd) * Number(p.valor)).toFixed(2), 9);
