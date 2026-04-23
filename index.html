@@ -30,7 +30,7 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <div id="loginBox">
 <input id="user" placeholder="Nome">
-<input id="senha" placeholder="Senha" type="password">
+<input id="senha" type="password" placeholder="Senha">
 <button onclick="login()">Entrar</button>
 </div>
 
@@ -39,6 +39,7 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <button onclick="show('ven')">Venda</button>
 </nav>
 
+<!-- PRODUTOS -->
 <div id="prod" class="box">
 
 <input id="codigo" placeholder="Código">
@@ -66,6 +67,7 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 </div>
 
+<!-- VENDA -->
 <div id="ven" class="box">
 
 <input id="codVenda">
@@ -78,33 +80,6 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <h3>Total: R$ <span id="total">0</span></h3>
 
 <table id="listaVenda"></table>
-
-<select id="pagamento">
-<option>Dinheiro</option>
-<option>PIX</option>
-<option>Débito</option>
-<option>Crédito à vista</option>
-<option>Crédito 2x</option>
-<option>Crédito 3x</option>
-<option>Vale</option>
-</select>
-
-<input id="valorPago">
-
-<button onclick="usar2Pagamentos()">2 Formas</button>
-
-<div id="pagamento2" style="display:none">
-<select id="pagamentoExtra">
-<option>Dinheiro</option>
-<option>PIX</option>
-<option>Débito</option>
-<option>Crédito à vista</option>
-<option>Crédito 2x</option>
-<option>Crédito 3x</option>
-<option>Vale</option>
-</select>
-<input id="valorExtra">
-</div>
 
 <button onclick="finalizar()">Finalizar</button>
 
@@ -121,11 +96,9 @@ projectId:"pdv-chinelos-2"
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
-let produtos=[],venda=[],totalVenda=0,usuarioAtual=""
+let produtos=[], venda=[], totalVenda=0, usuarioAtual=""
 
-// SOM
-let beep=new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg")
-
+// LOGIN
 function login(){
 usuarioAtual=user.value
 loginBox.style.display="none"
@@ -147,7 +120,6 @@ if(!av){
 sv=new Html5Qrcode("readerVenda")
 sv.start({facingMode:"environment"},{fps:10},c=>{
 codVenda.value=c
-beep.play()
 addVenda()
 })
 av=true
@@ -181,16 +153,28 @@ listaProdutos.innerHTML=produtos.map(p=>`
 </tr>`).join("")
 }
 
-// ETIQUETA 40x50
+// ETIQUETA 40x50 PROFISSIONAL
 function etiqueta(c){
 let p=produtos.find(x=>x.codigo==c)
+
 let w=window.open("")
 w.document.write(`
-<style>@page{size:40mm 50mm;margin:0}</style>
-<b>CHINELOS MIX</b><br>${p.nome}<br>${p.cor}|${p.numero}<br>
-R$${p.valor}<svg id=b></svg>
+<html><head>
+<style>
+@page{size:40mm 50mm;margin:0}
+body{margin:0;width:40mm;height:50mm;font-family:Arial;text-align:center}
+.preco{font-size:18px;font-weight:bold;background:#000;color:#fff;padding:4px}
+</style>
+</head>
+<body>
+<b>CHINELOS MIX</b><br>
+${p.nome}<br>
+${p.cor} | ${p.numero}<br>
+<div class="preco">R$ ${p.valor.toFixed(2)}</div>
+<svg id="b"></svg>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
 <script>JsBarcode("#b","${p.codigo}");window.print()<\/script>
+</body></html>
 `)
 }
 
@@ -198,7 +182,6 @@ R$${p.valor}<svg id=b></svg>
 function addVenda(){
 let p=produtos.find(x=>x.codigo==codVenda.value)
 if(!p)return
-beep.play()
 venda.push({...p,qtd:+qtd.value})
 totalVenda+=p.valor*qtd.value
 codVenda.value=""
@@ -210,28 +193,59 @@ listaVenda.innerHTML=venda.map(p=>`<tr><td>${p.nome}</td><td>${p.qtd}</td><td>${
 total.innerText=totalVenda.toFixed(2)
 }
 
-// PAGAMENTO
-function usar2Pagamentos(){
-pagamento2.style.display="block"
-}
-
-function finalizar(){
-cupom()
-venda=[];totalVenda=0;renderVenda()
-}
-
-// CUPOM ALINHADO
+// CUPOM IGUAL AO DA IMAGEM
 function cupom(){
-let linhas=venda.map(p=>`${p.nome.padEnd(15)} ${p.qtd} ${p.valor.toFixed(2)}`).join("\n")
+
+let data=new Date().toLocaleString()
+
+function linha(){return "-".repeat(40)}
+
+function padDir(t,s){return (t+" ".repeat(s)).substring(0,s)}
+function padEsq(t,s){return (" ".repeat(s)+t).slice(-s)}
+
+let itens=venda.map((p,i)=>{
+let cod=String(i+1).padStart(3,"0")
+let nome=padDir(p.nome,20)
+let qtd=padEsq(p.qtd,3)
+let unit=padEsq(p.valor.toFixed(2),8)
+let total=padEsq((p.qtd*p.valor).toFixed(2),9)
+return `${cod} ${nome}${qtd}${unit}${total}`
+}).join("\n")
+
 let w=window.open("")
 w.document.write(`<pre>
 CHINELOS MIX
-${linhas}
+CNPJ: 46.982.791/0001-01
+AV. LEONOR BOSONE MARQUES DA SILVA, 45
 
-TOTAL: ${totalVenda.toFixed(2)}
+${linha()}
 
-OBRIGADO VOLTE SEMPRE
+DATA: ${data}
+
+${linha()}
+
+ITEM PRODUTO           QTD VALOR UNIT   TOTAL
+
+${linha()}
+
+${itens}
+
+${linha()}
+
+TOTAL: R$ ${totalVenda.toFixed(2)}
+
+ATENDIDO POR: ${usuarioAtual}
+
+${linha()}
+
+OBRIGADO, VOLTE SEMPRE!
 </pre><script>window.print()<\/script>`)
+}
+
+// FINALIZAR
+function finalizar(){
+cupom()
+venda=[];totalVenda=0;renderVenda()
 }
 
 // NAV
@@ -239,6 +253,7 @@ function show(t){
 document.querySelectorAll(".box").forEach(x=>x.style.display="none")
 document.getElementById(t).style.display="block"
 }
+
 show("prod")
 
 </script>
