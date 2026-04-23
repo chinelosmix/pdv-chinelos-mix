@@ -1146,6 +1146,22 @@ document.getElementById("qtd").value = 1
 
 renderVenda()
 }
+// ===== ENVIAR WHATSAPP =====
+function enviarWhatsApp(){
+
+let texto = "CUPOM - CHINELOS MIX\n\n"
+
+venda.forEach(p=>{
+texto += `${p.nome} x${p.qtd} - R$ ${(p.qtd * p.valor).toFixed(2)}\n`
+})
+
+texto += `\nTOTAL: R$ ${totalVenda.toFixed(2)}`
+texto += `\nOBRIGADO, VOLTE SEMPRE!`
+
+let url = "https://wa.me/?text=" + encodeURIComponent(texto)
+
+window.open(url, "_blank")
+}
 </script>
 
 </body>
