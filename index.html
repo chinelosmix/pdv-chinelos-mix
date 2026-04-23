@@ -109,7 +109,7 @@ th{text-align:left}
 <input id="codVenda" placeholder="Código">
 <input id="qtd" value="1" placeholder="Qtd">
 <button onclick="addVenda()">Adicionar</button>
-<button onclick="enviarWhatsApp()">📲 WhatsApp</button>
+<button onclick="abrirTroca()">🔁 Troca</button>
 <button onclick="toggleScannerVenda()">📷 Scanner</button>
 <div id="readerVenda"></div>
 
@@ -156,6 +156,26 @@ th{text-align:left}
 <button onclick="finalizar()">Finalizar + Cupom</button>
 <button onclick="imprimirCupomSeparado()">🧾 Cupom</button>
 <button onclick="gerarNota()">📄 Nota</button>
+<button onclick="enviarWhatsApp()">📲 WhatsApp</button>
+</div>
+  <!-- 👇 TELA DE TROCA -->
+<div id="troca" class="box">
+
+<h3>Troca de Produto</h3>
+
+<h4>Produto devolvido</h4>
+<input id="codEntrada" placeholder="Código">
+<input id="qtdEntrada" value="1">
+
+<h4>Produto novo</h4>
+<input id="codSaida" placeholder="Código">
+<input id="qtdSaida" value="1">
+
+<h3>Diferença: R$ <span id="difTroca">0.00</span></h3>
+
+<button onclick="calcularTroca()">Calcular</button>
+<button onclick="finalizarTroca()">Finalizar Troca</button>
+<button onclick="show('ven')">Voltar</button>
 
 </div>
 
