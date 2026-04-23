@@ -45,6 +45,7 @@ th{text-align:left}
 <button onclick="show('prod')">Produtos</button>
 <button onclick="show('ven')">Venda</button>
 <button onclick="show('rel')">Relatório</button>
+<button onclick="show('func')">Funcionários</button> 
 </nav>
 
 <!-- PRODUTOS -->
@@ -75,7 +76,33 @@ th{text-align:left}
 </table>
 
 </div>
+<div id="func" class="box">
 
+<h3>Funcionários</h3>
+
+<input id="nomeFunc" placeholder="Nome do funcionário">
+<input id="senhaFunc" placeholder="Senha">
+
+<button onclick="salvarFuncionario()">Salvar</button>
+
+<table>
+<thead>
+<tr>
+<th>Nome</th>
+<th>Ações</th>
+</tr>
+</thead>
+<tbody id="listaFunc"></tbody>
+</table>
+
+<h3>Controle de Ponto</h3>
+
+<button onclick="baterPonto('Entrada')">Entrada</button>
+<button onclick="baterPonto('Saída Almoço')">Saída Almoço</button>
+<button onclick="baterPonto('Volta Almoço')">Volta Almoço</button>
+<button onclick="baterPonto('Saída')">Saída</button>
+
+</div>
 <!-- VENDA -->
 <div id="ven" class="box">
 
@@ -878,6 +905,49 @@ function show(t){
 
 show("prod");
 renderVenda();
+  // ===== FUNCIONÁRIOS =====
+let funcionarios=[]
+
+// LISTA EM TEMPO REAL
+db.collection("funcionarios").onSnapshot(s=>{
+funcionarios=s.docs.map(d=>({id:d.id,...d.data()}))
+listarFunc()
+})
+
+// SALVAR
+async function salvarFuncionario(){
+
+if(!nomeFunc.value || !senhaFunc.value){
+alert("Preencha os dados")
+return
+}
+
+await db.collection("funcionarios").add({
+nome:nomeFunc.value,
+senha:senhaFunc.value
+})
+
+nomeFunc.value=""
+senhaFunc.value=""
+}
+
+// LISTAR
+function listarFunc(){
+listaFunc.innerHTML=funcionarios.map(f=>`
+<tr>
+<td>${f.nome}</td>
+<td>
+<button onclick="excluirFunc('${f.id}')">🗑️</button>
+</td>
+</tr>
+`).join("")
+}
+
+// EXCLUIR
+async function excluirFunc(id){
+if(!confirm("Excluir funcionário?")) return
+await db.collection("funcionarios").doc(id).delete()
+}
 </script>
 
 </body>
