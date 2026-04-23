@@ -1017,6 +1017,55 @@ texto += `${tipo}: R$ ${pagamentos[tipo].toFixed(2)}\n`
 
 alert(texto)
 }
+// ===== PONTO FUNCIONÁRIO =====
+async function baterPonto(tipo){
+
+if(!usuarioAtual){
+alert("Faça login")
+return
+}
+
+let data = new Date()
+
+// salva no banco
+await db.collection("ponto").add({
+usuario:usuarioAtual,
+tipo:tipo,
+data:data
+})
+
+// impressão
+let w = window.open("", "", "width=300,height=400")
+
+w.document.write(`
+<html>
+<body style="font-family:monospace;text-align:center">
+
+<h3>CHINELOS MIX</h3>
+
+------------------------
+
+FUNCIONÁRIO:
+${usuarioAtual}
+
+TIPO:
+${tipo}
+
+DATA:
+${data.toLocaleString()}
+
+------------------------
+
+REGISTRO DE PONTO
+
+<script>
+window.print()
+<\/script>
+
+</body>
+</html>
+`)
+}
 </script>
 
 </body>
