@@ -39,7 +39,6 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <button onclick="show('ven')">Venda</button>
 </nav>
 
-<!-- PRODUTOS -->
 <div id="prod" class="box">
 
 <input id="codigo" placeholder="Código">
@@ -67,10 +66,9 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 </div>
 
-<!-- VENDA -->
 <div id="ven" class="box">
 
-<input id="codVenda" placeholder="Código">
+<input id="codVenda">
 <input id="qtd" value="1">
 <button onclick="addVenda()">Adicionar</button>
 
@@ -81,35 +79,34 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <table id="listaVenda"></table>
 
-<h3>Pagamento</h3>
-
 <select id="pagamento">
 <option>Dinheiro</option>
 <option>PIX</option>
 <option>Débito</option>
-<option>Crédito</option>
-<option>2x</option>
-<option>3x</option>
+<option>Crédito à vista</option>
+<option>Crédito 2x</option>
+<option>Crédito 3x</option>
 <option>Vale</option>
 </select>
 
-<input id="valorPago" placeholder="Valor">
+<input id="valorPago">
 
-<button onclick="usar2Pagamentos()">💳 2 Formas</button>
+<button onclick="usar2Pagamentos()">2 Formas</button>
 
 <div id="pagamento2" style="display:none">
 <select id="pagamentoExtra">
 <option>Dinheiro</option>
 <option>PIX</option>
 <option>Débito</option>
-<option>Crédito</option>
+<option>Crédito à vista</option>
+<option>Crédito 2x</option>
+<option>Crédito 3x</option>
+<option>Vale</option>
 </select>
-<input id="valorExtra" placeholder="Valor">
+<input id="valorExtra">
 </div>
 
-<button onclick="finalizar()">Finalizar + Cupom</button>
-<button onclick="imprimirCupomSeparado()">🧾 Cupom</button>
-<button onclick="gerarNota()">📄 Nota</button>
+<button onclick="finalizar()">Finalizar</button>
 
 </div>
 
@@ -117,17 +114,18 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 // FIREBASE
 const firebaseConfig = {
-apiKey: "AIzaSyARpe...",
-authDomain: "pdv-chinelos.firebaseapp.com",
-projectId: "pdv-chinelos-2"
+apiKey:"AIzaSy...",
+authDomain:"pdv-chinelos.firebaseapp.com",
+projectId:"pdv-chinelos-2"
 };
-
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const db=firebase.firestore();
 
-let produtos=[], venda=[], totalVenda=0, usuarioAtual=""
+let produtos=[],venda=[],totalVenda=0,usuarioAtual=""
 
-// LOGIN
+// SOM
+let beep=new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg")
+
 function login(){
 usuarioAtual=user.value
 loginBox.style.display="none"
@@ -139,7 +137,7 @@ let sp=null,sv=null,ap=false,av=false
 function toggleScannerProduto(){
 if(!ap){
 sp=new Html5Qrcode("reader")
-sp.start({facingMode:"environment"},{fps:10,qrbox:250},c=>codigo.value=c)
+sp.start({facingMode:"environment"},{fps:10},c=>codigo.value=c)
 ap=true
 }else{sp.stop();ap=false}
 }
@@ -147,48 +145,27 @@ ap=true
 function toggleScannerVenda(){
 if(!av){
 sv=new Html5Qrcode("readerVenda")
-sv.start({facingMode:"environment"},{fps:10,qrbox:250},c=>{codVenda.value=c;addVenda()})
+sv.start({facingMode:"environment"},{fps:10},c=>{
+codVenda.value=c
+beep.play()
+addVenda()
+})
 av=true
 }else{sv.stop();av=false}
 }
 
-// CODIGO
-function gerarCodigo(){
-codigo.value="789"+Math.floor(Math.random()*1000000000)
-}
-
-// FIREBASE
+// PRODUTOS
 db.collection("produtos").onSnapshot(s=>{
 produtos=s.docs.map(d=>({id:d.id,...d.data()}))
 listarProdutos()
 })
 
-// SALVAR
-async function salvarProduto(){
+function salvarProduto(){
 let cod=codigo.value||Date.now().toString()
-let p={codigo:cod,codigoBarras:cod,nome:nome.value,cor:cor.value,numero:numero.value,estoque:+estoque.value||0,valor:+valor.value||0}
-let ex=produtos.find(x=>x.codigo==cod)
-ex?await db.collection("produtos").doc(ex.id).set(p):await db.collection("produtos").add(p)
-limparCampos()
+let p={codigo:cod,nome:nome.value,cor:cor.value,numero:numero.value,estoque:+estoque.value||0,valor:+valor.value||0}
+db.collection("produtos").add(p)
 }
 
-// EDITAR / EXCLUIR
-function editar(cod){
-let p=produtos.find(x=>x.codigo==cod)
-codigo.value=p.codigo
-nome.value=p.nome
-cor.value=p.cor
-numero.value=p.numero
-estoque.value=p.estoque
-valor.value=p.valor
-}
-
-async function excluir(cod){
-let p=produtos.find(x=>x.codigo==cod)
-await db.collection("produtos").doc(p.id).delete()
-}
-
-// LISTAR
 function listarProdutos(){
 listaProdutos.innerHTML=produtos.map(p=>`
 <tr>
@@ -199,8 +176,6 @@ listaProdutos.innerHTML=produtos.map(p=>`
 <td>${p.estoque}</td>
 <td>R$ ${p.valor.toFixed(2)}</td>
 <td>
-<button onclick="editar('${p.codigo}')">✏️</button>
-<button onclick="excluir('${p.codigo}')">🗑️</button>
 <button onclick="etiqueta('${p.codigo}')">🏷️</button>
 </td>
 </tr>`).join("")
@@ -211,133 +186,52 @@ function etiqueta(c){
 let p=produtos.find(x=>x.codigo==c)
 let w=window.open("")
 w.document.write(`
-<html><body style="margin:0;width:40mm;height:50mm;font-family:Arial;text-align:center">
-<b>CHINELOS MIX</b><br>
-${p.nome}<br>
-${p.cor} | ${p.numero}<br>
-<b>R$ ${p.valor.toFixed(2)}</b><br>
-<svg id="b"></svg>
+<style>@page{size:40mm 50mm;margin:0}</style>
+<b>CHINELOS MIX</b><br>${p.nome}<br>${p.cor}|${p.numero}<br>
+R$${p.valor}<svg id=b></svg>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
-<script>JsBarcode("#b","${p.codigo}",{width:1.3,height:35});window.print()<\/script>
-</body></html>
+<script>JsBarcode("#b","${p.codigo}");window.print()<\/script>
 `)
 }
 
 // VENDA
 function addVenda(){
 let p=produtos.find(x=>x.codigo==codVenda.value)
-if(!p)return alert("Produto não encontrado")
-let q=+qtd.value
-venda.push({...p,qtd:q})
-totalVenda+=p.valor*q
+if(!p)return
+beep.play()
+venda.push({...p,qtd:+qtd.value})
+totalVenda+=p.valor*qtd.value
 codVenda.value=""
 renderVenda()
 }
 
 function renderVenda(){
-listaVenda.innerHTML=venda.map(p=>`
-<tr><td>${p.nome}</td><td>${p.qtd}</td><td>R$${p.valor}</td></tr>
-`).join("")
+listaVenda.innerHTML=venda.map(p=>`<tr><td>${p.nome}</td><td>${p.qtd}</td><td>${p.valor}</td></tr>`).join("")
 total.innerText=totalVenda.toFixed(2)
 }
 
-// 2 PAGAMENTOS
+// PAGAMENTO
 function usar2Pagamentos(){
 pagamento2.style.display="block"
 }
 
-// FINALIZAR
-async function finalizar(){
-
-let pagamentos=[]
-let v1=+valorPago.value||0
-
-if(pagamento2.style.display=="block"){
-let v2=+valorExtra.value||0
-if(v1+v2<totalVenda)return alert("Valor insuficiente")
-pagamentos.push({tipo:pagamento.value,valor:v1})
-pagamentos.push({tipo:pagamentoExtra.value,valor:v2})
-}else{
-if(v1<totalVenda)return alert("Valor insuficiente")
-pagamentos.push({tipo:pagamento.value,valor:v1})
-}
-
-await db.collection("vendas").add({itens:venda,total:totalVenda,usuario:usuarioAtual})
-
-cupom(pagamentos)
-
+function finalizar(){
+cupom()
 venda=[];totalVenda=0;renderVenda()
 }
 
-// CUPOM
-function cupom(pagamentos){
-
-let data=new Date().toLocaleString()
-let totalItens=venda.reduce((t,p)=>t+p.qtd,0)
-
-let itens=venda.map((p,i)=>{
-let cod=String(i+1).padStart(3,"0")
-let totalItem=(p.qtd*p.valor).toFixed(2)
-return `${cod} ${p.nome}\n   ${p.qtd}  R$${p.valor.toFixed(2)}  R$${totalItem}`
-}).join("\n")
-
-let html=`
-<html><body style="font-family:monospace;width:280px">
-<center>
-CHINELOS MIX<br>
-CNPJ: 46.982.791/0001-01<br>
-AV. LEONOR BOSONE MARQUES DA SILVA, 45
-</center>
-
---------------------------------
-
-DATA: ${data}
-
---------------------------------
-
-${itens}
-
---------------------------------
-
-ITENS: ${totalItens}
-TOTAL: R$ ${totalVenda.toFixed(2)}
-
-ATENDIDO POR: ${usuarioAtual}
-
---------------------------------
-
-OBRIGADO, VOLTE SEMPRE!
-
-<script>window.print()<\/script>
-
-</body></html>
-`
+// CUPOM ALINHADO
+function cupom(){
+let linhas=venda.map(p=>`${p.nome.padEnd(15)} ${p.qtd} ${p.valor.toFixed(2)}`).join("\n")
 let w=window.open("")
-w.document.write(html)
-}
+w.document.write(`<pre>
+CHINELOS MIX
+${linhas}
 
-// CUPOM BOTÃO
-function imprimirCupomSeparado(){
-cupom([{tipo:pagamento.value,valor:totalVenda}])
-}
+TOTAL: ${totalVenda.toFixed(2)}
 
-// NOTA
-function gerarNota(){
-let itens=venda.map(p=>`
-<tr><td>${p.nome}</td><td>${p.qtd}</td><td>R$${p.valor}</td></tr>
-`).join("")
-let w=window.open("")
-w.document.write(`
-<h2>NOTA</h2>
-<table border=1>${itens}</table>
-Total: R$${totalVenda.toFixed(2)}
-<script>window.print()<\/script>
-`)
-}
-
-// LIMPAR
-function limparCampos(){
-codigo.value=nome.value=cor.value=numero.value=estoque.value=valor.value=""
+OBRIGADO VOLTE SEMPRE
+</pre><script>window.print()<\/script>`)
 }
 
 // NAV
@@ -345,10 +239,8 @@ function show(t){
 document.querySelectorAll(".box").forEach(x=>x.style.display="none")
 document.getElementById(t).style.display="block"
 }
-
 show("prod")
 
 </script>
-
 </body>
 </html>
