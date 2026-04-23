@@ -1185,6 +1185,70 @@ window.open(url, "_blank")
 function abrirTroca(){
 show("troca")
 }
+// ===== TROCA =====
+function calcularTroca(){
+
+let pEntrada = produtos.find(p=>p.codigo == codEntrada.value)
+let pSaida = produtos.find(p=>p.codigo == codSaida.value)
+
+if(!pEntrada || !pSaida){
+alert("Produto não encontrado")
+return
+}
+
+let totalEntrada = pEntrada.valor * Number(qtdEntrada.value || 1)
+let totalSaida = pSaida.valor * Number(qtdSaida.value || 1)
+
+let dif = totalSaida - totalEntrada
+
+difTroca.innerText = dif.toFixed(2)
+}
+
+
+async function finalizarTroca(){
+
+let pEntrada = produtos.find(p=>p.codigo == codEntrada.value)
+let pSaida = produtos.find(p=>p.codigo == codSaida.value)
+
+let qEnt = Number(qtdEntrada.value || 1)
+let qSai = Number(qtdSaida.value || 1)
+
+if(!pEntrada || !pSaida){
+alert("Produto inválido")
+return
+}
+
+// entra no estoque
+await db.collection("produtos").doc(pEntrada.id).update({
+estoque: pEntrada.estoque + qEnt
+})
+
+// sai do estoque
+if(pSaida.estoque < qSai){
+alert("Estoque insuficiente")
+return
+}
+
+await db.collection("produtos").doc(pSaida.id).update({
+estoque: pSaida.estoque - qSai
+})
+
+// registra troca
+await db.collection("vendas").add({
+tipo: "troca",
+entrada: pEntrada.nome,
+saida: pSaida.nome,
+qtdEntrada: qEnt,
+qtdSaida: qSai,
+diferenca: (pSaida.valor*qSai) - (pEntrada.valor*qEnt),
+usuario: usuarioAtual,
+data: new Date()
+})
+
+alert("Troca realizada com sucesso")
+
+show("ven")
+}
 </script>
 
 </body>
