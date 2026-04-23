@@ -1092,6 +1092,60 @@ window.print()
 </html>
 `)
 }
+// ===== ADICIONAR VENDA =====
+function addVenda(){
+
+let codigoDigitado = codVenda.value.trim()
+
+if(!codigoDigitado){
+alert("Digite o código")
+return
+}
+
+let p = produtos.find(x => 
+x.codigo == codigoDigitado || 
+x.codigoBarras == codigoDigitado
+)
+
+if(!p){
+alert("Produto não encontrado")
+return
+}
+
+let q = Number(document.getElementById("qtd").value || 1)
+
+// estoque
+if(p.estoque < q){
+alert("Estoque insuficiente")
+return
+}
+
+tocarBeep()
+
+// agrupar produto
+let itemExistente = venda.find(x => x.codigo === p.codigo)
+
+if(itemExistente){
+itemExistente.qtd += q
+}else{
+venda.push({
+id: p.id,
+codigo: p.codigo,
+nome: p.nome,
+cor: p.cor,
+numero: p.numero,
+qtd: q,
+valor: Number(p.valor || 0)
+})
+}
+
+totalVenda += p.valor * q
+
+codVenda.value = ""
+document.getElementById("qtd").value = 1
+
+renderVenda()
+}
 </script>
 
 </body>
