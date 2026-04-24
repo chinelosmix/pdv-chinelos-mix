@@ -1271,20 +1271,25 @@ console.log(e)
 
 function imprimirTroca(){
 
-let pEntrada = produtos.find(p => p.codigo == document.getElementById("codEntrada").value)
-let pSaida = produtos.find(p => p.codigo == document.getElementById("codSaida").value)
+let codE = document.getElementById("codEntrada")?.value
+let codS = document.getElementById("codSaida")?.value
+
+let pEntrada = produtos.find(p => p.codigo == codE)
+let pSaida = produtos.find(p => p.codigo == codS)
 
 if(!pEntrada || !pSaida){
 alert("Preencha os produtos")
 return
 }
 
-let qEnt = Number(document.getElementById("qtdEntrada").value || 1)
-let qSai = Number(document.getElementById("qtdSaida").value || 1)
+let qEnt = Number(document.getElementById("qtdEntrada")?.value || 1)
+let qSai = Number(document.getElementById("qtdSaida")?.value || 1)
 
 let totalEntrada = pEntrada.valor * qEnt
 let totalSaida = pSaida.valor * qSai
 let diferenca = totalSaida - totalEntrada
+
+let pagamento = document.getElementById("pagTroca")?.value || "Dinheiro"
 
 let w = window.open("")
 
@@ -1294,16 +1299,23 @@ w.document.write(`
 CHINELOS MIX
 
 TROCA DE PRODUTO
+----------------------------
 
 DEVOLVIDO:
 ${pEntrada.nome} x${qEnt}
+R$ ${totalEntrada.toFixed(2)}
 
 NOVO:
 ${pSaida.nome} x${qSai}
+R$ ${totalSaida.toFixed(2)}
 
+----------------------------
 DIFERENÇA: R$ ${diferenca.toFixed(2)}
 
-PAGAMENTO: ${document.getElementById("pagTroca").value}
+PAGAMENTO: ${pagamento}
+
+----------------------------
+OBRIGADO, VOLTE SEMPRE!
 
 <script>
 window.print()
@@ -1311,6 +1323,7 @@ window.print()
 
 </pre>
 `)
+
 
 }
 </script>
