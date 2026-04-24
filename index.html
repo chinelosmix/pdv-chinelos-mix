@@ -191,7 +191,16 @@ th{text-align:left}
 <button onclick="show('ven')">Voltar</button>
 
 </div>
+<div id="caixa" class="box">
 
+<h3>Abertura de Caixa</h3>
+
+<input id="senhaCaixa" type="password" placeholder="Senha do caixa">
+<input id="valorInicial" placeholder="Valor inicial (ex: 100)">
+
+<button onclick="abrirCaixa()">Abrir Caixa</button>
+
+</div>
 <!-- RELATORIO -->
 <div id="rel" class="box">
 <h3>Relatório de vendas</h3>
@@ -1354,6 +1363,28 @@ return
 
 codVenda.value = resultado.codigo
 addVenda()
+}
+async function abrirCaixa(){
+
+let senha = document.getElementById("senhaCaixa").value
+let valor = Number(document.getElementById("valorInicial").value || 0)
+
+// senha padrão (pode mudar)
+if(senha !== "1234"){
+alert("Senha incorreta")
+return
+}
+
+await db.collection("caixa").add({
+tipo: "abertura",
+valorInicial: valor,
+usuario: usuarioAtual,
+data: new Date()
+})
+
+alert("Caixa aberto")
+
+show("ven")
 }
 </script>
 
