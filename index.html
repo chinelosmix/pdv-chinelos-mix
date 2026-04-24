@@ -980,10 +980,10 @@ VENDAS: ${vendas.length}
 ITENS: ${totalItens}
 TOTAL GERAL: R$ ${totalGeral.toFixed(2)}
 
-`;
+
 
   for(const [tipo, valor] of Object.entries(porPagamento)){
-  resumo += `${tipo}: R$ ${valor.toFixed(2)}\n`;
+ resumo += `${tipo}: R$ ${valor.toFixed(2)}\n`;
   }
 
   const html = `
