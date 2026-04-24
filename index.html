@@ -44,6 +44,7 @@ th{text-align:left}
 <nav>
 <button onclick="show('prod')">Produtos</button>
 <button onclick="show('ven')">Venda</button>
+<button onclick="show('caixa')">🔐 Abrir Caixa</button>
 <button onclick="show('rel')">Relatório</button>
 <button onclick="show('func')">Funcionários</button> 
 </nav>
@@ -907,24 +908,65 @@ async function atualizarRelatorio(){
 }
 
 async function fecharCaixa(){
-  if(!vendasCache.length){
-    await atualizarRelatorio();
-  }
 
-  const vendas = [...vendasCache];
-  if(!vendas.length){
-    alert("Nenhuma venda para fechamento");
-    return;
-  }
+let snap = await db.collection("vendas").get()
+let vendas = snap.docs.map(d=>d.data())
 
-  const totalGeral = vendas.reduce((t,v) => t + Number(v.total || 0), 0);
-  const totalItens = vendas.reduce((t,v) => t + (v.itens || []).reduce((a,i) => a + Number(i.qtd || 0), 0), 0);
-  const porPagamento = {};
+if(vendas.length === 0){
+alert("Sem vendas")
+return
+}
 
-  vendas.forEach(v => {
-    (v.pagamentos || []).forEach(p => {
-      porPagamento[p.tipo] = (porPagamento[p.tipo] || 0) + Number(p.valor || 0);
-    });
+let total = 0
+let totalItens = 0
+let pagamentos = {}
+
+vendas.forEach(v=>{
+
+total += v.total || 0
+
+// itens
+if(v.itens){
+v.itens.forEach(i=>{
+totalItens += i.qtd
+})
+}
+
+// pagamentos
+if(v.pagamentos){
+v.pagamentos.forEach(p=>{
+pagamentos[p.tipo] = (pagamentos[p.tipo] || 0) + p.valor
+})
+}
+
+})
+
+// montar relatório
+let texto = `FECHAMENTO DE CAIXA\n\n`
+
+texto += `TOTAL VENDIDO: R$ ${total.toFixed(2)}\n`
+texto += `ITENS: ${totalItens}\n\n`
+
+texto += `--- PAGAMENTOS ---\n`
+
+for(let tipo in pagamentos){
+texto += `${tipo}: R$ ${pagamentos[tipo].toFixed(2)}\n`
+}
+
+texto += `\nATENDIDO POR: ${usuarioAtual}`
+
+// imprimir automático
+let w = window.open("")
+w.document.write(`
+<pre style="font-family:monospace">
+${texto}
+
+<script>
+window.print()
+<\/script>
+</pre>
+`)
+}
   });
 
   let resumo = `
