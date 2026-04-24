@@ -1182,14 +1182,17 @@ let url = "https://wa.me/?text=" + encodeURIComponent(texto)
 
 window.open(url, "_blank")
 }
+
+// ===== ABRIR TELA =====
 function abrirTroca(){
 show("troca")
 }
-// ===== TROCA =====
+
+// ===== CALCULAR =====
 function calcularTroca(){
 
-let pEntrada = produtos.find(p=>p.codigo == codEntrada.value)
-let pSaida = produtos.find(p=>p.codigo == codSaida.value)
+let pEntrada = produtos.find(p => p.codigo == codEntrada.value)
+let pSaida = produtos.find(p => p.codigo == codSaida.value)
 
 if(!pEntrada || !pSaida){
 alert("Produto não encontrado")
@@ -1204,11 +1207,11 @@ let dif = totalSaida - totalEntrada
 difTroca.innerText = dif.toFixed(2)
 }
 
-
+// ===== FINALIZAR =====
 async function finalizarTroca(){
 
-let pEntrada = produtos.find(p=>p.codigo == codEntrada.value)
-let pSaida = produtos.find(p=>p.codigo == codSaida.value)
+let pEntrada = produtos.find(p => p.codigo == codEntrada.value)
+let pSaida = produtos.find(p => p.codigo == codSaida.value)
 
 let qEnt = Number(qtdEntrada.value || 1)
 let qSai = Number(qtdSaida.value || 1)
@@ -1222,11 +1225,12 @@ let totalEntrada = pEntrada.valor * qEnt
 let totalSaida = pSaida.valor * qSai
 let diferenca = totalSaida - totalEntrada
 
-// estoque
+// estoque entrada
 await db.collection("produtos").doc(pEntrada.id).update({
 estoque: pEntrada.estoque + qEnt
 })
 
+// estoque saída
 if(pSaida.estoque < qSai){
 alert("Estoque insuficiente")
 return
@@ -1236,14 +1240,12 @@ await db.collection("produtos").doc(pSaida.id).update({
 estoque: pSaida.estoque - qSai
 })
 
-// 💰 REGISTRO NO CAIXA (IGUAL VENDA)
-let pagamento = pagTroca.value
-
+// pagamentos (integra caixa)
 let pagamentos = []
 
 if(diferenca > 0){
 pagamentos.push({
-tipo: pagamento,
+tipo: pagTroca.value,
 valor: diferenca
 })
 }
@@ -1255,62 +1257,30 @@ valor: Math.abs(diferenca)
 })
 }
 
-// 🔥 SALVA COMO VENDA (ENTRA NO FECHAMENTO)
+// salva no sistema
 await db.collection("vendas").add({
 tipo: "troca",
-itens: [
-{
+itens: [{
 nome: pSaida.nome,
 qtd: qSai,
 valor: pSaida.valor
-}
-],
+}],
 total: diferenca > 0 ? diferenca : 0,
 pagamentos: pagamentos,
 usuario: usuarioAtual,
 data: new Date()
 })
 
-alert("Troca registrada no caixa")
+alert("Troca concluída")
 
 show("ven")
 }
 
-// entra no estoque
-await db.collection("produtos").doc(pEntrada.id).update({
-estoque: pEntrada.estoque + qEnt
-})
-
-// sai do estoque
-if(pSaida.estoque < qSai){
-alert("Estoque insuficiente")
-return
-}
-
-await db.collection("produtos").doc(pSaida.id).update({
-estoque: pSaida.estoque - qSai
-})
-
-// registra troca
-await db.collection("vendas").add({
-tipo: "troca",
-entrada: pEntrada.nome,
-saida: pSaida.nome,
-qtdEntrada: qEnt,
-qtdSaida: qSai,
-diferenca: (pSaida.valor*qSai) - (pEntrada.valor*qEnt),
-usuario: usuarioAtual,
-data: new Date()
-})
-
-alert("Troca realizada com sucesso")
-
-show("ven")
-}
+// ===== IMPRESSÃO =====
 function imprimirTroca(){
 
-let pEntrada = produtos.find(p=>p.codigo == codEntrada.value)
-let pSaida = produtos.find(p=>p.codigo == codSaida.value)
+let pEntrada = produtos.find(p => p.codigo == codEntrada.value)
+let pSaida = produtos.find(p => p.codigo == codSaida.value)
 
 let qEnt = Number(qtdEntrada.value || 1)
 let qSai = Number(qtdSaida.value || 1)
@@ -1352,6 +1322,7 @@ window.print()
 
 </pre>
 `)
+
 }
 </script>
 
