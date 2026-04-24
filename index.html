@@ -1255,7 +1255,12 @@ data: new Date()
 })
 
 alert("Troca concluída")
-
+document.getElementById("codEntrada").value = ""
+document.getElementById("codSaida").value = ""
+document.getElementById("qtdEntrada").value = 1
+document.getElementById("qtdSaida").value = 1
+document.getElementById("difTroca").innerText = "0.00"
+  
 show("ven")
 
 }catch(e){
