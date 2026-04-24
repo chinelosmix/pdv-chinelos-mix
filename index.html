@@ -108,6 +108,7 @@ th{text-align:left}
 
 <input id="codVenda" placeholder="Código">
 <input id="qtd" value="1" placeholder="Qtd">
+<input id="buscaProduto" placeholder="Buscar por nome ou código">
 <button onclick="addVenda()">Adicionar</button>
 <button onclick="abrirTroca()">🔁 Troca</button>
 <button onclick="toggleScannerVenda()">📷 Scanner</button>
@@ -1335,6 +1336,23 @@ window.print()
 `)
 
 
+}
+function buscarProduto(){
+
+let termo = document.getElementById("buscaProduto").value.toLowerCase()
+
+let resultado = produtos.find(p =>
+p.codigo.includes(termo) ||
+p.nome.toLowerCase().includes(termo)
+)
+
+if(!resultado){
+alert("Produto não encontrado")
+return
+}
+
+codVenda.value = resultado.codigo
+addVenda()
 }
 </script>
 
