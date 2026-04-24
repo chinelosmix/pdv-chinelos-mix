@@ -1184,54 +1184,56 @@ let url = "https://wa.me/?text=" + encodeURIComponent(texto)
 window.open(url, "_blank")
 }
 
-// ===== ABRIR TELA =====
+// ===== TROCA COMPLETA =====
+
 function abrirTroca(){
 show("troca")
 }
 
-// ===== CALCULAR =====
 function calcularTroca(){
 
-let pEntrada = produtos.find(p => p.codigo == codEntrada.value)
-let pSaida = produtos.find(p => p.codigo == codSaida.value)
+let pEntrada = produtos.find(p => p.codigo == document.getElementById("codEntrada").value)
+let pSaida = produtos.find(p => p.codigo == document.getElementById("codSaida").value)
 
 if(!pEntrada || !pSaida){
 alert("Produto não encontrado")
 return
 }
 
-let totalEntrada = pEntrada.valor * Number(qtdEntrada.value || 1)
-let totalSaida = pSaida.valor * Number(qtdSaida.value || 1)
+let qEnt = Number(document.getElementById("qtdEntrada").value || 1)
+let qSai = Number(document.getElementById("qtdSaida").value || 1)
+
+let totalEntrada = pEntrada.valor * qEnt
+let totalSaida = pSaida.valor * qSai
 
 let dif = totalSaida - totalEntrada
 
-difTroca.innerText = dif.toFixed(2)
+document.getElementById("difTroca").innerText = dif.toFixed(2)
 }
 
-// ===== FINALIZAR =====
 async function finalizarTroca(){
 
-let pEntrada = produtos.find(p => p.codigo == codEntrada.value)
-let pSaida = produtos.find(p => p.codigo == codSaida.value)
+try{
 
-let qEnt = Number(qtdEntrada.value || 1)
-let qSai = Number(qtdSaida.value || 1)
+let pEntrada = produtos.find(p => p.codigo == document.getElementById("codEntrada").value)
+let pSaida = produtos.find(p => p.codigo == document.getElementById("codSaida").value)
 
 if(!pEntrada || !pSaida){
 alert("Produto inválido")
 return
 }
 
+let qEnt = Number(document.getElementById("qtdEntrada").value || 1)
+let qSai = Number(document.getElementById("qtdSaida").value || 1)
+
 let totalEntrada = pEntrada.valor * qEnt
 let totalSaida = pSaida.valor * qSai
 let diferenca = totalSaida - totalEntrada
 
-// estoque entrada
 await db.collection("produtos").doc(pEntrada.id).update({
 estoque: pEntrada.estoque + qEnt
 })
 
-// estoque saída
 if(pSaida.estoque < qSai){
 alert("Estoque insuficiente")
 return
@@ -1241,33 +1243,13 @@ await db.collection("produtos").doc(pSaida.id).update({
 estoque: pSaida.estoque - qSai
 })
 
-// pagamentos (integra caixa)
-let pagamentos = []
-
-if(diferenca > 0){
-pagamentos.push({
-tipo: pagTroca.value,
-valor: diferenca
-})
-}
-
-if(diferenca < 0){
-pagamentos.push({
-tipo: "Troco",
-valor: Math.abs(diferenca)
-})
-}
-
-// salva no sistema
 await db.collection("vendas").add({
 tipo: "troca",
-itens: [{
-nome: pSaida.nome,
-qtd: qSai,
-valor: pSaida.valor
-}],
 total: diferenca > 0 ? diferenca : 0,
-pagamentos: pagamentos,
+pagamentos: [{
+tipo: document.getElementById("pagTroca").value,
+valor: Math.abs(diferenca)
+}],
 usuario: usuarioAtual,
 data: new Date()
 })
@@ -1275,16 +1257,25 @@ data: new Date()
 alert("Troca concluída")
 
 show("ven")
+
+}catch(e){
+alert("Erro na troca")
+console.log(e)
+}
 }
 
-// ===== IMPRESSÃO =====
 function imprimirTroca(){
 
-let pEntrada = produtos.find(p => p.codigo == codEntrada.value)
-let pSaida = produtos.find(p => p.codigo == codSaida.value)
+let pEntrada = produtos.find(p => p.codigo == document.getElementById("codEntrada").value)
+let pSaida = produtos.find(p => p.codigo == document.getElementById("codSaida").value)
 
-let qEnt = Number(qtdEntrada.value || 1)
-let qSai = Number(qtdSaida.value || 1)
+if(!pEntrada || !pSaida){
+alert("Preencha os produtos")
+return
+}
+
+let qEnt = Number(document.getElementById("qtdEntrada").value || 1)
+let qSai = Number(document.getElementById("qtdSaida").value || 1)
 
 let totalEntrada = pEntrada.valor * qEnt
 let totalSaida = pSaida.valor * qSai
@@ -1298,24 +1289,16 @@ w.document.write(`
 CHINELOS MIX
 
 TROCA DE PRODUTO
-----------------------------
 
 DEVOLVIDO:
 ${pEntrada.nome} x${qEnt}
-R$ ${totalEntrada.toFixed(2)}
 
 NOVO:
 ${pSaida.nome} x${qSai}
-R$ ${totalSaida.toFixed(2)}
 
-----------------------------
 DIFERENÇA: R$ ${diferenca.toFixed(2)}
 
-PAGAMENTO: ${pagTroca.value}
-ATENDIDO POR: ${usuarioAtual}
-
-----------------------------
-OBRIGADO, VOLTE SEMPRE!
+PAGAMENTO: ${document.getElementById("pagTroca").value}
 
 <script>
 window.print()
@@ -1323,7 +1306,7 @@ window.print()
 
 </pre>
 `)
-
+}
 }
 </script>
 
