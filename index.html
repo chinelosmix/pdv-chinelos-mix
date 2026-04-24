@@ -921,9 +921,55 @@ let total = 0
 let totalItens = 0
 let pagamentos = {}
 
-vendas.forEach(v=>{
+vendas.forEach(v => {
 
 total += v.total || 0
+
+if(v.itens){
+v.itens.forEach(i => totalItens += i.qtd)
+}
+
+(v.pagamentos || []).forEach(p => {
+pagamentos[p.tipo] = (pagamentos[p.tipo] || 0) + p.valor
+})
+
+})
+
+// ===== TEXTO =====
+let resumo = "FECHAMENTO DE CAIXA\n\n"
+
+resumo += "VENDAS: " + vendas.length + "\n"
+resumo += "ITENS: " + totalItens + "\n"
+resumo += "TOTAL GERAL: R$ " + total.toFixed(2) + "\n\n"
+
+for (let tipo in pagamentos){
+resumo += tipo + ": R$ " + pagamentos[tipo].toFixed(2) + "\n"
+}
+
+// ===== HTML =====
+let html = `
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body{font-family:monospace;padding:16px;white-space:pre-wrap}
+</style>
+</head>
+<body>
+${resumo}
+
+<script>
+window.print();
+setTimeout(()=>window.close(),800);
+<\/script>
+</body>
+</html>
+`
+
+let w = window.open("", "", "width=500,height=700")
+w.document.write(html)
+
+}
 
 // itens
 if(v.itens){
