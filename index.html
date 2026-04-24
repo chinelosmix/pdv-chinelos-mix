@@ -1247,7 +1247,7 @@ await db.collection("vendas").add({
 tipo: "troca",
 total: diferenca > 0 ? diferenca : 0,
 pagamentos: [{
-tipo: tipo: (document.getElementById("pagTroca") || {value:"Dinheiro"}).value,
+tipo: (document.getElementById("pagTroca") || {value:"Dinheiro"}).value,
 valor: Math.abs(diferenca)
 }],
 usuario: usuarioAtual,
