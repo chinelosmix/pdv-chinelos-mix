@@ -4,19 +4,16 @@
 <meta charset="UTF-8">
 <title>PDV CHINELOS MIX</title>
 
-<script src="https://unpkg.com/html5-qrcode"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <style>
 body{margin:0;font-family:Arial;background:#0f172a;color:#fff}
-header{background:#020617;padding:15px;text-align:center;font-size:18px;font-weight:bold}
+header{background:#020617;padding:15px;text-align:center;font-weight:bold}
 nav{display:flex;background:#020617}
-nav button{flex:1;padding:12px;border:none;background:#020617;color:#fff;font-size:14px}
+nav button{flex:1;padding:12px;border:none;background:#020617;color:#fff}
 .box{display:none;padding:10px}
-input,select{width:100%;padding:10px;margin:5px 0;border-radius:5px;border:none}
+input,select{width:100%;padding:10px;margin:5px 0;border:none;border-radius:5px}
 button{padding:10px;background:#22c55e;color:#fff;border:none;border-radius:5px;margin-top:5px}
 table{width:100%;margin-top:10px;border-collapse:collapse}
 td,th{border-bottom:1px solid #334155;padding:8px}
@@ -27,135 +24,60 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <header>PDV CHINELOS MIX</header>
 
-<div id="loginBox" style="padding:10px">
+<div id="loginBox">
 <input id="user" placeholder="Nome">
-<input id="senha" placeholder="Senha" type="password">
 <button onclick="login()">Entrar</button>
 </div>
 
 <nav>
 <button onclick="show('prod')">Produtos</button>
 <button onclick="show('ven')">Venda</button>
-<button onclick="show('troca')">Troca</button>
-<button onclick="show('caixa')">Caixa</button>
 <button onclick="show('rel')">Relatório</button>
-<button onclick="show('func')">Funcionários</button>
 </nav>
 
 <!-- PRODUTOS -->
 <div id="prod" class="box">
-
+<h3>Produtos</h3>
 <input id="codigo" placeholder="Código">
-<button onclick="gerarCodigo()">Gerar Código</button>
-<button onclick="toggleScannerProduto()">📷 Scanner</button>
-
-<div id="reader"></div>
-
 <input id="nome" placeholder="Nome">
-<input id="cor" placeholder="Cor">
-<input id="numero" placeholder="Numeração">
 <input id="estoque" placeholder="Quantidade">
 <input id="valor" placeholder="Valor">
-
 <button onclick="salvarProduto()">Salvar</button>
-
-<table>
-<thead>
-<tr>
-<th>Código</th><th>Nome</th><th>Cor</th><th>Nº</th><th>Qtd</th><th>Valor</th><th>Ações</th>
-</tr>
-</thead>
-<tbody id="listaProdutos"></tbody>
-</table>
-
-</div>
-
-<!-- FUNCIONÁRIOS -->
-<div id="func" class="box">
-
-<h3>Funcionários</h3>
-
-<input id="nomeFunc" placeholder="Nome do funcionário">
-<input id="senhaFunc" placeholder="Senha">
-
-<button onclick="salvarFuncionario()">Salvar</button>
-
-<table>
-<thead>
-<tr>
-<th>Nome</th>
-<th>Ações</th>
-</tr>
-</thead>
-<tbody id="listaFunc"></tbody>
-</table>
-
+<table><tbody id="listaProdutos"></tbody></table>
 </div>
 
 <!-- VENDA -->
 <div id="ven" class="box">
-
 <input id="codVenda" placeholder="Código">
-<input id="buscaProduto" placeholder="Buscar produto">
-<button onclick="buscarProduto()">🔎</button>
-
+<input id="buscaProduto" placeholder="Buscar">
+<button onclick="buscarProduto()">Buscar</button>
 <input id="qtd" value="1">
-
 <button onclick="addVenda()">Adicionar</button>
-<button onclick="abrirTroca()">🔁 Troca</button>
-<button onclick="toggleScannerVenda()">📷 Scanner</button>
-
-<div id="readerVenda"></div>
 
 <h3>Total: R$ <span id="total">0.00</span></h3>
 
-<table>
-<thead>
-<tr>
-<th>Produto</th><th>Qtd</th><th>Valor</th><th>Subtotal</th><th></th>
-</tr>
-</thead>
-<tbody id="listaVenda"></tbody>
-</table>
+<table><tbody id="listaVenda"></tbody></table>
 
 <input id="valorPago" oninput="calcularTroco()" placeholder="Valor pago">
-
 <h3>Troco: R$ <span id="troco">0.00</span></h3>
 
-<h3>Pagamento</h3>
-
-<select id="pagamento">
-<option>Dinheiro</option>
-<option>PIX</option>
-<option>Débito</option>
-<option>Crédito</option>
-</select>
-
 <button onclick="finalizar()">Finalizar</button>
-
 </div>
 
-<!-- TROCA -->
-<div id="troca" class="box">
-<h3>Troca</h3>
-<button onclick="show('ven')">Voltar</button>
-</div>
-
-<!-- CAIXA -->
-<div id="caixa" class="box">
-<h3>Caixa</h3>
-<button onclick="fecharCaixa()">Fechar Caixa</button>
-</div>
-
-<!-- RELATÓRIO -->
+<!-- RELATORIO -->
 <div id="rel" class="box">
 <h3>Relatório</h3>
 <table>
+<thead>
+<tr><th>Data</th><th>Total</th><th>Usuário</th></tr>
+</thead>
 <tbody id="tabelaRel"></tbody>
 </table>
+<button onclick="atualizarRelatorio()">Atualizar</button>
 </div>
 
 <script>
+
 const firebaseConfig = {
   apiKey: "AIzaSyARpePSrPuvzOwLP6v9gzmhWfzdo0JZJK4",
   authDomain: "pdv-chinelos.firebaseapp.com",
@@ -164,245 +86,168 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
 
-function show(t){
-  document.querySelectorAll(".box").forEach(x=>x.style.display="none")
-  const el = document.getElementById(t)
-  if(el) el.style.display = "block"
-}
-
-let produtos = [];
-let venda = [];
-let totalVenda = 0;
 let produtos = [];
 let venda = [];
 let totalVenda = 0;
 let usuarioAtual = "";
-let ultimaVendaCompleta = null;
 
-// ================= LOGIN =================
+// LOGIN
 function login(){
-  if(!user.value.trim()){
-    alert("Digite o nome");
-    return;
-  }
-  usuarioAtual = user.value.trim();
-  loginBox.style.display = "none";
-  show("ven");
+usuarioAtual = user.value
+loginBox.style.display="none"
+show("ven")
 }
 
-// ================= SHOW =================
+// NAVEGAÇÃO
 function show(t){
-  document.querySelectorAll(".box").forEach(x=>x.style.display="none");
-  const el = document.getElementById(t);
-  if(el) el.style.display="block";
+document.querySelectorAll(".box").forEach(x=>x.style.display="none")
+document.getElementById(t).style.display="block"
 }
 
-// ================= PRODUTOS =================
+// PRODUTOS
 db.collection("produtos").onSnapshot(s=>{
-  produtos = s.docs.map(d=>({id:d.id,...d.data()}));
+produtos = s.docs.map(d=>({id:d.id,...d.data()}))
 
-  listaProdutos.innerHTML = produtos.map(p=>`
-  <tr>
-  <td>${p.codigo || ""}</td>
-  <td>${p.nome || ""}</td>
-  <td>${p.cor || ""}</td>
-  <td>${p.numero || ""}</td>
-  <td>${p.estoque || 0}</td>
-  <td>${Number(p.valor || 0).toFixed(2)}</td>
-  </tr>
-  `).join("");
-});
+listaProdutos.innerHTML = produtos.map(p=>`
+<tr>
+<td>${p.codigo}</td>
+<td>${p.nome}</td>
+<td>${p.estoque}</td>
+<td>${p.valor}</td>
+</tr>
+`).join("")
+})
 
 function salvarProduto(){
-  db.collection("produtos").add({
-    codigo: codigo.value,
-    nome: nome.value,
-    cor: cor.value,
-    numero: numero.value,
-    estoque: Number(estoque.value || 0),
-    valor: Number(valor.value || 0)
-  });
+db.collection("produtos").add({
+codigo:codigo.value,
+nome:nome.value,
+estoque:Number(estoque.value),
+valor:Number(valor.value)
+})
 }
 
-// ================= VENDA =================
+// VENDA
 function addVenda(){
 
-  let codigoBusca = codVenda.value.trim();
+let p = produtos.find(x=>x.codigo==codVenda.value)
 
-  let p = produtos.find(x =>
-    x.codigo == codigoBusca ||
-    x.codigoBarras == codigoBusca
-  );
-
-  if(!p){
-    alert("Produto não encontrado");
-    return;
-  }
-
-  let q = Number(qtd.value || 1);
-
-  let item = venda.find(x => x.codigo == p.codigo);
-
-  if(item){
-    item.qtd += q;
-  }else{
-    venda.push({
-      id: p.id,
-      codigo: p.codigo,
-      nome: p.nome,
-      qtd: q,
-      valor: Number(p.valor || 0)
-    });
-  }
-
-  codVenda.value = "";
-  qtd.value = 1;
-
-  renderVenda();
+if(!p){
+alert("Produto não encontrado")
+return
 }
 
-// ================= RENDER =================
+let q = Number(qtd.value)
+
+let item = venda.find(x=>x.codigo==p.codigo)
+
+if(item){
+item.qtd+=q
+}else{
+venda.push({...p,qtd:q})
+}
+
+totalVenda += p.valor*q
+
+codVenda.value=""
+qtd.value=1
+
+renderVenda()
+}
+
 function renderVenda(){
+listaVenda.innerHTML = venda.map((p,i)=>`
+<tr>
+<td>${p.nome}</td>
+<td>${p.qtd}</td>
+<td>R$ ${(p.valor*p.qtd).toFixed(2)}</td>
+<td><button onclick="remover(${i})">X</button></td>
+</tr>
+`).join("")
 
-  let totalCalc = 0;
-
-  listaVenda.innerHTML = venda.map((p,i)=>{
-
-    let subtotal = p.qtd * p.valor;
-    totalCalc += subtotal;
-
-    return `
-    <tr>
-    <td>${p.nome}</td>
-    <td>${p.qtd}</td>
-    <td>R$ ${p.valor.toFixed(2)}</td>
-    <td>R$ ${subtotal.toFixed(2)}</td>
-    <td><button onclick="removerItem(${i})">❌</button></td>
-    </tr>
-    `;
-  }).join("");
-
-  totalVenda = totalCalc;
-  total.innerText = totalVenda.toFixed(2);
+total.innerText = totalVenda.toFixed(2)
 }
 
-// ================= REMOVER =================
-function removerItem(i){
-  venda.splice(i,1);
-  renderVenda();
+function remover(i){
+totalVenda -= venda[i].valor*venda[i].qtd
+venda.splice(i,1)
+renderVenda()
 }
 
-// ================= BUSCA =================
+// BUSCA
 function buscarProduto(){
+let termo = buscaProduto.value.toLowerCase()
 
-  let termo = buscaProduto.value.toLowerCase();
+let p = produtos.find(x=>
+x.nome.toLowerCase().includes(termo) ||
+x.codigo.includes(termo)
+)
 
-  let p = produtos.find(x =>
-    (x.codigo || "").includes(termo) ||
-    (x.nome || "").toLowerCase().includes(termo)
-  );
-
-  if(!p){
-    alert("Produto não encontrado");
-    return;
-  }
-
-  codVenda.value = p.codigo;
-  addVenda();
+if(p){
+codVenda.value = p.codigo
+addVenda()
+}
 }
 
-// ================= TROCO =================
+// TROCO
 function calcularTroco(){
-  let pago = Number(valorPago.value || 0);
-  let troco = pago - totalVenda;
-  if(troco < 0) troco = 0;
-  document.getElementById("troco").innerText = troco.toFixed(2);
+let pago = Number(valorPago.value||0)
+let troco = pago-totalVenda
+if(troco<0) troco=0
+trocoSpan = document.getElementById("troco")
+trocoSpan.innerText = troco.toFixed(2)
 }
 
-// ================= FINALIZAR =================
+// FINALIZAR
 async function finalizar(){
 
-  if(!venda.length){
-    alert("Nenhuma venda");
-    return;
-  }
+await db.collection("vendas").add({
+itens:venda,
+total:totalVenda,
+usuario:usuarioAtual,
+data:new Date()
+})
 
-  const vendaFinalizada = {
-    itens: venda,
-    total: totalVenda,
-    usuario: usuarioAtual,
-    data: new Date()
-  };
+alert("Venda finalizada")
 
-  await db.collection("vendas").add(vendaFinalizada);
-
-  ultimaVendaCompleta = vendaFinalizada;
-
-  alert("Venda finalizada");
-
-  venda = [];
-  totalVenda = 0;
-  renderVenda();
+venda=[]
+totalVenda=0
+renderVenda()
 }
 
-// ================= TROCA =================
-function abrirTroca(){
-  show("troca");
-}
-
-// ================= CAIXA =================
-async function fecharCaixa(){
-
-  let snap = await db.collection("vendas").get();
-
-  let vendasLista = snap.docs.map(d=>d.data());
-
-  if(!vendasLista.length){
-    alert("Sem vendas");
-    return;
-  }
-
-  let total = 0;
-
-  vendasLista.forEach(v=>{
-    total += Number(v.total || 0);
-  });
-
-  alert("TOTAL DO DIA: R$ " + total.toFixed(2));
-}
-
-// ================= RELATÓRIO =================
+// RELATORIO
 async function atualizarRelatorio(){
 
-  let snap = await db.collection("vendas").get();
+let snap = await db.collection("vendas").get()
 
-  let vendasLista = snap.docs.map(d=>d.data());
+let vendasLista = snap.docs.map(d=>d.data())
 
- tabelaRel.innerHTML = vendasLista.map(v=>{
+tabelaRel.innerHTML = vendasLista.map(v=>{
 
-let dataFormatada = ""
-
+let data = ""
 if(v.data){
-  if(v.data.seconds){
-    dataFormatada = new Date(v.data.seconds * 1000).toLocaleDateString()
-  }else{
-    dataFormatada = new Date(v.data).toLocaleDateString()
-  }
+if(v.data.seconds){
+data = new Date(v.data.seconds*1000).toLocaleDateString()
+}else{
+data = new Date(v.data).toLocaleDateString()
+}
 }
 
 return `
 <tr>
-<td>${dataFormatada}</td>
-<td>R$ ${Number(v.total || 0).toFixed(2)}</td>
-<td>${v.usuario || ""}</td>
+<td>${data}</td>
+<td>R$ ${Number(v.total).toFixed(2)}</td>
+<td>${v.usuario||""}</td>
 </tr>
 `
 
-}).join("");
+}).join("")
 }
 
-// ================= START =================
-show("ven");
+show("ven")
+
+</script>
+
+</body>
+</html>
