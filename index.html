@@ -397,6 +397,9 @@ function calcularTroco(){
 
   document.getElementById("troco").innerText = troco.toFixed(2)
 }
+function gerarNumeroCupom(){
+  return Date.now().toString().slice(-6)
+}
 // REMOVER
 function remover(i){
 totalVenda -= venda[i].valor*venda[i].qtd
