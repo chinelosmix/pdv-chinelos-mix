@@ -486,6 +486,42 @@ reader.innerHTML = ""
 )
 
 }
+let scanner = null
+
+function toggleScanner(){
+
+const reader = document.getElementById("reader")
+
+if(!reader){
+alert("reader não encontrado")
+return
+}
+
+if(scanner){
+scanner.stop()
+scanner = null
+reader.innerHTML = ""
+return
+}
+
+scanner = new Html5Qrcode("reader")
+
+scanner.start(
+{ facingMode: "environment" },
+{ fps: 10 },
+(decodedText)=>{
+
+document.getElementById("codigo").value = decodedText
+
+scanner.stop()
+scanner = null
+reader.innerHTML = ""
+}
+).catch(err=>{
+alert("Erro no scanner: " + err)
+})
+
+}
 </script>
 </body>
 </html>
