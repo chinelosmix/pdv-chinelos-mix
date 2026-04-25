@@ -206,7 +206,14 @@ valor.value=""
 
 // GERAR CÓDIGO
 function gerarCodigo(){
-codigo.value = Date.now().toString().slice(-8)
+  const campo = document.getElementById("codigo")
+
+  if(!campo){
+    alert("Campo código não encontrado")
+    return
+  }
+
+  campo.value = Date.now().toString().slice(-12)
 }
 
 // EDITAR
