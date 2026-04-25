@@ -43,7 +43,7 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <input id="codigo" placeholder="Código">
 <button onclick="gerarCodigo()">Gerar Código</button>
-<button onclick="toggleScanner()">📷 Scanner</button>
+<button onclick="toggleScannerVenda()">📷 Scanner</button>
 
 <div id="reader" style="width:250px"></div>
 <input id="codigo" placeholder="Código">
@@ -448,15 +448,21 @@ return `
 
 // START
 show("ven")
-// SCANNER VENDA
 let scannerVenda = null
 
 function toggleScannerVenda(){
 
+const reader = document.getElementById("readerVenda")
+
+if(!reader){
+alert("readerVenda não encontrado")
+return
+}
+
 if(scannerVenda){
 scannerVenda.stop()
 scannerVenda = null
-readerVenda.innerHTML = ""
+reader.innerHTML = ""
 return
 }
 
@@ -467,15 +473,17 @@ scannerVenda.start(
 { fps: 10 },
 (decodedText)=>{
 
-codVenda.value = decodedText
+document.getElementById("codVenda").value = decodedText
+
 addVenda()
 
 scannerVenda.stop()
 scannerVenda = null
-readerVenda.innerHTML = ""
+reader.innerHTML = ""
 }
 )
 
+}
 }
 </script>
 </body>
