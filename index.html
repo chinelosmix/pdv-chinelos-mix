@@ -406,7 +406,57 @@ totalVenda -= venda[i].valor*venda[i].qtd
 venda.splice(i,1)
 renderVenda()
 }
+function montarCupom(venda){
 
+let numero = venda.cupom || gerarNumeroCupom()
+
+let texto = ""
+
+texto += "CHINELOS MIX\n"
+texto += "CNPJ: 46.982.791/0001-01\n"
+texto += "AV. LEONOR BOSONE MARQUES DA SILVA, 45\n"
+texto += "POÁ - SP\n\n"
+
+texto += "CUPOM: " + numero + "\n"
+texto += "FUNCIONÁRIO: " + (venda.usuario || "") + "\n"
+texto += "DATA: " + new Date().toLocaleString() + "\n"
+
+texto += "--------------------------------\n"
+
+venda.itens.forEach(p=>{
+texto += `${p.nome} x${p.qtd}\n`
+texto += `R$ ${(p.valor*p.qtd).toFixed(2)}\n`
+})
+
+texto += "--------------------------------\n"
+
+texto += `TOTAL: R$ ${venda.total.toFixed(2)}\n`
+texto += `PAGAMENTO: ${venda.pagamento}\n`
+texto += `RECEBIDO: R$ ${venda.pago.toFixed(2)}\n`
+texto += `TROCO: R$ ${venda.troco.toFixed(2)}\n`
+
+texto += "\nOBRIGADO, VOLTE SEMPRE!"
+
+return texto
+}
+function imprimirCupom(venda){
+
+let w = window.open("")
+
+w.document.write(`
+<html>
+<body style="font-family:monospace;white-space:pre;">
+${montarCupom(venda)}
+
+<script>
+window.print();
+setTimeout(()=>window.close(),800);
+<\/script>
+
+</body>
+</html>
+`)
+}
 // BUSCA
 function buscarProduto(){
 let termo = buscaProduto.value.toLowerCase()
