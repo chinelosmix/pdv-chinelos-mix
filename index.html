@@ -481,20 +481,49 @@ document.getElementById("troco").innerText = troco.toFixed(2)
 }
 
 // FINALIZAR
-async function finalizar(){
+function finalizarVenda(){
 
-await db.collection("vendas").add({
-itens:venda,
-total:totalVenda,
-usuario:usuarioAtual,
-data:new Date()
-})
+if(!venda.length){
+alert("Nenhuma venda")
+return
+}
+
+let pago = Number(valorPago.value || 0)
+let troco = pago - totalVenda
+if(troco < 0) troco = 0
+
+let vendaFinal = {
+itens: venda,
+total: totalVenda,
+usuario: usuarioAtual,
+pagamento: formaPagamento.value,
+pago: pago,
+troco: troco,
+data: new Date(),
+cupom: gerarNumeroCupom()
+}
+
+imprimirCupom(vendaFinal)
+
+enviarWhats(vendaFinal)
+
+venda = []
+totalVenda = 0
+
+renderVenda()
+
+valorPago.value = ""
+document.getElementById("troco").innerText = "0.00"
 
 alert("Venda finalizada")
+}
+function enviarWhats(venda){
 
-venda=[]
-totalVenda=0
-renderVenda()
+let texto = montarCupom(venda)
+
+let url = "https://wa.me/?text=" + encodeURIComponent(texto)
+
+window.open(url)
 }
 
 // ================= RELATÓRIO =================
