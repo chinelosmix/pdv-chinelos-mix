@@ -16,18 +16,10 @@ header{background:#020617;padding:15px;text-align:center;font-size:18px;font-wei
 nav{display:flex;background:#020617}
 nav button{flex:1;padding:12px;border:none;background:#020617;color:#fff;font-size:14px}
 .box{display:none;padding:10px}
-input,select{width:100%;padding:10px;margin:5px 0;border-radius:5px;border:none;box-sizing:border-box}
-button{padding:10px;background:#22c55e;color:#fff;border:none;border-radius:5px;margin-top:5px;cursor:pointer}
-button.secondary{background:#334155}
-button.danger{background:#ef4444}
-button.info{background:#0ea5e9}
+input,select{width:100%;padding:10px;margin:5px 0;border-radius:5px;border:none}
+button{padding:10px;background:#22c55e;color:#fff;border:none;border-radius:5px;margin-top:5px}
 table{width:100%;margin-top:10px;border-collapse:collapse}
-td,th{border-bottom:1px solid #334155;padding:8px;vertical-align:top}
-th{text-align:left}
-#reader,#readerVenda{width:300px;max-width:100%;margin:10px auto}
-.small{font-size:12px;color:#cbd5e1}
-.row-actions button{margin-right:4px}
-#pagamento2{display:none}
+td,th{border-bottom:1px solid #334155;padding:8px}
 </style>
 </head>
 
@@ -44,9 +36,10 @@ th{text-align:left}
 <nav>
 <button onclick="show('prod')">Produtos</button>
 <button onclick="show('ven')">Venda</button>
-<button onclick="show('caixa')">🔐 Abrir Caixa</button>
+<button onclick="show('troca')">Troca</button>
+<button onclick="show('caixa')">Caixa</button>
 <button onclick="show('rel')">Relatório</button>
-<button onclick="show('func')">Funcionários</button> 
+<button onclick="show('func')">Funcionários</button>
 </nav>
 
 <!-- PRODUTOS -->
@@ -55,7 +48,6 @@ th{text-align:left}
 <input id="codigo" placeholder="Código">
 <button onclick="gerarCodigo()">Gerar Código</button>
 <button onclick="toggleScannerProduto()">📷 Scanner</button>
-<button class="secondary" onclick="cancelarEdicao()">Cancelar edição</button>
 
 <div id="reader"></div>
 
@@ -77,6 +69,8 @@ th{text-align:left}
 </table>
 
 </div>
+
+<!-- FUNCIONÁRIOS -->
 <div id="func" class="box">
 
 <h3>Funcionários</h3>
@@ -96,24 +90,21 @@ th{text-align:left}
 <tbody id="listaFunc"></tbody>
 </table>
 
-<h3>Controle de Ponto</h3>
-
-<button onclick="baterPonto('Entrada')">Entrada</button>
-<button onclick="baterPonto('Saída Almoço')">Saída Almoço</button>
-<button onclick="baterPonto('Volta Almoço')">Volta Almoço</button>
-<button onclick="baterPonto('Saída')">Saída</button>
-
 </div>
+
 <!-- VENDA -->
 <div id="ven" class="box">
 
 <input id="codVenda" placeholder="Código">
-<input id="buscaProduto" placeholder="Buscar por nome ou código">
-<button onclick="buscarProduto()">🔎 Buscar</button>
-<input id="qtd" value="1" placeholder="Qtd">
+<input id="buscaProduto" placeholder="Buscar produto">
+<button onclick="buscarProduto()">🔎</button>
+
+<input id="qtd" value="1">
+
 <button onclick="addVenda()">Adicionar</button>
 <button onclick="abrirTroca()">🔁 Troca</button>
 <button onclick="toggleScannerVenda()">📷 Scanner</button>
+
 <div id="readerVenda"></div>
 
 <h3>Total: R$ <span id="total">0.00</span></h3>
@@ -126,102 +117,42 @@ th{text-align:left}
 </thead>
 <tbody id="listaVenda"></tbody>
 </table>
-<input id="valorPago" oninput="calcularTroco()" placeholder="Valor pago pelo cliente">
+
+<input id="valorPago" oninput="calcularTroco()" placeholder="Valor pago">
+
+<h3>Troco: R$ <span id="troco">0.00</span></h3>
+
 <h3>Pagamento</h3>
 
 <select id="pagamento">
 <option>Dinheiro</option>
 <option>PIX</option>
 <option>Débito</option>
-<option>Crédito à vista</option>
-<option>Crédito 2x</option>
-<option>Crédito 3x</option>
-<option>Vale</option>
+<option>Crédito</option>
 </select>
 
-<input id="valorPago" placeholder="Valor pago">
+<button onclick="finalizar()">Finalizar</button>
 
-<button onclick="usar2Pagamentos()">💳 2 Formas</button>
-
-<div id="pagamento2">
-<select id="pagamentoExtra">
-<option>Dinheiro</option>
-<option>PIX</option>
-<option>Débito</option>
-<option>Crédito à vista</option>
-<option>Crédito 2x</option>
-<option>Crédito 3x</option>
-<option>Vale</option>
-</select>
-<input id="valorExtra" placeholder="Valor extra">
 </div>
 
-<button onclick="finalizar()">Finalizar + Cupom</button>
-<button onclick="imprimirCupomSeparado()">🧾 Cupom</button>
-<button onclick="gerarNota()">📄 Nota</button>
-<button onclick="enviarWhatsApp()">📲 WhatsApp</button>
-</div>
-  <!-- 👇 TELA DE TROCA -->
+<!-- TROCA -->
 <div id="troca" class="box">
-
-<h3>Troca de Produto</h3>
-
-<h4>Produto devolvido</h4>
-<input id="codEntrada" placeholder="Código">
-<input id="qtdEntrada" value="1">
-
-<h4>Produto novo</h4>
-<input id="codSaida" placeholder="Código">
-<input id="qtdSaida" value="1">
-
-<h3>Diferença: R$ <span id="difTroca">0.00</span></h3>
-<h4>Pagamento</h4>
-<select id="pagTroca">
-<option value="Dinheiro">Dinheiro</option>
-<option value="Pix">Pix</option>
-<option value="Débito">Débito</option>
-<option value="Crédito à vista">Crédito à vista</option>
-<option value="Crédito 2x">Crédito 2x</option>
-<option value="Crédito 3x">Crédito 3x</option>
-<option value="Vale">Vale</option>
-</select>
-
-<button onclick="calcularTroca()">Calcular</button>
-<button onclick="finalizarTroca()">Finalizar Troca</button>
-<button onclick="imprimirTroca()">🧾 Imprimir</button>
+<h3>Troca</h3>
 <button onclick="show('ven')">Voltar</button>
-
 </div>
+
+<!-- CAIXA -->
 <div id="caixa" class="box">
-
-<h3>Abertura de Caixa</h3>
-
-<input id="senhaCaixa" type="password" placeholder="Senha do caixa">
-<input id="valorInicial" placeholder="Valor inicial (ex: 100)">
-
-<button onclick="abrirCaixa()">Abrir Caixa</button>
-
+<h3>Caixa</h3>
+<button onclick="fecharCaixa()">Fechar Caixa</button>
 </div>
-<!-- RELATORIO -->
+
+<!-- RELATÓRIO -->
 <div id="rel" class="box">
-<h3>Relatório de vendas</h3>
-
-<div class="small" id="resumoRel"></div>
-
-<button onclick="relatorioPorFuncionario()">Por Funcionário</button>
-<button onclick="fecharCaixa()">Fechamento de Caixa</button>
-
+<h3>Relatório</h3>
 <table>
-<thead>
-<tr>
-<th>Data</th><th>Cupom</th><th>Total</th><th>Pagamento</th><th>Operador</th>
-</tr>
-</thead>
 <tbody id="tabelaRel"></tbody>
 </table>
-
-<button onclick="atualizarRelatorio()">Atualizar relatório</button>
-<button onclick="fecharCaixa()">Fechamento de caixa</button>
 </div>
 
 <script>
@@ -235,913 +166,232 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 let produtos = [];
-let vendasCache = [];
 let venda = [];
 let totalVenda = 0;
 let usuarioAtual = "";
-let produtoEditandoId = null;
 let ultimaVendaCompleta = null;
 
-let scannerProduto = null;
-let scannerVenda = null;
-let scannerProdutoAtivo = false;
-let scannerVendaAtivo = false;
-let leituraProdutoBloqueada = false;
-let leituraVendaBloqueada = false;
-
-const beep = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
-beep.preload = "auto";
-
-function tocarBeep(){
-  beep.currentTime = 0;
-  beep.play().catch(()=>{});
-}
-
-function formatarData(valor){
-  if(!valor) return "";
-  try{
-    if(typeof valor.toDate === "function"){
-      return valor.toDate().toLocaleString();
-    }
-    if(valor instanceof Date){
-      return valor.toLocaleString();
-    }
-    return new Date(valor).toLocaleString();
-  }catch(e){
-    return "";
-  }
-}
-
+// ================= LOGIN =================
 function login(){
   if(!user.value.trim()){
-    alert("Preencha o nome")
+    alert("Digite o nome");
     return;
   }
   usuarioAtual = user.value.trim();
   loginBox.style.display = "none";
+  show("ven");
 }
 
-function gerarCodigo(){
-  codigo.value = "789" + Math.floor(Math.random() * 1000000000);
+// ================= SHOW =================
+function show(t){
+  document.querySelectorAll(".box").forEach(x=>x.style.display="none");
+  const el = document.getElementById(t);
+  if(el) el.style.display="block";
 }
 
-async function toggleScannerProduto(){
-  try{
-    if(!scannerProdutoAtivo){
-      scannerProduto = new Html5Qrcode("reader");
-      await scannerProduto.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        async (decoded) => {
-          if(leituraProdutoBloqueada) return;
-          leituraProdutoBloqueada = true;
-          codigo.value = decoded;
-          tocarBeep();
-          setTimeout(() => leituraProdutoBloqueada = false, 700);
-        }
-      );
-      scannerProdutoAtivo = true;
-    }else{
-      await scannerProduto.stop();
-      await scannerProduto.clear();
-      document.getElementById("reader").innerHTML = "";
-      scannerProdutoAtivo = false;
-      scannerProduto = null;
-    }
-  }catch(err){
-    alert("Erro no scanner do produto");
-  }
-}
+// ================= PRODUTOS =================
+db.collection("produtos").onSnapshot(s=>{
+  produtos = s.docs.map(d=>({id:d.id,...d.data()}));
 
-async function toggleScannerVenda(){
-  try{
-    if(!scannerVendaAtivo){
-      scannerVenda = new Html5Qrcode("readerVenda");
-      await scannerVenda.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        async (decoded) => {
-          if(leituraVendaBloqueada) return;
-          leituraVendaBloqueada = true;
-          codVenda.value = decoded;
-          tocarBeep();
-          addVenda();
-          setTimeout(() => leituraVendaBloqueada = false, 900);
-        }
-      );
-      scannerVendaAtivo = true;
-    }else{
-      await scannerVenda.stop();
-      await scannerVenda.clear();
-      document.getElementById("readerVenda").innerHTML = "";
-      scannerVendaAtivo = false;
-      scannerVenda = null;
-    }
-  }catch(err){
-    alert("Erro no scanner da venda");
-  }
-}
-
-db.collection("produtos").onSnapshot(snapshot => {
-  produtos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  listarProdutos();
+  listaProdutos.innerHTML = produtos.map(p=>`
+  <tr>
+  <td>${p.codigo || ""}</td>
+  <td>${p.nome || ""}</td>
+  <td>${p.cor || ""}</td>
+  <td>${p.numero || ""}</td>
+  <td>${p.estoque || 0}</td>
+  <td>${Number(p.valor || 0).toFixed(2)}</td>
+  </tr>
+  `).join("");
 });
 
-db.collection("vendas").onSnapshot(snapshot => {
-  vendasCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  if(document.getElementById("rel").style.display === "block"){
-    atualizarRelatorio();
-  }
-});
-
-function limparCampos(){
-  codigo.value = "";
-  nome.value = "";
-  cor.value = "";
-  numero.value = "";
-  estoque.value = "";
-  valor.value = "";
-  produtoEditandoId = null;
-}
-
-function cancelarEdicao(){
-  produtoEditandoId = null;
-  limparCampos();
-}
-
-async function salvarProduto(){
-  const cod = (codigo.value || Date.now().toString()).trim();
-  const p = {
-    codigo: cod,
-    codigoBarras: cod,
-    nome: nome.value.trim(),
-    cor: cor.value.trim(),
-    numero: numero.value.trim(),
+function salvarProduto(){
+  db.collection("produtos").add({
+    codigo: codigo.value,
+    nome: nome.value,
+    cor: cor.value,
+    numero: numero.value,
     estoque: Number(estoque.value || 0),
     valor: Number(valor.value || 0)
-  };
-
-  if(!p.nome){
-    alert("Preencha o nome");
-    return;
-  }
-
-  if(produtoEditandoId){
-    await db.collection("produtos").doc(produtoEditandoId).set(p);
-    produtoEditandoId = null;
-  }else{
-    const existente = produtos.find(x => x.codigo === cod);
-    if(existente){
-      await db.collection("produtos").doc(existente.id).set(p);
-    }else{
-      await db.collection("produtos").add(p);
-    }
-  }
-
-  limparCampos();
+  });
 }
 
-function editar(cod){
-  const p = produtos.find(x => x.codigo === cod);
-  if(!p) return;
-  produtoEditandoId = p.id;
-  codigo.value = p.codigo;
-  nome.value = p.nome;
-  cor.value = p.cor;
-  numero.value = p.numero;
-  estoque.value = p.estoque;
-  valor.value = p.valor;
-  show("prod");
-}
-
-async function excluir(cod){
-  if(!confirm("Excluir produto?")) return;
-  const p = produtos.find(x => x.codigo === cod);
-  if(!p) return;
-  await db.collection("produtos").doc(p.id).delete();
-}
-
-function listarProdutos(){
-  if(!produtos.length){
-    listaProdutos.innerHTML = "<tr><td colspan='7'>Nenhum produto</td></tr>";
-    return;
-  }
-
-  listaProdutos.innerHTML = produtos.map(p => `
-    <tr>
-      <td>${p.codigo}</td>
-      <td>${p.nome}</td>
-      <td>${p.cor}</td>
-      <td>${p.numero}</td>
-      <td>${p.estoque}</td>
-      <td>R$ ${Number(p.valor).toFixed(2)}</td>
-      <td class="row-actions">
-        <button onclick="editar('${p.codigo}')">✏️</button>
-        <button class="danger" onclick="excluir('${p.codigo}')">🗑️</button>
-        <button class="info" onclick="etiqueta('${p.codigo}')">🏷️</button>
-      </td>
-    </tr>
-  `).join("");
-}
-
-function etiqueta(c){
-  const p = produtos.find(x => x.codigo === c);
-  if(!p) return;
-
-  const html = `
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-@page { size: 40mm 50mm; margin: 0; }
-body{
-  margin:0;
-  width:40mm;
-  height:50mm;
-  font-family:Arial;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.container{
-  width:100%;
-  text-align:center;
-  padding:2mm;
-  box-sizing:border-box;
-}
-.loja{
-  font-size:9px;
-  font-weight:bold;
-}
-.nome{
-  font-size:9px;
-  line-height:1.1;
-}
-.info{
-  font-size:8px;
-  line-height:1.1;
-}
-.preco{
-  font-size:20px;
-  font-weight:900;
-  background:#000;
-  color:#fff;
-  padding:4px 3px;
-  margin:4px 0;
-}
-svg{
-  width:100%;
-  height:18mm;
-}
-</style>
-</head>
-<body>
-<div class="container">
-  <div class="loja">CHINELOS MIX</div>
-  <div class="nome">${p.nome}</div>
-  <div class="info">${p.cor} | ${p.numero}</div>
-  <div class="preco">R$ ${Number(p.valor).toFixed(2)}</div>
-  <svg id="barcode"></svg>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
-<script>
-JsBarcode("#barcode","${p.codigo}",{
-  format:"CODE128",
-  width:1.3,
-  height:35,
-  displayValue:false
-});
-window.print();
-<\/script>
-</body>
-</html>`;
-
-  const w = window.open("", "", "width=400,height=600");
-  w.document.write(html);
-}
-
+// ================= VENDA =================
 function addVenda(){
-  const p = produtos.find(x => x.codigo === codVenda.value || x.codigoBarras === codVenda.value);
+
+  let codigoBusca = codVenda.value.trim();
+
+  let p = produtos.find(x =>
+    x.codigo == codigoBusca ||
+    x.codigoBarras == codigoBusca
+  );
+
   if(!p){
     alert("Produto não encontrado");
     return;
   }
 
-  const q = Number(qtd.value || 1);
-  if(Number(p.estoque) < q){
-    alert("Estoque insuficiente");
-    return;
+  let q = Number(qtd.value || 1);
+
+  let item = venda.find(x => x.codigo == p.codigo);
+
+  if(item){
+    item.qtd += q;
+  }else{
+    venda.push({
+      id: p.id,
+      codigo: p.codigo,
+      nome: p.nome,
+      qtd: q,
+      valor: Number(p.valor || 0)
+    });
   }
 
-  tocarBeep();
+  codVenda.value = "";
+  qtd.value = 1;
 
- function addVenda(){
-
-let codigo = codVenda.value.trim()
-
-if(!codigo){
-alert("Digite o código")
-return
-}
-
-let p = produtos.find(x =>
-x.codigo == codigo ||
-x.codigoBarras == codigo
-)
-
-if(!p){
-alert("Produto não encontrado")
-return
-}
-
-let q = Number(document.getElementById("qtd").value || 1)
-
-if((p.estoque || 0) < q){
-alert("Estoque insuficiente")
-return
-}
-
-let item = venda.find(x => x.codigo == p.codigo)
-
-if(item){
-item.qtd += q
-}else{
-venda.push({
-codigo: p.codigo,
-nome: p.nome,
-qtd: q,
-valor: Number(p.valor || 0)
-})
-}
-
-codVenda.value = ""
-document.getElementById("qtd").value = 1
-
-renderVenda()
-}
-
-function removerItem(i){
-  const item = venda[i];
-  if(!item) return;
-  totalVenda -= Number(item.valor || 0) * Number(item.qtd || 0);
-  venda.splice(i,1);
   renderVenda();
 }
 
+// ================= RENDER =================
 function renderVenda(){
-  if(!venda.length){
-    listaVenda.innerHTML = "<tr><td colspan='5'>Nenhum item</td></tr>";
-    total.innerText = "0.00";
-    return;
-  }
 
-  listaVenda.innerHTML = venda.map((p,i) => `
+  let totalCalc = 0;
+
+  listaVenda.innerHTML = venda.map((p,i)=>{
+
+    let subtotal = p.qtd * p.valor;
+    totalCalc += subtotal;
+
+    return `
     <tr>
-      <td>${p.nome}</td>
-      <td>${p.qtd}</td>
-      <td>R$ ${Number(p.valor).toFixed(2)}</td>
-      <td>R$ ${(Number(p.qtd) * Number(p.valor)).toFixed(2)}</td>
-      <td><button class="danger" onclick="removerItem(${i})">❌</button></td>
+    <td>${p.nome}</td>
+    <td>${p.qtd}</td>
+    <td>R$ ${p.valor.toFixed(2)}</td>
+    <td>R$ ${subtotal.toFixed(2)}</td>
+    <td><button onclick="removerItem(${i})">❌</button></td>
     </tr>
-  `).join("");
+    `;
+  }).join("");
 
+  totalVenda = totalCalc;
   total.innerText = totalVenda.toFixed(2);
 }
 
-function usar2Pagamentos(){
-  pagamento2.style.display = "block";
-}
-
-function coletarPagamentos(){
-  const pagamentos = [];
-  const tipo1 = pagamento.value;
-  let valor1 = Number(valorPago.value || 0);
-
-  if(pagamento2.style.display === "block"){
-    const tipo2 = pagamentoExtra.value;
-    const valor2 = Number(valorExtra.value || 0);
-
-    if(valor1 + valor2 < totalVenda){
-      alert("Valor insuficiente");
-      return null;
-    }
-
-    pagamentos.push({ tipo: tipo1, valor: valor1 });
-    pagamentos.push({ tipo: tipo2, valor: valor2 });
-    return pagamentos;
-  }
-
-  if(valor1 <= 0){
-    valor1 = totalVenda;
-  }
-
-  if(valor1 < totalVenda){
-    alert("Valor insuficiente");
-    return null;
-  }
-
-  pagamentos.push({ tipo: tipo1, valor: valor1 });
-  return pagamentos;
-}
-
-function gerarNumeroCupom(){
-  return String(Date.now()).slice(-6);
-}
-
-function montarCupomHTML(vendaFinalizada){
-
-let texto = ""
-
-texto += "CHINELOS MIX\n"
-texto += "CNPJ: 46.982.791/0001-01\n"
-texto += "-----------------------------\n"
-
-;(vendaFinalizada.itens || []).forEach(p=>{
-texto += `${p.nome} x${p.qtd}\n`
-texto += `R$ ${(Number(p.valor)*Number(p.qtd)).toFixed(2)}\n`
-})
-
-texto += "-----------------------------\n"
-texto += `TOTAL: R$ ${Number(vendaFinalizada.total || 0).toFixed(2)}\n`
-texto += "\nOBRIGADO, VOLTE SEMPRE!"
-
-return `
-<html>
-<body style="font-family:monospace;white-space:pre;">
-${texto}
-
-<script>
-window.print();
-setTimeout(()=>window.close(), 800);
-<\/script>
-
-</body>
-</html>
-`
-}
-function imprimirCupom(vendaFinalizada){
-  const w = window.open("", "", "width=300,height=600");
-  w.document.write(montarCupomHTML(vendaFinalizada));
-}
-
-function imprimirCupomSeparado(){
-  if(!ultimaVendaCompleta){
-    alert("Nenhuma venda para reimprimir");
-    return;
-  }
-  imprimirCupom(ultimaVendaCompleta);
-}
-
-async function finalizar(){
-  if(!venda.length){
-    alert("Nenhuma venda");
-    return;
-  }
-
-  const pagamentos = coletarPagamentos();
-  if(!pagamentos) return;
-
-  const vendaFinalizada = {
-    itens: venda.map(item => ({ ...item })),
-    total: Number(totalVenda),
-    pagamentos,
-    usuario: usuarioAtual,
-    data: new Date(),
-    cupomNumero: gerarNumeroCupom()
-  };
-
-  for(const item of vendaFinalizada.itens){
-    const prod = produtos.find(p => p.id === item.id);
-    if(!prod) continue;
-
-    const novoEstoque = Number(prod.estoque || 0) - Number(item.qtd || 0);
-    await db.collection("produtos").doc(prod.id).update({
-      estoque: novoEstoque
-    });
-  }
-
-  await db.collection("vendas").add(vendaFinalizada);
-
-  ultimaVendaCompleta = vendaFinalizada;
-  imprimirCupom(vendaFinalizada);
-
-  venda = [];
-  totalVenda = 0;
-  renderVenda();
-
-  valorPago.value = "";
-  valorExtra.value = "";
-  pagamento2.style.display = "none";
-
-  atualizarRelatorio();
-  alert("Venda finalizada");
-}
-
-function gerarNota(){
-  const vendaBase = ultimaVendaCompleta || {
-    itens: venda.map(item => ({ ...item })),
-    total: Number(totalVenda),
-    usuario: usuarioAtual,
-    data: new Date()
-  };
-
-  if(!vendaBase.itens || !vendaBase.itens.length){
-    alert("Nenhuma venda para imprimir");
-    return;
-  }
-
-  const itens = vendaBase.itens.map(p => `
-<tr>
-<td>${p.nome}</td>
-<td>${p.qtd}</td>
-<td>R$ ${Number(p.valor).toFixed(2)}</td>
-<td>R$ ${(Number(p.qtd) * Number(p.valor)).toFixed(2)}</td>
-</tr>
-`).join("");
-
-  const html = `
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-body{font-family:Arial;padding:16px}
-table{width:100%;border-collapse:collapse;margin-top:10px}
-td,th{border:1px solid #000;padding:6px;font-size:12px}
-h2,h3{margin:6px 0}
-</style>
-</head>
-<body>
-<h2>NOTA DE VENDA</h2>
-<b>CHINELOS MIX</b><br>
-CNPJ: 46.982.791/0001-01<br>
-AV. LEONOR BOSONE MARQUES DA SILVA, 45<br>
-CENTRO - POÁ/SP<br><br>
-Funcionário: ${vendaBase.usuario || usuarioAtual}<br>
-Data: ${formatarData(vendaBase.data)}<br>
-
-<table>
-<thead>
-<tr>
-<th>Produto</th>
-<th>Qtd</th>
-<th>Valor</th>
-<th>Total</th>
-</tr>
-</thead>
-<tbody>
-${itens}
-</tbody>
-</table>
-
-<h3>Total: R$ ${Number(vendaBase.total || 0).toFixed(2)}</h3>
-
-<script>
-window.print();
-setTimeout(()=>window.close(), 800);
-<\/script>
-</body>
-</html>`;
-
-  const w = window.open("", "", "width=800,height=900");
-  w.document.write(html);
-}
-
-function renderRelatorio(vendas){
-  const ordenadas = [...vendas].sort((a,b) => {
-    const da = a.data ? new Date(a.data.toDate ? a.data.toDate() : a.data).getTime() : 0;
-    const dbv = b.data ? new Date(b.data.toDate ? b.data.toDate() : b.data).getTime() : 0;
-    return dbv - da;
-  });
-
-  if(!ordenadas.length){
-    tabelaRel.innerHTML = "<tr><td colspan='5'>Nenhuma venda</td></tr>";
-    resumoRel.innerHTML = "Sem vendas para exibir.";
-    return;
-  }
-
-  tabelaRel.innerHTML = ordenadas.map(v => {
-    const pags = (v.pagamentos || []).map(p => p.tipo).join(" / ");
-    return `
-<tr>
-<td>${formatarData(v.data)}</td>
-<td>${v.cupomNumero || ""}</td>
-<td>R$ ${Number(v.total || 0).toFixed(2)}</td>
-<td>${pags}</td>
-<td>${v.usuario || ""}</td>
-</tr>`;
-  }).join("");
-
-  const totalGeral = ordenadas.reduce((t,v) => t + Number(v.total || 0), 0);
-  const totalItens = ordenadas.reduce((t,v) => t + (v.itens || []).reduce((a,i) => a + Number(i.qtd || 0), 0), 0);
-  const resumoPag = {};
-
-  ordenadas.forEach(v => {
-    (v.pagamentos || []).forEach(p => {
-      resumoPag[p.tipo] = (resumoPag[p.tipo] || 0) + Number(p.valor || 0);
-    });
-  });
-
-  const linhasPag = Object.entries(resumoPag).map(([tipo, valor]) => `${tipo}: R$ ${valor.toFixed(2)}`).join("<br>");
-
-  resumoRel.innerHTML = `
-Vendas: ${ordenadas.length} | Itens: ${totalItens} | Total: R$ ${totalGeral.toFixed(2)}<br>
-${linhasPag || ""}
-`;
-}
-
-async function atualizarRelatorio(){
-  const snap = await db.collection("vendas").get();
-  vendasCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  renderRelatorio(vendasCache);
-}
-
-async function fecharCaixa(){
-
-let snap = await db.collection("vendas").get()
-let vendas = snap.docs.map(d=>d.data())
-
-if(vendas.length === 0){
-alert("Sem vendas")
-return
-}
-
-let total = 0
-let totalItens = 0
-let pagamentos = {}
-
-vendas.forEach(v => {
-
-total += v.total || 0
-
-if(v.itens){
-v.itens.forEach(i => totalItens += i.qtd)
-}
-
-(v.pagamentos || []).forEach(p => {
-pagamentos[p.tipo] = (pagamentos[p.tipo] || 0) + p.valor
-})
-
-})
-
-// ===== TEXTO =====
-let resumo = "FECHAMENTO DE CAIXA\n\n"
-
-resumo += "VENDAS: " + vendas.length + "\n"
-resumo += "ITENS: " + totalItens + "\n"
-resumo += "TOTAL GERAL: R$ " + total.toFixed(2) + "\n\n"
-
-for (let tipo in pagamentos){
-resumo += tipo + ": R$ " + pagamentos[tipo].toFixed(2) + "\n"
-}
-
-// ===== HTML =====
-let html = `
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-body{font-family:monospace;padding:16px;white-space:pre-wrap}
-</style>
-</head>
-<body>
-${resumo}
-
-<script>
-window.print();
-setTimeout(()=>window.close(),800);
-<\/script>
-</body>
-</html>
-`
-
-// ================= CONFIG =================
-const firebaseConfig = {
-  apiKey: "AIzaSyARpePSrPuvzOwLP6v9gzmhWfzdo0JZJK4",
-  authDomain: "pdv-chinelos.firebaseapp.com",
-  projectId: "pdv-chinelos-2"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-// ================= VARIAVEIS =================
-let produtos = [];
-let venda = [];
-let totalVenda = 0;
-let usuarioAtual = "";
-
-// ================= LOGIN =================
-async function login(){
-let nomeLogin = user.value.trim()
-let senhaLogin = senha.value.trim()
-
-if(!nomeLogin || !senhaLogin){
-alert("Preencha usuário e senha")
-return
-}
-
-usuarioAtual = nomeLogin
-loginBox.style.display = "none"
-}
-
-// ================= PRODUTOS =================
-db.collection("produtos").onSnapshot(snapshot => {
-  produtos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-});
-
-// ================= VENDA =================
-function addVenda(){
-
-let codigoDigitado = codVenda.value.trim()
-
-if(!codigoDigitado){
-alert("Digite o código")
-return
-}
-
-let p = produtos.find(x => 
-x.codigo == codigoDigitado || 
-x.codigoBarras == codigoDigitado
-)
-
-if(!p){
-alert("Produto não encontrado")
-return
-}
-
-let q = Number(document.getElementById("qtd").value || 1)
-
-if(p.estoque < q){
-alert("Estoque insuficiente")
-return
-}
-
-let itemExistente = venda.find(x => x.codigo === p.codigo)
-
-if(itemExistente){
-itemExistente.qtd += q
-}else{
-venda.push({
-id: p.id,
-codigo: p.codigo,
-nome: p.nome,
-qtd: q,
-valor: Number(p.valor || 0)
-})
-}
-
-totalVenda += p.valor * q
-
-codVenda.value = ""
-document.getElementById("qtd").value = 1
-
-renderVenda()
-}
-
-function renderVenda(){
-
-let totalCalc = 0
-
-listaVenda.innerHTML = venda.map((p,i)=>{
-
-let totalItem = (Number(p.valor) || 0) * (Number(p.qtd) || 0)
-totalCalc += totalItem
-
-return `
-<tr>
-<td>${p.nome || "-"}</td>
-<td>${p.qtd || 0}</td>
-<td>R$ ${Number(p.valor || 0).toFixed(2)}</td>
-<td>R$ ${totalItem.toFixed(2)}</td>
-<td><button onclick="removerItem(${i})">❌</button></td>
-</tr>
-`
-}).join("")
-
-totalVenda = totalCalc
-total.innerText = totalVenda.toFixed(2)
-}
-
+// ================= REMOVER =================
 function removerItem(i){
-totalVenda -= venda[i].qtd * venda[i].valor
-venda.splice(i,1)
-renderVenda()
-}
-
-// ================= FINALIZAR =================
-async function finalizar(){
-
-if(!venda.length){
-alert("Nenhuma venda")
-return
-}
-
-await db.collection("vendas").add({
-itens:venda,
-total:totalVenda,
-usuario:usuarioAtual,
-data:new Date()
-})
-
-alert("Venda finalizada")
-
-venda=[]
-totalVenda=0
-renderVenda()
-}
-
-// ================= FECHAMENTO =================
-async function fecharCaixa(){
-
-let snap = await db.collection("vendas").get()
-let vendas = snap.docs.map(d=>d.data())
-
-if(vendas.length === 0){
-alert("Sem vendas")
-return
-}
-
-let total = 0
-let totalItens = 0
-let pagamentos = {}
-
-vendas.forEach(v=>{
-
-total += v.total || 0
-
-if(v.itens){
-v.itens.forEach(i=>{
-totalItens += i.qtd || 0
-})
-}
-
-if(v.pagamentos){
-v.pagamentos.forEach(p=>{
-pagamentos[p.tipo] = (pagamentos[p.tipo] || 0) + p.valor
-})
-}
-
-})
-
-let texto = `FECHAMENTO DE CAIXA\n\n`
-
-texto += `TOTAL: R$ ${total.toFixed(2)}\n`
-texto += `ITENS: ${totalItens}\n\n`
-
-for(let tipo in pagamentos){
-texto += `${tipo}: R$ ${pagamentos[tipo].toFixed(2)}\n`
-}
-
-alert(texto)
-}
-
-// ================= TROCA =================
-function abrirTroca(){
-show("troca")
+  venda.splice(i,1);
+  renderVenda();
 }
 
 // ================= BUSCA =================
 function buscarProduto(){
 
-let termo = document.getElementById("buscaProduto").value.toLowerCase().trim()
+  let termo = buscaProduto.value.toLowerCase();
 
-if(!termo){
-alert("Digite para buscar")
-return
+  let p = produtos.find(x =>
+    (x.codigo || "").includes(termo) ||
+    (x.nome || "").toLowerCase().includes(termo)
+  );
+
+  if(!p){
+    alert("Produto não encontrado");
+    return;
+  }
+
+  codVenda.value = p.codigo;
+  addVenda();
 }
 
-let resultado = produtos.find(p =>
-(p.codigo || "").includes(termo) ||
-(p.nome || "").toLowerCase().includes(termo)
-)
-
-if(!resultado){
-alert("Produto não encontrado")
-return
+// ================= TROCO =================
+function calcularTroco(){
+  let pago = Number(valorPago.value || 0);
+  let troco = pago - totalVenda;
+  if(troco < 0) troco = 0;
+  document.getElementById("troco").innerText = troco.toFixed(2);
 }
 
-codVenda.value = resultado.codigo
-addVenda()
+// ================= FINALIZAR =================
+async function finalizar(){
+
+  if(!venda.length){
+    alert("Nenhuma venda");
+    return;
+  }
+
+  const vendaFinalizada = {
+    itens: venda,
+    total: totalVenda,
+    usuario: usuarioAtual,
+    data: new Date()
+  };
+
+  await db.collection("vendas").add(vendaFinalizada);
+
+  ultimaVendaCompleta = vendaFinalizada;
+
+  alert("Venda finalizada");
+
+  venda = [];
+  totalVenda = 0;
+  renderVenda();
 }
 
-// ================= UI =================
-function show(t){
-document.querySelectorAll(".box").forEach(x=>x.style.display="none")
-document.getElementById(t).style.display="block"
-}
-
-show("prod")
-renderVenda()
-}
-function show(t){
-document.querySelectorAll(".box").forEach(x=>x.style.display="none")
-document.getElementById(t).style.display="block"
-}
+// ================= TROCA =================
 function abrirTroca(){
-show("troca")
+  show("troca");
 }
-</script>
 
-</body>
-</html>
+// ================= CAIXA =================
+async function fecharCaixa(){
+
+  let snap = await db.collection("vendas").get();
+
+  let vendasLista = snap.docs.map(d=>d.data());
+
+  if(!vendasLista.length){
+    alert("Sem vendas");
+    return;
+  }
+
+  let total = 0;
+
+  vendasLista.forEach(v=>{
+    total += Number(v.total || 0);
+  });
+
+  alert("TOTAL DO DIA: R$ " + total.toFixed(2));
+}
+
+// ================= RELATÓRIO =================
+async function atualizarRelatorio(){
+
+  let snap = await db.collection("vendas").get();
+
+  let vendasLista = snap.docs.map(d=>d.data());
+
+ tabelaRel.innerHTML = vendasLista.map(v=>{
+
+let dataFormatada = ""
+
+if(v.data){
+  if(v.data.seconds){
+    dataFormatada = new Date(v.data.seconds * 1000).toLocaleDateString()
+  }else{
+    dataFormatada = new Date(v.data).toLocaleDateString()
+  }
+}
+
+return `
+<tr>
+<td>${dataFormatada}</td>
+<td>R$ ${Number(v.total || 0).toFixed(2)}</td>
+<td>${v.usuario || ""}</td>
+</tr>
+`
+
+}).join("");
+}
+
+// ================= START =================
+show("ven");
