@@ -79,7 +79,9 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <button onclick="buscarProduto()">Buscar</button>
 <input id="qtd" value="1">
 <button onclick="addVenda()">Adicionar</button>
-
+<input id="codigo" placeholder="Código">
+<button onclick="gerarCodigo()">Gerar Código</button>
+<button onclick="toggleScanner()">📷 Scanner</button>
 <h3>Total: R$ <span id="total">0.00</span></h3>
 
 <table><tbody id="listaVenda"></tbody></table>
@@ -364,7 +366,35 @@ return `
 
 // START
 show("ven")
+// SCANNER VENDA
+let scannerVenda = null
 
+function toggleScannerVenda(){
+
+if(scannerVenda){
+scannerVenda.stop()
+scannerVenda = null
+readerVenda.innerHTML = ""
+return
+}
+
+scannerVenda = new Html5Qrcode("readerVenda")
+
+scannerVenda.start(
+{ facingMode: "environment" },
+{ fps: 10 },
+(decodedText)=>{
+
+codVenda.value = decodedText
+addVenda()
+
+scannerVenda.stop()
+scannerVenda = null
+readerVenda.innerHTML = ""
+}
+)
+
+}
 </script>
 </body>
 </html>
