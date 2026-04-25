@@ -668,6 +668,80 @@ alert("Erro no scanner: " + err)
 })
 
 }
+let troca = []
+let totalTroca = 0
+
+function addTroca(){
+
+let p = produtos.find(x=>x.codigo==codTroca.value)
+
+if(!p){
+alert("Produto não encontrado")
+return
+}
+
+let q = Number(qtdTroca.value)
+
+troca.push({...p,qtd:q})
+
+totalTroca += p.valor*q
+
+renderTroca()
+
+codTroca.value=""
+qtdTroca.value=1
+}
+
+function renderTroca(){
+
+listaTroca.innerHTML = troca.map((p,i)=>`
+<tr>
+<td>${p.nome}</td>
+<td>${p.qtd}</td>
+<td>R$ ${(p.valor*p.qtd).toFixed(2)}</td>
+</tr>
+`).join("")
+
+totalTroca.innerText = totalTroca.toFixed(2)
+}
+function calcularTrocoTroca(){
+
+let pago = Number(valorPagoTroca.value || 0)
+
+let troco = pago - totalTroca
+if(troco < 0) troco = 0
+
+document.getElementById("trocoTroca").innerText = troco.toFixed(2)
+}
+function finalizarTroca(){
+
+if(!troca.length){
+alert("Nenhuma troca")
+return
+}
+
+let vendaTroca = {
+itens: troca,
+total: totalTroca,
+pagamento: pagTroca.value,
+pago: Number(valorPagoTroca.value || 0),
+troco: Number(trocoTroca.innerText || 0),
+data: new Date(),
+usuario: usuarioAtual
+}
+
+alert("Troca realizada com sucesso")
+
+troca = []
+totalTroca = 0
+
+renderTroca()
+
+valorPagoTroca.value = ""
+trocoTroca.innerText = "0.00"
+
+show("ven")
+}
 </script>
 </body>
 </html>
