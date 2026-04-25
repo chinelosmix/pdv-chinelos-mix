@@ -966,141 +966,23 @@ setTimeout(()=>window.close(),800);
 </html>
 `
 
-let w = window.open("", "", "width=500,height=700")
-w.document.write(html)
+// ================= CONFIG =================
+const firebaseConfig = {
+  apiKey: "AIzaSyARpePSrPuvzOwLP6v9gzmhWfzdo0JZJK4",
+  authDomain: "pdv-chinelos.firebaseapp.com",
+  projectId: "pdv-chinelos-2"
+};
 
-}
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-// itens
-if(v.itens){
-v.itens.forEach(i=>{
-totalItens += i.qtd
-})
-}
+// ================= VARIAVEIS =================
+let produtos = [];
+let venda = [];
+let totalVenda = 0;
+let usuarioAtual = "";
 
-// pagamentos
-if(v.pagamentos){
-v.pagamentos.forEach(p=>{
-pagamentos[p.tipo] = (pagamentos[p.tipo] || 0) + p.valor
-})
-}
-
-
-
-// montar relatório
-let texto = `FECHAMENTO DE CAIXA\n\n`
-
-texto += `TOTAL VENDIDO: R$ ${total.toFixed(2)}\n`
-texto += `ITENS: ${totalItens}\n\n`
-
-texto += `--- PAGAMENTOS ---\n`
-
-for(let tipo in pagamentos){
-texto += `${tipo}: R$ ${pagamentos[tipo].toFixed(2)}\n`
-}
-
-texto += `\nATENDIDO POR: ${usuarioAtual}`
-
-// imprimir automático
-let w = window.open("")
-w.document.write(`
-<pre style="font-family:monospace">
-${texto}
-
-<script>
-window.print()
-<\/script>
-</pre>
-`)
-
-
-
-  let resumo = `
-FECHAMENTO DE CAIXA
-
-LOJA: CHINELOS MIX
-CNPJ: 46.982.791/0001-01
-OPERADOR: ${usuarioAtual}
-
-VENDAS: ${vendas.length}
-ITENS: ${totalItens}
-TOTAL GERAL: R$ ${totalGeral.toFixed(2)}
-
-
-
-  for(const [tipo, valor] of Object.entries(porPagamento)){
-   resumo += `${tipo}: R$ ${valor.toFixed(2)}\n`;
-  }
-
-  const html = `
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-body{font-family:monospace;padding:16px;white-space:pre-wrap}
-</style>
-</head>
-<body>
-${resumo}
-
-<script>
-window.print();
-setTimeout(()=>window.close(), 800);
-<\/script>
-</body>
-</html>`;
-
-  const w = window.open("", "", "width=500,height=700");
-  w.document.write(html);
-}
-
-function show(t){
-  document.querySelectorAll(".box").forEach(x => x.style.display = "none");
-  document.getElementById(t).style.display = "block";
-  if(t === "rel"){
-    atualizarRelatorio();
-  }
-}
-
-show("prod");
-renderVenda();
-  // ===== FUNCIONÁRIOS =====
-let funcionarios=[]
-
-// LISTA EM TEMPO REAL
-db.collection("funcionarios").onSnapshot(s=>{
-funcionarios=s.docs.map(d=>({id:d.id,...d.data()}))
-listarFunc()
-})
-
-// SALVAR
-async function salvarFuncionario(){
-
-if(!nomeFunc.value || !senhaFunc.value){
-alert("Preencha os dados")
-return
-}
-
-await db.collection("funcionarios").add({
-nome:nomeFunc.value,
-senha:senhaFunc.value
-})
-
-nomeFunc.value=""
-senhaFunc.value=""
-}
-
-// LISTAR
-function listarFunc(){
-listaFunc.innerHTML=funcionarios.map(f=>`
-<tr>
-<td>${f.nome}</td>
-<td>
-<button onclick="excluirFunc('${f.id}')">🗑️</button>
-</td>
-</tr>
-`).join("")
-}
+// ================= LOGIN =================
 async function login(){
 let nomeLogin = user.value.trim()
 let senhaLogin = senha.value.trim()
@@ -1110,119 +992,16 @@ alert("Preencha usuário e senha")
 return
 }
 
-// procura no banco carregado
-let f = funcionarios.find(x=>x.nome==nomeLogin && x.senha==senhaLogin)
-
-if(!f){
-alert("Login inválido")
-return
-}
-
-// login ok
-usuarioAtual = f.nome
-
+usuarioAtual = nomeLogin
 loginBox.style.display = "none"
-
-alert("Bem-vindo " + usuarioAtual)
-}
-// EXCLUIR
-async function excluirFunc(id){
-if(!confirm("Excluir funcionário?")) return
-await db.collection("funcionarios").doc(id).delete()
-}
-// FECHAMENTO DE CAIXA PROFISSIONAL
-async function fecharCaixa(){
-
-let snap = await db.collection("vendas").get()
-let vendas = snap.docs.map(d=>d.data())
-
-if(vendas.length === 0){
-alert("Sem vendas")
-return
 }
 
-let total = 0
-let totalItens = 0
-let pagamentos = {}
+// ================= PRODUTOS =================
+db.collection("produtos").onSnapshot(snapshot => {
+  produtos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+});
 
-vendas.forEach(v=>{
-
-total += v.total
-
-// soma itens
-v.itens.forEach(i=>{
-totalItens += i.qtd
-})
-
-// soma pagamentos
-v.pagamentos.forEach(p=>{
-pagamentos[p.tipo] = (pagamentos[p.tipo] || 0) + p.valor
-})
-
-})
-
-// monta relatório
-let texto = `FECHAMENTO DE CAIXA\n\n`
-
-texto += `TOTAL: R$ ${total.toFixed(2)}\n`
-texto += `ITENS VENDIDOS: ${totalItens}\n\n`
-
-for(let tipo in pagamentos){
-texto += `${tipo}: R$ ${pagamentos[tipo].toFixed(2)}\n`
-}
-
-alert(texto)
-}
-// ===== PONTO FUNCIONÁRIO =====
-async function baterPonto(tipo){
-
-if(!usuarioAtual){
-alert("Faça login")
-return
-}
-
-let data = new Date()
-
-// salva no banco
-await db.collection("ponto").add({
-usuario:usuarioAtual,
-tipo:tipo,
-data:data
-})
-
-// impressão
-let w = window.open("", "", "width=300,height=400")
-
-w.document.write(`
-<html>
-<body style="font-family:monospace;text-align:center">
-
-<h3>CHINELOS MIX</h3>
-
-------------------------
-
-FUNCIONÁRIO:
-${usuarioAtual}
-
-TIPO:
-${tipo}
-
-DATA:
-${data.toLocaleString()}
-
-------------------------
-
-REGISTRO DE PONTO
-
-<script>
-window.print()
-<\/script>
-
-</body>
-</html>
-`)
-}
-// ===== ADICIONAR VENDA =====
+// ================= VENDA =================
 function addVenda(){
 
 let codigoDigitado = codVenda.value.trim()
@@ -1244,15 +1023,11 @@ return
 
 let q = Number(document.getElementById("qtd").value || 1)
 
-// estoque
 if(p.estoque < q){
 alert("Estoque insuficiente")
 return
 }
 
-tocarBeep()
-
-// agrupar produto
 let itemExistente = venda.find(x => x.codigo === p.codigo)
 
 if(itemExistente){
@@ -1262,8 +1037,6 @@ venda.push({
 id: p.id,
 codigo: p.codigo,
 nome: p.nome,
-cor: p.cor,
-numero: p.numero,
 qtd: q,
 valor: Number(p.valor || 0)
 })
@@ -1276,165 +1049,99 @@ document.getElementById("qtd").value = 1
 
 renderVenda()
 }
-// ===== ENVIAR WHATSAPP =====
-function enviarWhatsApp(){
 
-let texto = "CUPOM - CHINELOS MIX\n\n"
+function renderVenda(){
+listaVenda.innerHTML = venda.map((p,i)=>`
+<tr>
+<td>${p.nome}</td>
+<td>${p.qtd}</td>
+<td>R$ ${(p.qtd*p.valor).toFixed(2)}</td>
+<td><button onclick="removerItem(${i})">❌</button></td>
+</tr>
+`).join("")
 
-venda.forEach(p=>{
-texto += `${p.nome} x${p.qtd} - R$ ${(p.qtd * p.valor).toFixed(2)}\n`
-})
-
-texto += `\nTOTAL: R$ ${totalVenda.toFixed(2)}`
-texto += `\nOBRIGADO, VOLTE SEMPRE!`
-
-let url = "https://wa.me/?text=" + encodeURIComponent(texto)
-
-window.open(url, "_blank")
+total.innerText = totalVenda.toFixed(2)
 }
 
-// ===== TROCA COMPLETA =====
+function removerItem(i){
+totalVenda -= venda[i].qtd * venda[i].valor
+venda.splice(i,1)
+renderVenda()
+}
 
+// ================= FINALIZAR =================
+async function finalizar(){
+
+if(!venda.length){
+alert("Nenhuma venda")
+return
+}
+
+await db.collection("vendas").add({
+itens:venda,
+total:totalVenda,
+usuario:usuarioAtual,
+data:new Date()
+})
+
+alert("Venda finalizada")
+
+venda=[]
+totalVenda=0
+renderVenda()
+}
+
+// ================= FECHAMENTO =================
+async function fecharCaixa(){
+
+let snap = await db.collection("vendas").get()
+let vendas = snap.docs.map(d=>d.data())
+
+if(vendas.length === 0){
+alert("Sem vendas")
+return
+}
+
+let total = 0
+let totalItens = 0
+let pagamentos = {}
+
+vendas.forEach(v=>{
+
+total += v.total || 0
+
+if(v.itens){
+v.itens.forEach(i=>{
+totalItens += i.qtd || 0
+})
+}
+
+if(v.pagamentos){
+v.pagamentos.forEach(p=>{
+pagamentos[p.tipo] = (pagamentos[p.tipo] || 0) + p.valor
+})
+}
+
+})
+
+let texto = `FECHAMENTO DE CAIXA\n\n`
+
+texto += `TOTAL: R$ ${total.toFixed(2)}\n`
+texto += `ITENS: ${totalItens}\n\n`
+
+for(let tipo in pagamentos){
+texto += `${tipo}: R$ ${pagamentos[tipo].toFixed(2)}\n`
+}
+
+alert(texto)
+}
+
+// ================= TROCA =================
 function abrirTroca(){
 show("troca")
 }
 
-function calcularTroca(){
-
-let pEntrada = produtos.find(p => p.codigo == document.getElementById("codEntrada").value)
-let pSaida = produtos.find(p => p.codigo == document.getElementById("codSaida").value)
-
-if(!pEntrada || !pSaida){
-alert("Produto não encontrado")
-return
-}
-
-let qEnt = Number(document.getElementById("qtdEntrada").value || 1)
-let qSai = Number(document.getElementById("qtdSaida").value || 1)
-
-let totalEntrada = pEntrada.valor * qEnt
-let totalSaida = pSaida.valor * qSai
-
-let dif = totalSaida - totalEntrada
-
-document.getElementById("difTroca").innerText = dif.toFixed(2)
-}
-
-async function finalizarTroca(){
-
-try{
-
-let pEntrada = produtos.find(p => p.codigo == document.getElementById("codEntrada").value)
-let pSaida = produtos.find(p => p.codigo == document.getElementById("codSaida").value)
-
-if(!pEntrada || !pSaida){
-alert("Produto inválido")
-return
-}
-
-let qEnt = Number(document.getElementById("qtdEntrada").value || 1)
-let qSai = Number(document.getElementById("qtdSaida").value || 1)
-
-let totalEntrada = pEntrada.valor * qEnt
-let totalSaida = pSaida.valor * qSai
-let diferenca = totalSaida - totalEntrada
-
-await db.collection("produtos").doc(pEntrada.id).update({
-estoque: pEntrada.estoque + qEnt
-})
-
-if(pSaida.estoque < qSai){
-alert("Estoque insuficiente")
-return
-}
-
-await db.collection("produtos").doc(pSaida.id).update({
-estoque: pSaida.estoque - qSai
-})
-
-await db.collection("vendas").add({
-tipo: "troca",
-total: diferenca > 0 ? diferenca : 0,
-pagamentos: [{
-tipo: (document.getElementById("pagTroca") || {value:"Dinheiro"}).value,
-valor: Math.abs(diferenca)
-}],
-usuario: usuarioAtual,
-data: new Date()
-})
-
-alert("Troca concluída")
-document.getElementById("codEntrada").value = ""
-document.getElementById("codSaida").value = ""
-document.getElementById("qtdEntrada").value = 1
-document.getElementById("qtdSaida").value = 1
-document.getElementById("difTroca").innerText = "0.00"
-  
-show("ven")
-
-}catch(e){
-alert("Erro na troca")
-console.log(e)
-}
-}
-
-function imprimirTroca(){
-
-let codE = document.getElementById("codEntrada")?.value
-let codS = document.getElementById("codSaida")?.value
-
-let pEntrada = produtos.find(p => p.codigo == codE)
-let pSaida = produtos.find(p => p.codigo == codS)
-
-if(!pEntrada || !pSaida){
-alert("Preencha os produtos")
-return
-}
-
-let qEnt = Number(document.getElementById("qtdEntrada")?.value || 1)
-let qSai = Number(document.getElementById("qtdSaida")?.value || 1)
-
-let totalEntrada = pEntrada.valor * qEnt
-let totalSaida = pSaida.valor * qSai
-let diferenca = totalSaida - totalEntrada
-
-let pagamento = document.getElementById("pagTroca")?.value || "Dinheiro"
-
-let w = window.open("")
-
-w.document.write(`
-<pre style="font-family:monospace">
-
-CHINELOS MIX
-
-TROCA DE PRODUTO
-----------------------------
-
-DEVOLVIDO:
-${pEntrada.nome} x${qEnt}
-R$ ${totalEntrada.toFixed(2)}
-
-NOVO:
-${pSaida.nome} x${qSai}
-R$ ${totalSaida.toFixed(2)}
-
-----------------------------
-DIFERENÇA: R$ ${diferenca.toFixed(2)}
-
-PAGAMENTO: ${pagamento}
-
-----------------------------
-OBRIGADO, VOLTE SEMPRE!
-
-<script>
-window.print()
-<\/script>
-
-</pre>
-`)
-
-
-}
+// ================= BUSCA =================
 function buscarProduto(){
 
 let termo = document.getElementById("buscaProduto").value.toLowerCase()
@@ -1452,27 +1159,15 @@ return
 codVenda.value = resultado.codigo
 addVenda()
 }
-async function abrirCaixa(){
 
-let senha = document.getElementById("senhaCaixa").value
-let valor = Number(document.getElementById("valorInicial").value || 0)
-
-// senha padrão (pode mudar)
-if(senha !== "1234"){
-alert("Senha incorreta")
-return
+// ================= UI =================
+function show(t){
+document.querySelectorAll(".box").forEach(x=>x.style.display="none")
+document.getElementById(t).style.display="block"
 }
 
-await db.collection("caixa").add({
-tipo: "abertura",
-valorInicial: valor,
-usuario: usuarioAtual,
-data: new Date()
-})
-
-alert("Caixa aberto")
-
-show("ven")
+show("prod")
+renderVenda()
 }
 </script>
 
