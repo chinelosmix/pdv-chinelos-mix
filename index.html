@@ -164,7 +164,18 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
+function show(t){
+  document.querySelectorAll(".box").forEach(x=>x.style.display="none")
+  const el = document.getElementById(t)
+  if(el) el.style.display = "block"
+}
+
+let produtos = [];
+let venda = [];
+let totalVenda = 0;
 let produtos = [];
 let venda = [];
 let totalVenda = 0;
