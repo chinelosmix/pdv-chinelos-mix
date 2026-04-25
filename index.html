@@ -132,29 +132,36 @@ document.querySelectorAll(".box").forEach(x=>x.style.display="none")
 document.getElementById(t).style.display="block"
 }
 
-// ================= PRODUTOS =================
 db.collection("produtos").onSnapshot(s=>{
 
 produtos = s.docs.map(d=>({id:d.id,...d.data()}))
 
 listaProdutos.innerHTML = produtos.map(p=>`
 <tr>
+
 <td>${p.codigo}</td>
 <td>${p.nome}</td>
+<td>${p.cor || ""}</td>
+<td>${p.numero || ""}</td>
 <td>${p.estoque}</td>
-<td>${Number(p.valor).toFixed(2)}</td>
+<td>R$ ${Number(p.valor || 0).toFixed(2)}</td>
+
 <td>
+
 <button onclick="editar('${p.id}')">✏️</button>
+
 <button onclick="excluir('${p.id}')">🗑️</button>
+
 <button onclick="etiqueta('${p.codigo}','${p.nome}',${p.valor},'${p.cor}','${p.numero}')">
 🏷️
 </button>
+
 </td>
+
 </tr>
 `).join("")
 
 })
-
 // SALVAR / EDITAR
 function salvarProduto(){
 
