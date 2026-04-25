@@ -390,7 +390,13 @@ listaVenda.innerHTML = venda.map((p,i)=>`
 
 total.innerText = totalVenda.toFixed(2)
 }
+function calcularTroco(){
+  let pago = Number(valorPago.value || 0)
+  let troco = pago - totalVenda
+  if(troco < 0) troco = 0
 
+  document.getElementById("troco").innerText = troco.toFixed(2)
+}
 // REMOVER
 function remover(i){
 totalVenda -= venda[i].valor*venda[i].qtd
