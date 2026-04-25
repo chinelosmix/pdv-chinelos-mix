@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PDV PROFISSIONAL</title>
+<title>PDV CHINELOS MIX</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -13,11 +13,10 @@ header{background:#020617;padding:15px;text-align:center;font-weight:bold}
 nav{display:flex;background:#020617}
 nav button{flex:1;padding:12px;border:none;background:#020617;color:#fff}
 .box{display:none;padding:10px}
-input,select{width:100%;padding:10px;margin:5px 0;border-radius:5px;border:none}
+input,select{width:100%;padding:10px;margin:5px 0;border:none;border-radius:5px}
 button{padding:10px;background:#22c55e;color:#fff;border:none;border-radius:5px;margin-top:5px}
 table{width:100%;margin-top:10px;border-collapse:collapse}
 td,th{border-bottom:1px solid #334155;padding:8px}
-.total{font-size:20px;font-weight:bold}
 </style>
 </head>
 
@@ -25,168 +24,89 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <header>PDV CHINELOS MIX</header>
 
+<div id="loginBox">
+<input id="user" placeholder="Nome">
+<button onclick="login()">Entrar</button>
+</div>
+
 <nav>
 <button onclick="show('prod')">Produtos</button>
 <button onclick="show('ven')">Venda</button>
 <button onclick="show('rel')">Relatório</button>
-<button onclick="show('caixa')">Caixa</button>
 </nav>
 
+<!-- PRODUTOS -->
 <div id="prod" class="box">
-
-<h3>Cadastro de Produtos</h3>
-
+<h3>Produtos</h3>
 <input id="codigo" placeholder="Código">
-<button onclick="gerarCodigo()">Gerar Código</button>
-<button onclick="toggleScanner()">📷 Scanner</button>
-
-<div id="reader" style="width:250px"></div>
-
 <input id="nome" placeholder="Nome">
-<input id="cor" placeholder="Cor">
-<input id="numero" placeholder="Numeração">
 <input id="estoque" placeholder="Quantidade">
 <input id="valor" placeholder="Valor">
-
 <button onclick="salvarProduto()">Salvar</button>
-
-<table>
-<thead>
-<tr>
-<th>Código</th>
-<th>Nome</th>
-<th>Qtd</th>
-<th>Valor</th>
-<th>Ações</th>
-</tr>
-</thead>
-<tbody id="listaProdutos"></tbody>
-</table>
-
+<table><tbody id="listaProdutos"></tbody></table>
 </div>
 
 <!-- VENDA -->
 <div id="ven" class="box">
-
 <input id="codVenda" placeholder="Código">
+<input id="buscaProduto" placeholder="Buscar">
+<button onclick="buscarProduto()">Buscar</button>
 <input id="qtd" value="1">
-
 <button onclick="addVenda()">Adicionar</button>
 
-<h3 class="total">Total: R$ <span id="total">0.00</span></h3>
+<h3>Total: R$ <span id="total">0.00</span></h3>
 
-<table>
-<thead>
-<tr>
-<th>Produto</th>
-<th>Qtd</th>
-<th>Total</th>
-<th></th>
-</tr>
-</thead>
-<tbody id="listaVenda"></tbody>
-</table>
+<table><tbody id="listaVenda"></tbody></table>
 
-<h3>Pagamento</h3>
-
-<select id="pag1">
-<option>Dinheiro</option>
-<option>PIX</option>
-<option>Débito</option>
-<option>Crédito</option>
-</select>
-
-<input id="valor1" placeholder="Valor pago">
-
-<button onclick="usar2()">+ outro pagamento</button>
-
-<div id="pag2" style="display:none">
-<select id="pagamento2">
-<option>Dinheiro</option>
-<option>PIX</option>
-<option>Débito</option>
-<option>Crédito</option>
-</select>
-<input id="valor2" placeholder="Valor 2">
-</div>
-
+<input id="valorPago" oninput="calcularTroco()" placeholder="Valor pago">
 <h3>Troco: R$ <span id="troco">0.00</span></h3>
 
 <button onclick="finalizar()">Finalizar</button>
-
 </div>
 
 <!-- RELATORIO -->
 <div id="rel" class="box">
 <h3>Relatório</h3>
-<div id="resumo"></div>
-<button onclick="relatorio()">Atualizar</button>
+<table>
+<thead>
+<tr><th>Data</th><th>Total</th><th>Usuário</th></tr>
+</thead>
+<tbody id="tabelaRel"></tbody>
+</table>
+<button onclick="atualizarRelatorio()">Atualizar</button>
 </div>
 
-<!-- CAIXA -->
-<div id="caixa" class="box">
-<h3>Caixa</h3>
-<button onclick="fechamento()">Fechar Caixa</button>
-</div>
+<script>
 
+const firebaseConfig = {
+  apiKey: "AIzaSyARpePSrPuvzOwLP6v9gzmhWfzdo0JZJK4",
+  authDomain: "pdv-chinelos.firebaseapp.com",
+  projectId: "pdv-chinelos-2"
+};
 
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-</script>
+let produtos = [];
+let venda = [];
+let totalVenda = 0;
+let usuarioAtual = "";
 
-</body>
-</html>
-<script src="https://unpkg.com/html5-qrcode"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-
-// GERAR CÓDIGO AUTOMÁTICO
-function gerarCodigo(){
-  codigo.value = Date.now().toString().slice(-8)
+// LOGIN
+function login(){
+usuarioAtual = user.value
+loginBox.style.display="none"
+show("ven")
 }
 
-// SCANNER
-let scanner
-
-function toggleScanner(){
-
-if(scanner){
-scanner.stop()
-scanner = null
-reader.innerHTML = ""
-return
+// NAVEGAÇÃO
+function show(t){
+document.querySelectorAll(".box").forEach(x=>x.style.display="none")
+document.getElementById(t).style.display="block"
 }
 
-scanner = new Html5Qrcode("reader")
-
-scanner.start(
-{ facingMode: "environment" },
-{ fps: 10 },
-(decodedText)=>{
-codigo.value = decodedText
-scanner.stop()
-scanner = null
-reader.innerHTML = ""
-}
-)
-
-}
-
-// SALVAR PRODUTO
-function salvarProduto(){
-
-db.collection("produtos").add({
-codigo: codigo.value,
-nome: nome.value,
-cor: cor.value,
-numero: numero.value,
-estoque: Number(estoque.value),
-valor: Number(valor.value)
-})
-
-}
-
-// LISTAR PRODUTOS COM AÇÕES
+// PRODUTOS
 db.collection("produtos").onSnapshot(s=>{
-
 produtos = s.docs.map(d=>({id:d.id,...d.data()}))
 
 listaProdutos.innerHTML = produtos.map(p=>`
@@ -194,66 +114,140 @@ listaProdutos.innerHTML = produtos.map(p=>`
 <td>${p.codigo}</td>
 <td>${p.nome}</td>
 <td>${p.estoque}</td>
-<td>${Number(p.valor).toFixed(2)}</td>
-<td>
+<td>${p.valor}</td>
+</tr>
+`).join("")
+})
 
-<button onclick="editar('${p.id}')">✏️</button>
+function salvarProduto(){
+db.collection("produtos").add({
+codigo:codigo.value,
+nome:nome.value,
+estoque:Number(estoque.value),
+valor:Number(valor.value)
+})
+}
 
-<button onclick="excluir('${p.id}')">🗑️</button>
+// VENDA
+function addVenda(){
 
-<button onclick="etiqueta('${p.codigo}','${p.nome}')">🏷️</button>
+let p = produtos.find(x=>x.codigo==codVenda.value)
 
-</td>
+if(!p){
+alert("Produto não encontrado")
+return
+}
+
+let q = Number(qtd.value)
+
+let item = venda.find(x=>x.codigo==p.codigo)
+
+if(item){
+item.qtd+=q
+}else{
+venda.push({...p,qtd:q})
+}
+
+totalVenda += p.valor*q
+
+codVenda.value=""
+qtd.value=1
+
+renderVenda()
+}
+
+function renderVenda(){
+listaVenda.innerHTML = venda.map((p,i)=>`
+<tr>
+<td>${p.nome}</td>
+<td>${p.qtd}</td>
+<td>R$ ${(p.valor*p.qtd).toFixed(2)}</td>
+<td><button onclick="remover(${i})">X</button></td>
 </tr>
 `).join("")
 
+total.innerText = totalVenda.toFixed(2)
+}
+
+function remover(i){
+totalVenda -= venda[i].valor*venda[i].qtd
+venda.splice(i,1)
+renderVenda()
+}
+
+// BUSCA
+function buscarProduto(){
+let termo = buscaProduto.value.toLowerCase()
+
+let p = produtos.find(x=>
+x.nome.toLowerCase().includes(termo) ||
+x.codigo.includes(termo)
+)
+
+if(p){
+codVenda.value = p.codigo
+addVenda()
+}
+}
+
+// TROCO
+function calcularTroco(){
+let pago = Number(valorPago.value||0)
+let troco = pago-totalVenda
+if(troco<0) troco=0
+trocoSpan = document.getElementById("troco")
+trocoSpan.innerText = troco.toFixed(2)
+}
+
+// FINALIZAR
+async function finalizar(){
+
+await db.collection("vendas").add({
+itens:venda,
+total:totalVenda,
+usuario:usuarioAtual,
+data:new Date()
 })
 
-// EDITAR
-function editar(id){
+alert("Venda finalizada")
 
-let p = produtos.find(x=>x.id==id)
-
-codigo.value = p.codigo
-nome.value = p.nome
-cor.value = p.cor
-numero.value = p.numero
-estoque.value = p.estoque
-valor.value = p.valor
-
+venda=[]
+totalVenda=0
+renderVenda()
 }
 
-// EXCLUIR
-function excluir(id){
+// RELATORIO
+async function atualizarRelatorio(){
 
-if(confirm("Excluir produto?")){
-db.collection("produtos").doc(id).delete()
+let snap = await db.collection("vendas").get()
+
+let vendasLista = snap.docs.map(d=>d.data())
+
+tabelaRel.innerHTML = vendasLista.map(v=>{
+
+let data = ""
+if(v.data){
+if(v.data.seconds){
+data = new Date(v.data.seconds*1000).toLocaleDateString()
+}else{
+data = new Date(v.data).toLocaleDateString()
+}
 }
 
+return `
+<tr>
+<td>${data}</td>
+<td>R$ ${Number(v.total).toFixed(2)}</td>
+<td>${v.usuario||""}</td>
+</tr>
+`
+
+}).join("")
 }
 
-// ETIQUETA COM CÓDIGO DE BARRAS
-function etiqueta(codigo,nome){
+show("ven")
 
-let w = window.open("")
-
-w.document.write(`
-<html>
-<body style="text-align:center;font-family:Arial">
-
-<h3>${nome}</h3>
-
-<svg id="barcode"></svg>
-
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
-
-<script>
-JsBarcode("#barcode","${codigo}",{format:"CODE128"})
-window.print()
-<\/script>
+</script>
 
 </body>
 </html>
-`)
-
-}
