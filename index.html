@@ -252,22 +252,33 @@ justify-content:space-between;
 align-items:center;
 text-align:center;
 border:1px solid #000;
-padding:3px;
+padding:4px;
 box-sizing:border-box;
 }
 
-.nome{
-font-size:9px;
+/* TOPO */
+.topo{
+font-size:10px;
+font-weight:bold;
 }
 
+/* COR E NUMERO */
 .info{
-font-size:8px;
+font-size:9px;
+margin-top:-2px;
 }
 
+/* CÓDIGO DE BARRAS */
+.barcode{
+margin:4px 0;
+}
+
+/* PREÇO */
 .preco{
-font-size:16px;
+font-size:18px;
 font-weight:bold;
 color:#000;
+margin-top:-2px;
 }
 
 </style>
@@ -277,11 +288,13 @@ color:#000;
 
 <div class="box">
 
-<div class="nome">${nome}</div>
+<div class="topo">${nome}</div>
 
 <div class="info">${cor} ${numero}</div>
 
+<div class="barcode">
 <svg id="barcode"></svg>
+</div>
 
 <div class="preco">R$ ${Number(valor || 0).toFixed(2)}</div>
 
@@ -292,9 +305,10 @@ color:#000;
 <script>
 JsBarcode("#barcode","${codigo}",{
 format:"CODE128",
-width:1,
-height:30,
-displayValue:false
+width:1.2,
+height:28,
+displayValue:false,
+margin:0
 })
 
 window.print()
@@ -303,7 +317,6 @@ window.print()
 </body>
 </html>
 `)
-
 }
 // ================= VENDA =================
 function addVenda(){
