@@ -108,7 +108,46 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <button onclick="abrirTroca()">🔄 Troca</button>
 <button onclick="enviarWhatsUltima()">📲 Enviar WhatsApp</button>
 </div>
+<div id="troca" class="box">
 
+<h3>🔄 Troca</h3>
+
+<input id="codTroca" placeholder="Código do produto">
+<input id="qtdTroca" value="1">
+
+<button onclick="addTroca()">Adicionar</button>
+
+<table>
+<tbody id="listaTroca"></tbody>
+</table>
+
+<h3>Total Troca: R$ <span id="totalTroca">0.00</span></h3>
+
+<hr>
+
+<h4>Forma de pagamento</h4>
+
+<select id="pagTroca">
+<option value="Dinheiro">Dinheiro</option>
+<option value="Pix">Pix</option>
+<option value="Débito">Débito</option>
+<option value="Crédito à vista">Crédito à vista</option>
+<option value="Crédito 2x">Crédito 2x</option>
+<option value="Crédito 3x">Crédito 3x</option>
+<option value="Vale">Vale</option>
+</select>
+
+<input id="valorPagoTroca" placeholder="Valor pago">
+<p>Troco: R$ <span id="trocoTroca">0.00</span></p>
+
+<button onclick="calcularTrocoTroca()">Calcular Troco</button>
+
+<hr>
+
+<button onclick="finalizarTroca()">Finalizar Troca</button>
+<button onclick="show('ven')">⬅ Voltar</button>
+
+</div>
 <!-- RELATORIO -->
 <div id="rel" class="box">
 <h3>Relatório</h3>
