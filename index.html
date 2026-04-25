@@ -650,80 +650,26 @@ function gerarNumeroCupom(){
 }
 
 function montarCupomHTML(vendaFinalizada){
-  const data = formatarData(vendaFinalizada.data);
-  const numeroCupom = vendaFinalizada.cupomNumero || gerarNumeroCupom();
-  const itens = vendaFinalizada.itens || [];
-  const totalItens = itens.reduce((t,p) => t + Number(p.qtd || 0), 0);
-  const pagamentoTexto = (vendaFinalizada.pagamentos || []).map(p => p.tipo).join(" / ");
 
-  function linha(){
-    return "-".repeat(42);
-  }
+let texto = ""
 
-  function padDir(texto, tamanho){
-    return (String(texto) + " ".repeat(tamanho)).substring(0, tamanho);
-  }
+texto += "CHINELOS MIX\n"
+texto += "CNPJ: 46.982.791/0001-01\n"
+texto += "-----------------------------\n"
 
-  function padEsq(texto, tamanho){
-    return (" ".repeat(tamanho) + String(texto)).slice(-tamanho);
-  }
+;(vendaFinalizada.itens || []).forEach(p=>{
+texto += `${p.nome} x${p.qtd}\n`
+texto += `R$ ${(Number(p.valor)*Number(p.qtd)).toFixed(2)}\n`
+})
 
-  const linhasItens = itens.map((p, i) => {
-    const cod = String(i + 1).padStart(3, "0");
-    const nome = padDir(String(p.nome).substring(0,16), 16);
-    const qtdItem = padEsq(p.qtd, 3);
-    const unit = padEsq(Number(p.valor).toFixed(2), 8);
-    const totalItem = padEsq((Number(p.qtd) * Number(p.valor)).toFixed(2), 9);
-    return `${cod} ${nome}${qtdItem}${unit}${totalItem}`;
-  }).join("\n");
+texto += "-----------------------------\n"
+texto += `TOTAL: R$ ${Number(vendaFinalizada.total || 0).toFixed(2)}\n`
+texto += "\nOBRIGADO, VOLTE SEMPRE!"
 
-  return `
+return `
 <html>
-<head>
-<meta charset="UTF-8">
-<style>
-body{
-  font-family:monospace;
-  font-size:12px;
-  width:280px;
-  margin:0;
-  white-space:pre;
-}
-.center{text-align:center}
-.bold{font-weight:bold}
-.hr{display:block}
-</style>
-</head>
-<body>
-           CHINELOS MIX
-CNPJ: 46.982.791/0001-01
-AV. LEONOR BOSONE MARQUES DA SILVA, 45
-CENTRO - POÁ/SP
-
-${linha()}
-
-CUPOM Nº: ${numeroCupom}
-DATA: ${data}
-
-${linha()}
-
-ITEM PRODUTO         QTD   UNIT    TOTAL
-
-${linha()}
-
-${linhasItens}
-
-${linha()}
-
-ITENS: ${totalItens}
-TOTAL: R$ ${Number(vendaFinalizada.total || 0).toFixed(2)}
-
-PAGAMENTO: ${pagamentoTexto}
-ATENDIDO POR: ${vendaFinalizada.usuario || usuarioAtual}
-
-${linha()}
-
-OBRIGADO, VOLTE SEMPRE!
+<body style="font-family:monospace;white-space:pre;">
+${texto}
 
 <script>
 window.print();
@@ -734,7 +680,6 @@ setTimeout(()=>window.close(), 800);
 </html>
 `
 }
-
 function imprimirCupom(vendaFinalizada){
   const w = window.open("", "", "width=300,height=600");
   w.document.write(montarCupomHTML(vendaFinalizada));
