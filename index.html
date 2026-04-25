@@ -144,7 +144,7 @@ listaProdutos.innerHTML = produtos.map(p=>`
 
 <td>${p.nome}</td>
 
-<td>${p.numero || ""}</td>
+<td>${p.cor || ""} ${p.numero || ""}</td>
 
 <td>${p.estoque}</td>
 
@@ -249,44 +249,47 @@ font-family:Arial;
 display:flex;
 justify-content:center;
 align-items:center;
+height:100vh;
 }
 
+/* CAIXA CENTRAL */
 .box{
 width:40mm;
 height:50mm;
 display:flex;
 flex-direction:column;
+justify-content:center;
 align-items:center;
 text-align:center;
 border:1px solid #000;
-padding:3px;
+padding:4px;
 box-sizing:border-box;
 }
 
 /* NOME */
 .nome{
-font-size:10px;
+font-size:11px;
 font-weight:bold;
-margin-bottom:1px;
-}
-
-/* COR + NUMERO (COLADO NO CÓDIGO) */
-.info{
-font-size:9px;
 margin-bottom:2px;
 }
 
-/* CÓDIGO DE BARRAS */
-svg{
-margin:0;
+/* COR + NUMERO */
+.info{
+font-size:10px;
+margin-bottom:4px;
+}
+
+/* CÓDIGO */
+.barcode{
+margin:4px 0;
 }
 
 /* PREÇO */
 .preco{
-font-size:18px;
+font-size:20px;
 font-weight:bold;
 color:#000;
-margin-top:2px;
+margin-top:4px;
 }
 
 </style>
@@ -300,7 +303,9 @@ margin-top:2px;
 
 <div class="info">${cor} ${numero}</div>
 
+<div class="barcode">
 <svg id="barcode"></svg>
+</div>
 
 <div class="preco">R$ ${Number(valor || 0).toFixed(2)}</div>
 
@@ -312,7 +317,7 @@ margin-top:2px;
 JsBarcode("#barcode","${codigo}",{
 format:"CODE128",
 width:1.2,
-height:28,
+height:30,
 displayValue:false,
 margin:0
 })
