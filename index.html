@@ -126,7 +126,7 @@ th{text-align:left}
 </thead>
 <tbody id="listaVenda"></tbody>
 </table>
-
+<input id="valorPago" oninput="calcularTroco()" placeholder="Valor pago pelo cliente">
 <h3>Pagamento</h3>
 
 <select id="pagamento">
@@ -536,47 +536,49 @@ function addVenda(){
 
   tocarBeep();
 
-  function addVenda(){
+ function addVenda(){
 
-let p = produtos.find(x=>x.codigo==codVenda.value)
+let codigo = codVenda.value.trim()
+
+if(!codigo){
+alert("Digite o código")
+return
+}
+
+let p = produtos.find(x =>
+x.codigo == codigo ||
+x.codigoBarras == codigo
+)
 
 if(!p){
 alert("Produto não encontrado")
 return
 }
 
-let q = Number(qtd.value)
+let q = Number(document.getElementById("qtd").value || 1)
 
-// verifica estoque
-if(p.estoque < q){
+if((p.estoque || 0) < q){
 alert("Estoque insuficiente")
 return
 }
 
-beep.play()
+let item = venda.find(x => x.codigo == p.codigo)
 
-// 🔥 VERIFICA SE JÁ EXISTE NA VENDA
-let itemExistente = venda.find(x=>x.codigo == p.codigo)
-
-if(itemExistente){
-itemExistente.qtd += q
+if(item){
+item.qtd += q
 }else{
-venda.push({...p, qtd:q})
+venda.push({
+codigo: p.codigo,
+nome: p.nome,
+qtd: q,
+valor: Number(p.valor || 0)
+})
 }
 
-totalVenda += p.valor * q
-
-codVenda.value=""
-qtd.value=1
+codVenda.value = ""
+document.getElementById("qtd").value = 1
 
 renderVenda()
-}
-
-  totalVenda += Number(p.valor || 0) * q;
-
-  codVenda.value = "";
-  qtd.value = 1;
-  renderVenda();
 }
 
 function removerItem(i){
@@ -1051,15 +1053,26 @@ renderVenda()
 }
 
 function renderVenda(){
-listaVenda.innerHTML = venda.map((p,i)=>`
+
+let totalCalc = 0
+
+listaVenda.innerHTML = venda.map((p,i)=>{
+
+let totalItem = (Number(p.valor) || 0) * (Number(p.qtd) || 0)
+totalCalc += totalItem
+
+return `
 <tr>
-<td>${p.nome}</td>
-<td>${p.qtd}</td>
-<td>R$ ${(p.qtd*p.valor).toFixed(2)}</td>
+<td>${p.nome || "-"}</td>
+<td>${p.qtd || 0}</td>
+<td>R$ ${Number(p.valor || 0).toFixed(2)}</td>
+<td>R$ ${totalItem.toFixed(2)}</td>
 <td><button onclick="removerItem(${i})">❌</button></td>
 </tr>
-`).join("")
+`
+}).join("")
 
+totalVenda = totalCalc
 total.innerText = totalVenda.toFixed(2)
 }
 
@@ -1144,11 +1157,16 @@ show("troca")
 // ================= BUSCA =================
 function buscarProduto(){
 
-let termo = document.getElementById("buscaProduto").value.toLowerCase()
+let termo = document.getElementById("buscaProduto").value.toLowerCase().trim()
+
+if(!termo){
+alert("Digite para buscar")
+return
+}
 
 let resultado = produtos.find(p =>
-p.codigo.includes(termo) ||
-p.nome.toLowerCase().includes(termo)
+(p.codigo || "").includes(termo) ||
+(p.nome || "").toLowerCase().includes(termo)
 )
 
 if(!resultado){
@@ -1172,6 +1190,9 @@ renderVenda()
 function show(t){
 document.querySelectorAll(".box").forEach(x=>x.style.display="none")
 document.getElementById(t).style.display="block"
+}
+function abrirTroca(){
+show("troca")
 }
 </script>
 
