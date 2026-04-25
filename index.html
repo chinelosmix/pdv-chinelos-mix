@@ -1169,6 +1169,10 @@ document.getElementById(t).style.display="block"
 show("prod")
 renderVenda()
 }
+function show(t){
+document.querySelectorAll(".box").forEach(x=>x.style.display="none")
+document.getElementById(t).style.display="block"
+}
 </script>
 
 </body>
