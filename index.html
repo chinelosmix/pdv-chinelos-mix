@@ -75,22 +75,39 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <!-- VENDA -->
 <div id="ven" class="box">
+
 <input id="codVenda" placeholder="Código">
 <input id="buscaProduto" placeholder="Buscar">
 <button onclick="buscarProduto()">Buscar</button>
+
 <input id="qtd" value="1">
 <button onclick="addVenda()">Adicionar</button>
-<input id="codigo" placeholder="Código">
-<button onclick="gerarCodigo()">Gerar Código</button>
-<button onclick="toggleScanner()">📷 Scanner</button>
+
+<button onclick="toggleScannerVenda()">📷 Scanner</button>
+<div id="readerVenda"></div>
+
+<hr>
+
 <h3>Total: R$ <span id="total">0.00</span></h3>
 
-<table><tbody id="listaVenda"></tbody></table>
+<h4>Pagamento</h4>
 
-<input id="valorPago" oninput="calcularTroco()" placeholder="Valor pago">
-<h3>Troco: R$ <span id="troco">0.00</span></h3>
+<select id="formaPagamento">
+<option value="Dinheiro">Dinheiro</option>
+<option value="Pix">Pix</option>
+<option value="Cartão">Cartão</option>
+</select>
 
-<button onclick="finalizar()">Finalizar</button>
+<input id="valorPago" placeholder="Valor recebido">
+<p>Troco: R$ <span id="troco">0.00</span></p>
+
+<button onclick="calcularTroco()">Calcular Troco</button>
+
+<hr>
+
+<button onclick="finalizarVenda()">Finalizar Venda</button>
+<button onclick="abrirTroca()">🔄 Troca</button>
+
 </div>
 
 <!-- RELATORIO -->
