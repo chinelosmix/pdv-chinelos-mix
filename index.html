@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 <meta charset="UTF-8">
 <title>PDV CHINELOS MIX</title>
 
@@ -35,15 +37,37 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <button onclick="show('rel')">Relatório</button>
 </nav>
 
-<!-- PRODUTOS -->
 <div id="prod" class="box">
-<h3>Produtos</h3>
+
+<h3>Cadastro de Produtos</h3>
+
 <input id="codigo" placeholder="Código">
+<button onclick="gerarCodigo()">Gerar Código</button>
+<button onclick="toggleScanner()">📷 Scanner</button>
+
+<div id="reader" style="width:250px"></div>
+
 <input id="nome" placeholder="Nome">
+<input id="cor" placeholder="Cor">
+<input id="numero" placeholder="Numeração">
 <input id="estoque" placeholder="Quantidade">
 <input id="valor" placeholder="Valor">
+
 <button onclick="salvarProduto()">Salvar</button>
-<table><tbody id="listaProdutos"></tbody></table>
+
+<table>
+<thead>
+<tr>
+<th>Código</th>
+<th>Nome</th>
+<th>Qtd</th>
+<th>Valor</th>
+<th>Ações</th>
+</tr>
+</thead>
+<tbody id="listaProdutos"></tbody>
+</table>
+
 </div>
 
 <!-- VENDA -->
@@ -91,6 +115,7 @@ let produtos = [];
 let venda = [];
 let totalVenda = 0;
 let usuarioAtual = "";
+let editandoId = null;
 
 // LOGIN
 function login(){
@@ -105,8 +130,9 @@ document.querySelectorAll(".box").forEach(x=>x.style.display="none")
 document.getElementById(t).style.display="block"
 }
 
-// PRODUTOS
+// ================= PRODUTOS =================
 db.collection("produtos").onSnapshot(s=>{
+
 produtos = s.docs.map(d=>({id:d.id,...d.data()}))
 
 listaProdutos.innerHTML = produtos.map(p=>`
@@ -114,21 +140,110 @@ listaProdutos.innerHTML = produtos.map(p=>`
 <td>${p.codigo}</td>
 <td>${p.nome}</td>
 <td>${p.estoque}</td>
-<td>${p.valor}</td>
+<td>${Number(p.valor).toFixed(2)}</td>
+<td>
+<button onclick="editar('${p.id}')">✏️</button>
+<button onclick="excluir('${p.id}')">🗑️</button>
+<button onclick="etiqueta('${p.codigo}','${p.nome}')">🏷️</button>
+</td>
 </tr>
 `).join("")
+
 })
 
+// SALVAR / EDITAR
 function salvarProduto(){
-db.collection("produtos").add({
-codigo:codigo.value,
-nome:nome.value,
-estoque:Number(estoque.value),
-valor:Number(valor.value)
+
+if(editandoId){
+
+db.collection("produtos").doc(editandoId).update({
+codigo: codigo.value,
+nome: nome.value,
+cor: cor.value,
+numero: numero.value,
+estoque: Number(estoque.value),
+valor: Number(valor.value)
 })
+
+editandoId = null
+
+}else{
+
+db.collection("produtos").add({
+codigo: codigo.value,
+nome: nome.value,
+cor: cor.value,
+numero: numero.value,
+estoque: Number(estoque.value),
+valor: Number(valor.value)
+})
+
 }
 
-// VENDA
+codigo.value=""
+nome.value=""
+cor.value=""
+numero.value=""
+estoque.value=""
+valor.value=""
+}
+
+// GERAR CÓDIGO
+function gerarCodigo(){
+codigo.value = Date.now().toString().slice(-8)
+}
+
+// EDITAR
+function editar(id){
+
+let p = produtos.find(x=>x.id==id)
+
+codigo.value = p.codigo
+nome.value = p.nome
+cor.value = p.cor || ""
+numero.value = p.numero || ""
+estoque.value = p.estoque
+valor.value = p.valor
+
+editandoId = id
+}
+
+// EXCLUIR
+function excluir(id){
+
+if(confirm("Excluir produto?")){
+db.collection("produtos").doc(id).delete()
+}
+
+}
+
+// ETIQUETA
+function etiqueta(codigo,nome){
+
+let w = window.open("")
+
+w.document.write(`
+<html>
+<body style="text-align:center;font-family:Arial">
+
+<h3>${nome}</h3>
+
+<svg id="barcode"></svg>
+
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
+
+<script>
+JsBarcode("#barcode","${codigo}",{format:"CODE128"})
+window.print()
+<\/script>
+
+</body>
+</html>
+`)
+
+}
+
+// ================= VENDA =================
 function addVenda(){
 
 let p = produtos.find(x=>x.codigo==codVenda.value)
@@ -169,6 +284,7 @@ listaVenda.innerHTML = venda.map((p,i)=>`
 total.innerText = totalVenda.toFixed(2)
 }
 
+// REMOVER
 function remover(i){
 totalVenda -= venda[i].valor*venda[i].qtd
 venda.splice(i,1)
@@ -180,8 +296,8 @@ function buscarProduto(){
 let termo = buscaProduto.value.toLowerCase()
 
 let p = produtos.find(x=>
-x.nome.toLowerCase().includes(termo) ||
-x.codigo.includes(termo)
+(x.nome||"").toLowerCase().includes(termo) ||
+(x.codigo||"").includes(termo)
 )
 
 if(p){
@@ -195,8 +311,7 @@ function calcularTroco(){
 let pago = Number(valorPago.value||0)
 let troco = pago-totalVenda
 if(troco<0) troco=0
-trocoSpan = document.getElementById("troco")
-trocoSpan.innerText = troco.toFixed(2)
+document.getElementById("troco").innerText = troco.toFixed(2)
 }
 
 // FINALIZAR
@@ -216,7 +331,7 @@ totalVenda=0
 renderVenda()
 }
 
-// RELATORIO
+// ================= RELATÓRIO =================
 async function atualizarRelatorio(){
 
 let snap = await db.collection("vendas").get()
@@ -237,7 +352,7 @@ data = new Date(v.data).toLocaleDateString()
 return `
 <tr>
 <td>${data}</td>
-<td>R$ ${Number(v.total).toFixed(2)}</td>
+<td>R$ ${Number(v.total||0).toFixed(2)}</td>
 <td>${v.usuario||""}</td>
 </tr>
 `
@@ -245,9 +360,9 @@ return `
 }).join("")
 }
 
+// START
 show("ven")
 
 </script>
-
 </body>
 </html>
