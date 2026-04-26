@@ -88,7 +88,9 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <div id="readerVenda" style="width:250px"></div>
 
 <hr>
-
+<table>
+<tbody id="listaVenda"></tbody>
+</table>
 <h3>Total: R$ <span id="total">0.00</span></h3>
 
 <h4>Pagamento</h4>
@@ -444,7 +446,8 @@ document.getElementById("qtd").value = 1
 }
 
 function renderVenda(){
-listaVenda.innerHTML = venda.map((p,i)=>`
+
+document.getElementById("listaVenda").innerHTML = venda.map((p,i)=>`
 <tr>
 <td>${p.nome}</td>
 <td>${p.qtd}</td>
@@ -453,17 +456,9 @@ listaVenda.innerHTML = venda.map((p,i)=>`
 </tr>
 `).join("")
 
-total.innerText = totalVenda.toFixed(2)
-}
-function calcularTroco(){
-  let pago = Number(valorPago.value || 0)
-  let troco = pago - totalVenda
-  if(troco < 0) troco = 0
+let total = venda.reduce((s,p)=> s + (p.valor*p.qtd),0)
 
-  document.getElementById("troco").innerText = troco.toFixed(2)
-}
-function gerarNumeroCupom(){
-  return Date.now().toString().slice(-6)
+document.getElementById("total").innerText = total.toFixed(2)
 }
 // REMOVER
 function remover(i){
