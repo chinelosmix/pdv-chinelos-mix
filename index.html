@@ -399,29 +399,33 @@ window.print()
 // ================= VENDA =================
 function addVenda(){
 
-let p = produtos.find(x=>x.codigo==codVenda.value)
+let codigo = document.getElementById("codVenda").value
+let quantidade = Number(document.getElementById("qtd").value || 1)
+
+let p = produtos.find(x => String(x.codigo) === String(codigo))
 
 if(!p){
-alert("Produto não encontrado")
-return
+  alert("Produto não encontrado")
+  return
 }
 
-let q = Number(qtd.value)
-
-let item = venda.find(x=>x.codigo==p.codigo)
+let item = venda.find(x => x.codigo == p.codigo)
 
 if(item){
-item.qtd+=q
+  item.qtd += quantidade
 }else{
-venda.push({...p,qtd:q})
+  venda.push({
+    codigo: p.codigo,
+    nome: p.nome,
+    valor: Number(p.valor),
+    qtd: quantidade
+  })
 }
 
-totalVenda += p.valor*q
-
-codVenda.value=""
-qtd.value=1
-
 renderVenda()
+
+document.getElementById("codVenda").value = ""
+document.getElementById("qtd").value = 1
 }
 
 function renderVenda(){
