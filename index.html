@@ -774,31 +774,31 @@ function abrirTroca(){
   show("troca")
 
 }
-function show(t){
-  document.querySelectorAll(".box").forEach(x=>x.style.display="none")
-  document.getElementById(t).style.display="block"
-}
 async function atualizarEstoqueTroca(){
 
-for(let p of entrada){
+  // DEVOLVIDO (entra no estoque)
+  for(let p of entrada){
 
-let prod = produtos.find(x=>x.codigo==p.codigo)
-if(!prod) continue
+    let prod = produtos.find(x => x.codigo == p.codigo)
+    if(!prod) continue
 
-await db.collection("produtos").doc(prod.id).update({
-estoque: (prod.estoque || 0) + p.qtd
-})
+    await db.collection("produtos").doc(prod.id).update({
+      estoque: (prod.estoque || 0) + p.qtd
+    })
 
-}
+  }
 
-for(let p of saida){
+  // NOVO (sai do estoque)
+  for(let p of saida){
 
-let prod = produtos.find(x=>x.codigo==p.codigo)
-if(!prod) continue
+    let prod = produtos.find(x => x.codigo == p.codigo)
+    if(!prod) continue
 
-await db.collection("produtos").doc(prod.id).update({
-estoque: (prod.estoque || 0) - p.qtd
-})
+    await db.collection("produtos").doc(prod.id).update({
+      estoque: (prod.estoque || 0) - p.qtd
+    })
+
+  }
 
 }
 function montarCupomTroca(){
@@ -839,13 +839,18 @@ function imprimirTroca(){
 let w = window.open("")
 
 w.document.write(`
+<html>
 <body style="font-family:monospace;white-space:pre;">
+
 ${montarCupomTroca()}
 
 <script>
 window.print();
 setTimeout(()=>window.close(),800);
 <\/script>
+
+</body>
+</html>
 `)
 }
 async function salvarTroca(){
