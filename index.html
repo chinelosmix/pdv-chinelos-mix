@@ -533,10 +533,22 @@ addVenda()
 
 // TROCO
 function calcularTroco(){
-let pago = Number(valorPago.value||0)
-let troco = pago-totalVenda
-if(troco<0) troco=0
+
+let total = 0
+
+venda.forEach(p=>{
+  total += Number(p.valor) * Number(p.qtd)
+})
+
+// 👇 corrige vírgula
+let pagoInput = document.getElementById("valorPago").value.replace(",", ".")
+
+let pago = Number(pagoInput || 0)
+
+let troco = pago - total
+
 document.getElementById("troco").innerText = troco.toFixed(2)
+
 }
 
 // FINALIZAR
