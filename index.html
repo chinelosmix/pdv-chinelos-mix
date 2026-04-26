@@ -78,7 +78,8 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <input id="codVenda" placeholder="Código">
 <input id="buscaProduto" placeholder="Buscar">
-<button onclick="buscarProduto()">Buscar</button>
+<input id="buscaProduto" placeholder="Buscar produto">
+<button onclick="abrirBusca()">Buscar</button>
 
 <input id="qtd" value="1">
 <button onclick="addVenda()">Adicionar</button>
@@ -108,6 +109,19 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <button onclick="abrirTroca()">🔄 Troca</button>
 <button onclick="enviarWhatsUltima()">📲 Enviar WhatsApp</button>
 </div> <!-- VENDA -->
+  <div id="busca" class="box" style="display:none;">
+
+<h3>🔎 Buscar Produto</h3>
+
+<input id="buscaInput" oninput="renderBusca()" placeholder="Digite nome ou código">
+
+<table>
+<tbody id="listaBusca"></tbody>
+</table>
+
+<button onclick="show('ven')">⬅ Voltar</button>
+
+</div>
 <div id="troca" class="box" style="display:none;">
 
 <h3>🔄 Troca</h3>
@@ -868,6 +882,31 @@ data: new Date(),
 usuario: usuarioAtual
 })
 
+}
+function abrirBusca(){
+  renderBusca()
+  show("busca")
+}
+function renderBusca(){
+
+let termo = document.getElementById("buscaInput").value?.toLowerCase() || ""
+
+let filtrados = produtos.filter(p =>
+  p.nome.toLowerCase().includes(termo) ||
+  String(p.codigo).includes(termo)
+)
+
+document.getElementById("listaBusca").innerHTML = filtrados.map(p=>`
+<tr>
+<td>${p.nome}</td>
+<td>R$ ${p.valor}</td>
+<td><button onclick="selecionarProduto('${p.codigo}')">Selecionar</button></td>
+</tr>
+`).join("")
+}
+function selecionarProduto(codigo){
+  document.getElementById("codVenda").value = codigo
+  show("ven")
 }
 </script>
 </body>
