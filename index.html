@@ -733,18 +733,33 @@ let dif = totalSaida - totalEntrada
 document.getElementById("diferenca").innerText = dif.toFixed(2)
 }
 
-function finalizarTroca(){
+async function finalizarTroca(){
+
+if(!entrada.length && !saida.length){
+alert("Nenhuma troca")
+return
+}
+
+// atualiza estoque
+await atualizarEstoqueTroca()
+
+// salva no banco
+await salvarTroca()
+
+// imprime
+imprimirTroca()
 
 let dif = totalSaida - totalEntrada
 
 if(dif > 0){
-alert("Cliente deve pagar: R$ " + dif.toFixed(2))
+alert("Cliente pagou diferença")
 }else if(dif < 0){
-alert("Cliente tem crédito: R$ " + Math.abs(dif).toFixed(2))
+alert("Cliente ficou com crédito")
 }else{
-alert("Troca sem diferença")
+alert("Troca concluída")
 }
 
+// limpar
 entrada = []
 saida = []
 totalEntrada = 0
@@ -754,6 +769,7 @@ renderTroca()
 
 show("ven")
 }
+}
 function abrirTroca(){
   show("troca")
 
@@ -761,6 +777,90 @@ function abrirTroca(){
 function show(t){
   document.querySelectorAll(".box").forEach(x=>x.style.display="none")
   document.getElementById(t).style.display="block"
+}
+async function atualizarEstoqueTroca(){
+
+for(let p of entrada){
+
+let prod = produtos.find(x=>x.codigo==p.codigo)
+if(!prod) continue
+
+await db.collection("produtos").doc(prod.id).update({
+estoque: (prod.estoque || 0) + p.qtd
+})
+
+}
+
+for(let p of saida){
+
+let prod = produtos.find(x=>x.codigo==p.codigo)
+if(!prod) continue
+
+await db.collection("produtos").doc(prod.id).update({
+estoque: (prod.estoque || 0) - p.qtd
+})
+
+}
+
+}
+function montarCupomTroca(){
+
+let texto = ""
+
+texto += "CHINELOS MIX\n"
+texto += "TROCA\n\n"
+
+texto += "DEVOLVIDO:\n"
+entrada.forEach(p=>{
+texto += `${p.nome} x${p.qtd}\n`
+})
+
+texto += "\nNOVO:\n"
+saida.forEach(p=>{
+texto += `${p.nome} x${p.qtd}\n`
+})
+
+let dif = totalSaida - totalEntrada
+
+texto += "\n------------------\n"
+
+if(dif > 0){
+texto += "CLIENTE PAGOU: R$ " + dif.toFixed(2)
+}else if(dif < 0){
+texto += "CRÉDITO: R$ " + Math.abs(dif).toFixed(2)
+}else{
+texto += "SEM DIFERENÇA"
+}
+
+texto += "\nOBRIGADO VOLTE SEMPRE"
+
+return texto
+}
+function imprimirTroca(){
+
+let w = window.open("")
+
+w.document.write(`
+<body style="font-family:monospace;white-space:pre;">
+${montarCupomTroca()}
+
+<script>
+window.print();
+setTimeout(()=>window.close(),800);
+<\/script>
+`)
+}
+async function salvarTroca(){
+
+await db.collection("trocas").add({
+entrada: entrada,
+saida: saida,
+totalEntrada,
+totalSaida,
+data: new Date(),
+usuario: usuarioAtual
+})
+
 }
 </script>
 </body>
