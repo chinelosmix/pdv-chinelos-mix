@@ -426,6 +426,7 @@ if(!p){
   return
 }
 
+// 👇 AQUI QUE FALTAVA
 let item = venda.find(x => x.codigo == p.codigo)
 
 if(item){
@@ -441,8 +442,6 @@ if(item){
 
 renderVenda()
 
-document.getElementById("codVenda").value = ""
-document.getElementById("qtd").value = 1
 }
 
 function renderVenda(){
