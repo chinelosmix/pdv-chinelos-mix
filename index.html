@@ -810,12 +810,12 @@ texto += "TROCA\n\n"
 
 texto += "DEVOLVIDO:\n"
 entrada.forEach(p=>{
-texto += `${p.nome} x${p.qtd}\n`
+texto += p.nome + " x" + p.qtd + "\n"
 })
 
 texto += "\nNOVO:\n"
 saida.forEach(p=>{
-texto += `${p.nome} x${p.qtd}\n`
+texto += p.nome + " x" + p.qtd + "\n"
 })
 
 let dif = totalSaida - totalEntrada
