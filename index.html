@@ -769,7 +769,7 @@ renderTroca()
 
 show("ven")
 }
-}
+
 function abrirTroca(){
   show("troca")
 
@@ -799,8 +799,6 @@ if(!prod) continue
 await db.collection("produtos").doc(prod.id).update({
 estoque: (prod.estoque || 0) - p.qtd
 })
-
-}
 
 }
 function montarCupomTroca(){
