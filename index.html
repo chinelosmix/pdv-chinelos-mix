@@ -552,41 +552,51 @@ document.getElementById("troco").innerText = troco.toFixed(2)
 }
 
 // FINALIZAR
-function finalizarVenda(){
+async function finalizarVenda(){
 
-if(!venda.length){
-alert("Nenhuma venda")
-return
+if(venda.length === 0){
+  alert("Venda vazia")
+  return
 }
 
-let pago = Number(valorPago.value || 0)
-let troco = pago - totalVenda
-if(troco < 0) troco = 0
+// TOTAL
+let total = venda.reduce((s,p)=> s + (Number(p.valor) * Number(p.qtd)),0)
 
-let vendaFinal = {
-itens: venda,
-total: totalVenda,
-usuario: usuarioAtual,
-pagamento: formaPagamento.value,
-pago: pago,
-troco: troco,
-data: new Date(),
-cupom: gerarNumeroCupom()
-}
+// PAGAMENTO
+let forma = document.getElementById("formaPagamento")?.value || ""
 
-imprimirCupom(vendaFinal)
+// VALOR PAGO
+let pago = Number(
+  (document.getElementById("valorPago").value || "0").replace(",", ".")
+)
 
-enviarWhats(vendaFinal)
+// TROCO
+let troco = pago - total
 
+// SALVA NO FIREBASE
+await db.collection("vendas").add({
+  itens: venda,
+  total: total,
+  formaPagamento: forma,
+  valorPago: pago,
+  troco: troco,
+  data: new Date(),
+  usuario: usuarioAtual || "Caixa"
+})
+
+// IMPRIME CUPOM
+imprimirCupom()
+
+// LIMPA VENDA
 venda = []
-totalVenda = 0
-
 renderVenda()
 
-valorPago.value = ""
+// LIMPA CAMPOS
+document.getElementById("valorPago").value = ""
 document.getElementById("troco").innerText = "0.00"
 
-alert("Venda finalizada")
+alert("Venda finalizada com sucesso!")
+
 }
 function enviarWhats(venda){
 
