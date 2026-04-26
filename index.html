@@ -498,23 +498,31 @@ texto += "\nOBRIGADO, VOLTE SEMPRE!"
 
 return texto
 }
-function imprimirCupom(venda){
+function imprimirCupom(){
 
-let w = window.open("")
+let conteudo = montarCupom(venda)
 
-w.document.write(`
+let tela = window.open("", "_blank")
+
+tela.document.write(`
 <html>
+<head>
+<title>Cupom</title>
+</head>
 <body style="font-family:monospace;white-space:pre;">
-${montarCupom(venda)}
-
+${conteudo}
 <script>
-window.print();
-setTimeout(()=>window.close(),800);
+window.onload = function(){
+  window.print();
+  setTimeout(()=>window.close(),500);
+}
 <\/script>
-
 </body>
 </html>
 `)
+
+tela.document.close()
+
 }
 // BUSCA
 function buscarProduto(){
