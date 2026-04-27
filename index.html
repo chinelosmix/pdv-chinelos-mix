@@ -781,20 +781,14 @@ function finalizarTroca(){
         return;
     }
 
-    const cupom = montarCupom();
+    const cupom = "*** TROCA ***\n\n" + montarCupom();
 
     imprimirCupom(cupom);
 
-    // limpa depois
     venda = [];
 
-    if (typeof atualizarTela === "function") {
-        atualizarTela();
-    }
-
-    alert("Troca finalizada!");
+    atualizarTela();
 }
-
 function abrirTroca(){
   show("troca")
 
