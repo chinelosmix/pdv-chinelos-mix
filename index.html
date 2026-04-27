@@ -589,13 +589,28 @@ function finalizarVenda() {
         atualizarTela();
     }
 }
-function enviarWhats(venda){
+function enviarWhatsUltima() {
 
-let texto = montarCupom(venda)
+    if (!venda || venda.length === 0) {
+        alert("Nenhuma venda para enviar!");
+        return;
+    }
 
-let url = "https://wa.me/?text=" + encodeURIComponent(texto)
+    const cupom = montarCupom();
 
-window.open(url)
+    if (!cupom) return;
+
+    let numero = prompt("Digite o número com DDD (ex: 11999999999):");
+
+    if (!numero) return;
+
+    numero = numero.replace(/\D/g, ""); // remove tudo que não é número
+
+    const mensagem = encodeURIComponent("🧾 *Cupom da sua compra*:\n\n" + cupom);
+
+    const url = `https://wa.me/55${numero}?text=${mensagem}`;
+
+    window.open(url, "_blank");
 }
 
 // ================= RELATÓRIO =================
