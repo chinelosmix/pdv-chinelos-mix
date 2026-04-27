@@ -1005,7 +1005,10 @@ function selecionarProduto(codigo){
         atualizarTela();
     }
 }
-   
+function show(tela){
+    document.querySelectorAll('.box').forEach(el => el.style.display = "none");
+    document.getElementById(tela).style.display = "block";
+}   
 </script>
 </body>
 </html>
