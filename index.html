@@ -953,18 +953,55 @@ function gerarNumeroCupom() {
            agora.getDate().toString().padStart(2, '0') + '-' +
            Math.floor(Math.random() * 10000);
 }
-function adicionarNaVenda(produto) {
+function adicionarPorCodigo(){
+
+    const codigo = document.getElementById("codVenda").value.trim();
+
+    if (!codigo) {
+        alert("Digite o código do produto!");
+        return;
+    }
+
+    const produto = produtos.find(p => String(p.codigo) === String(codigo));
+
+    if (!produto) {
+        alert("Produto não encontrado!");
+        return;
+    }
 
     venda.push({
         nome: produto.nome,
         qtd: 1,
-        preco: Number(produto.preco || produto.valor || 0)
+        preco: Number(produto.valor)
     });
+
+    console.log("VENDA:", venda);
 
     if (typeof atualizarTela === "function") {
         atualizarTela();
     }
+}
+function selecionarProduto(codigo){
+
+    const produto = produtos.find(p => String(p.codigo) === String(codigo));
+
+    if (!produto) {
+        alert("Produto não encontrado!");
+        return;
     }
+
+    venda.push({
+        nome: produto.nome,
+        qtd: 1,
+        preco: Number(produto.valor)
+    });
+
+    console.log("VENDA:", venda);
+
+    if (typeof atualizarTela === "function") {
+        atualizarTela();
+    }
+}
    
 </script>
 </body>
