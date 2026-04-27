@@ -918,8 +918,33 @@ document.getElementById("listaBusca").innerHTML = filtrados.map(p=>`
 `).join("")
 }
 function selecionarProduto(codigo){
-  document.getElementById("codVenda").value = codigo
-  show("ven")
+
+    const produto = produtos.find(p => String(p.codigo) === String(codigo));
+
+    if (!produto) {
+        alert("Produto não encontrado!");
+        return;
+    }
+
+    if (produto.valor === undefined) {
+        alert("Produto sem preço!");
+        console.log(produto);
+        return;
+    }
+
+    // 🔥 adiciona direto na venda
+    venda.push({
+        nome: produto.nome,
+        qtd: 1,
+        preco: Number(produto.valor)
+    });
+
+    console.log("VENDA:", venda);
+
+    atualizarTela();
+
+    show('ven');
+}
 }
 function gerarNumeroCupom() {
     const agora = new Date();
@@ -978,6 +1003,18 @@ function adicionarNaVenda(produto) {
     });
 
     console.log("VENDA:", venda);
+
+    atualizarTela();
+}
+function selecionarProduto(produto) {
+
+    console.log("SELECIONADO:", produto);
+
+    venda.push({
+        nome: produto.nome,
+        qtd: 1,
+        preco: Number(produto.valor)
+    });
 
     atualizarTela();
 }
