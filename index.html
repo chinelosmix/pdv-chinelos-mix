@@ -81,7 +81,7 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <div style="margin-top:10px; display:flex; gap:10px;">
 <button onclick="toggleScannerVenda()">📷 Scanner</button>
-<button onclick="adicionarProduto()">Adicionar</button>
+<button onclick="adicionarPorCodigo()">Adicionar</button>
 <button onclick="abrirBusca()">Buscar</button>
 </div>
 
@@ -964,38 +964,22 @@ function adicionarNaVenda(produto) {
     if (typeof atualizarTela === "function") {
         atualizarTela();
     }
-}function adicionarProduto() {
+function adicionarPorCodigo(){
 
-    const valorDigitado = document.querySelector("input").value.trim();
+    const codigo = document.getElementById("codVenda").value.trim();
 
-    if (!valorDigitado) {
-        alert("Digite o código!");
+    if (!codigo) {
+        alert("Digite o código do produto!");
         return;
     }
 
-    // 🔎 procura só por código
-    const produto = produtos.find(p => String(p.codigo) === valorDigitado);
+    const produto = produtos.find(p => String(p.codigo) === String(codigo));
 
     if (!produto) {
         alert("Produto não encontrado!");
         return;
     }
 
-    // ❌ se não tiver preço
-    if (produto.valor === undefined) {
-        alert("Produto sem preço cadastrado!");
-        console.log("PRODUTO PROBLEMÁTICO:", produto);
-        return;
-    }
-
-    // ❌ se não tiver nome
-    if (!produto.nome) {
-        alert("Produto sem nome!");
-        console.log("PRODUTO PROBLEMÁTICO:", produto);
-        return;
-    }
-
-    // ✅ adiciona corretamente
     venda.push({
         nome: produto.nome,
         qtd: 1,
@@ -1004,7 +988,9 @@ function adicionarNaVenda(produto) {
 
     console.log("VENDA:", venda);
 
-    atualizarTela();
+    if (typeof atualizarTela === "function") {
+        atualizarTela();
+    }
 }
 function selecionarProduto(produto) {
 
