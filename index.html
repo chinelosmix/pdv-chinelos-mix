@@ -1096,6 +1096,18 @@ function atualizarDiferenca(){
     document.getElementById("diferenca").innerText =
         "Diferença: R$ " + diferenca.toFixed(2);
 }
+function salvarHistorico(tipo, total){
+
+    const historico = JSON.parse(localStorage.getItem("historicoPDV")) || [];
+
+    historico.push({
+        tipo,
+        total,
+        data: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("historicoPDV", JSON.stringify(historico));
+}
 </script>
 </body>
 </html>
