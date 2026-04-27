@@ -998,7 +998,40 @@ function selecionarProduto(codigo){
 function show(tela){
     document.querySelectorAll('.box').forEach(el => el.style.display = "none");
     document.getElementById(tela).style.display = "block";
-}   
+} 
+function atualizarTela(){
+
+    const lista = document.getElementById("listaVenda");
+    const totalEl = document.getElementById("total");
+
+    if (!lista || !totalEl) return;
+
+    lista.innerHTML = "";
+
+    let total = 0;
+
+    venda.forEach((item, i) => {
+
+        const preco = Number(item.preco || 0);
+        const subtotal = item.qtd * preco;
+
+        total += subtotal;
+
+        lista.innerHTML += `
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <div>
+                    <strong>${item.nome}</strong><br>
+                    ${item.qtd}x R$ ${preco.toFixed(2)}
+                </div>
+                <div>
+                    R$ ${subtotal.toFixed(2)}
+                </div>
+            </div>
+        `;
+    });
+
+    totalEl.innerText = "Total: R$ " + total.toFixed(2);
+}
 </script>
 </body>
 </html>
