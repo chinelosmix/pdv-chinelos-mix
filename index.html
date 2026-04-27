@@ -597,16 +597,21 @@ function enviarWhatsUltima() {
     }
 
     const cupom = montarCupom();
-
     if (!cupom) return;
 
     let numero = prompt("Digite o número com DDD (ex: 11999999999):");
-
     if (!numero) return;
 
-    numero = numero.replace(/\D/g, ""); // remove tudo que não é número
+    numero = numero.replace(/\D/g, "");
 
-    const mensagem = encodeURIComponent("🧾 *Cupom da sua compra*:\n\n" + cupom);
+    // 🔥 QUEBRA DE LINHA CORRETA PRO WHATSAPP
+    let mensagem = "🧾 *CUPOM DA COMPRA*%0A%0A";
+
+    venda.forEach(item => {
+        mensagem += `${item.nome} - ${item.qtd}x R$ ${item.preco}%0A`;
+    });
+
+    mensagem += `%0ATOTAL: R$ ${venda.reduce((t, i) => t + (i.qtd * i.preco), 0).toFixed(2)}`;
 
     const url = `https://wa.me/55${numero}?text=${mensagem}`;
 
