@@ -552,7 +552,9 @@ addVenda()
 // TROCO
 function calcularTroco(){
 
-    const recebido = Number(document.getElementById("valorRecebido").value);
+    const pagoInput = document.getElementById("valorRecebido").value;
+
+    const pago = Number(pagoInput || 0);
 
     let total = 0;
 
@@ -560,28 +562,15 @@ function calcularTroco(){
         total += item.qtd * Number(item.preco || 0);
     });
 
-    if (!recebido || recebido < total) {
-        document.getElementById("troco").innerText = "Troco: R$ 0.00";
-        return;
-    }
+    let troco = pago - total;
 
-    const troco = recebido - total;
+    if (isNaN(troco) || troco < 0) {
+        troco = 0;
+    }
 
     document.getElementById("troco").innerText = 
         "Troco: R$ " + troco.toFixed(2);
 }
-
-// 👇 corrige vírgula
-let pagoInput = document.getElementById("valorPago").value.replace(",", ".")
-
-let pago = Number(pagoInput || 0)
-
-let troco = pago - total
-
-document.getElementById("troco").innerText = troco.toFixed(2)
-
-}
-
 // FINALIZAR
 function finalizarVenda() {
 
