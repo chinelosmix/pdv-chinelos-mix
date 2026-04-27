@@ -994,7 +994,7 @@ function adicionarPorCodigo(){
 
 function selecionarProduto(codigo){
 
-    const produto = produtos.find(p => String(p.codigo) === String(codigo));
+   const produto = produtos.find(p => String(p.codigo) === String(codigo));
 
     if (!produto) {
         alert("Produto não encontrado!");
