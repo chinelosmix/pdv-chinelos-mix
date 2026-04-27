@@ -477,9 +477,21 @@ function montarCupom() {
 
     venda.forEach(item => {
 
+        // 🧠 nome
         const nome = item.nome || item.produto || "Produto";
-        const qtd = item.qtd || item.quantidade || 1;
-       const preco = item.preco ?? item.valor ?? 0;
+
+        // 🧠 quantidade
+        const qtd = Number(item.qtd || item.quantidade || 1);
+
+        // 🧠 preço (resolve QUALQUER formato)
+        let preco = item.preco ?? item.valor ?? item.price ?? item.preço ?? 0;
+
+        // 🔥 converte para número (resolve string)
+        preco = Number(preco);
+
+        // 🔥 se ainda for inválido, vira 0
+        if (isNaN(preco)) preco = 0;
+
         cupom += `${nome} - ${qtd}x R$ ${preco.toFixed(2)}\n`;
 
         total += qtd * preco;
