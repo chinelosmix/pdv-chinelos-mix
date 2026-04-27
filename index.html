@@ -101,7 +101,7 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <option value="Cartão">Cartão</option>
 </select>
 
-<input id="valorPago" placeholder="Valor recebido">
+<input id="valorRecebido" placeholder="Valor recebido">
 <p>Troco: R$ <span id="troco">0.00</span></p>
 
 <button onclick="calcularTroco()">Calcular Troco</button>
@@ -552,11 +552,24 @@ addVenda()
 // TROCO
 function calcularTroco(){
 
-let total = 0
+    const recebido = Number(document.getElementById("valorRecebido").value);
 
-venda.forEach(p=>{
-  total += Number(p.valor) * Number(p.qtd)
-})
+    let total = 0;
+
+    venda.forEach(item => {
+        total += item.qtd * Number(item.preco || 0);
+    });
+
+    if (!recebido || recebido < total) {
+        document.getElementById("troco").innerText = "Troco: R$ 0.00";
+        return;
+    }
+
+    const troco = recebido - total;
+
+    document.getElementById("troco").innerText = 
+        "Troco: R$ " + troco.toFixed(2);
+}
 
 // 👇 corrige vírgula
 let pagoInput = document.getElementById("valorPago").value.replace(",", ".")
