@@ -928,6 +928,18 @@ function gerarNumeroCupom() {
            agora.getDate().toString().padStart(2, '0') + '-' +
            Math.floor(Math.random() * 10000);
 }
+function adicionarNaVenda(produto) {
+
+    venda.push({
+        nome: produto.nome,
+        qtd: 1,
+        preco: Number(produto.preco || produto.valor || 0)
+    });
+
+    if (typeof atualizarTela === "function") {
+        atualizarTela();
+    }
+}
 </script>
 </body>
 </html>
