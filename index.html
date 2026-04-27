@@ -942,24 +942,31 @@ function adicionarNaVenda(produto) {
 }
 function adicionarProduto() {
 
-    // 🔥 pega o código do campo correto
-    const codigo = document.querySelector("input").value.trim();
+    const codigoDigitado = document.querySelector("input").value.trim();
 
-    // 🔎 procura no array
-    const produto = produtos.find(p => String(p.codigo) === codigo);
-
-    if (!produto) {
-        alert("Produto não encontrado!");
-        console.log("PRODUTOS:", produtos);
-        console.log("CODIGO DIGITADO:", codigo);
+    if (!codigoDigitado) {
+        alert("Digite o código do produto!");
         return;
     }
 
-    // ✅ adiciona com preço correto
+    console.log("DIGITADO:", codigoDigitado);
+    console.log("LISTA PRODUTOS:", produtos);
+
+    // 🔥 procura ignorando tipo (string/numero)
+    const produto = produtos.find(p => 
+        String(p.codigo || p.cod || p.id) == codigoDigitado
+    );
+
+    if (!produto) {
+        alert("Produto não encontrado!");
+        return;
+    }
+
+    // 🔥 adiciona corretamente
     venda.push({
-        nome: produto.nome,
+        nome: produto.nome || produto.produto || "Produto",
         qtd: 1,
-        preco: Number(produto.preco || produto.valor || 0)
+        preco: Number(produto.preco || produto.valor || produto.price || 0)
     });
 
     console.log("VENDA:", venda);
