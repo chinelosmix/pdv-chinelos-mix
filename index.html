@@ -933,6 +933,13 @@ function selecionarProduto(codigo){
   document.getElementById("codVenda").value = codigo
   show("ven")
 }
+function gerarNumeroCupom() {
+    const agora = new Date();
+    return 'CUPOM-' + agora.getFullYear() +
+           (agora.getMonth() + 1).toString().padStart(2, '0') +
+           agora.getDate().toString().padStart(2, '0') + '-' +
+           Math.floor(Math.random() * 10000);
+}
 </script>
 </body>
 </html>
