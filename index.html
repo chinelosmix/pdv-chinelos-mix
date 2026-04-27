@@ -81,7 +81,7 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 
 <div style="margin-top:10px; display:flex; gap:10px;">
 <button onclick="toggleScannerVenda()">📷 Scanner</button>
-<button onclick="addVenda()">Adicionar</button>
+<button onclick="adicionarProduto()">Adicionar</button>
 <button onclick="abrirBusca()">Buscar</button>
 </div>
 
@@ -935,6 +935,29 @@ function adicionarNaVenda(produto) {
         qtd: 1,
         preco: Number(produto.preco || produto.valor || 0)
     });
+
+    if (typeof atualizarTela === "function") {
+        atualizarTela();
+    }
+}
+function adicionarProduto() {
+
+    const codigo = document.querySelectorAll("input")[0].value;
+
+    const produto = produtos.find(p => p.codigo == codigo);
+
+    if (!produto) {
+        alert("Produto não encontrado!");
+        return;
+    }
+
+    venda.push({
+        nome: produto.nome,
+        qtd: 1,
+        preco: Number(produto.preco || produto.valor || 0)
+    });
+
+    console.log("VENDA:", venda);
 
     if (typeof atualizarTela === "function") {
         atualizarTela();
