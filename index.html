@@ -134,9 +134,16 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <input id="codEntrada" placeholder="Código">
 <input id="qtdEntrada" value="1">
 <button onclick="addEntrada()">Adicionar</button>
-<input id="valorEntradaTroca" placeholder="Valor do produto devolvido">
 <table>
-<tbody id="listaEntrada"></tbody>
+    <thead>
+        <tr>
+            <th>Produto</th>
+            <th>Qtd</th>
+            <th>Valor</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody id="listaEntrada"></tbody>
 </table>
 
 <h3>Total Entrada: R$ <span id="totalEntrada">0.00</span></h3>
@@ -788,45 +795,22 @@ document.getElementById("diferenca").innerText = dif.toFixed(2)
 
 function finalizarTroca(){
 
-    if (!venda || venda.length === 0) {
-        alert("Adicione produtos antes de finalizar!");
+    if (!venda.length && !entrada.length) {
+        alert("Adicione produtos!");
         return;
     }
 
-    let total = 0;
-    let cupom = "*** TROCA ***\n\n";
-
-    venda.forEach(item => {
-        const preco = Number(item.preco || 0);
-        const subtotal = item.qtd * preco;
-
-        cupom += `${item.nome} - ${item.qtd}x R$ ${preco.toFixed(2)} = R$ ${subtotal.toFixed(2)}\n`;
-
-        total += subtotal;
-    });
-
-    // 🔥 diferença (valor antigo - valor novo)
-    const valorEntrada = Number(document.getElementById("valorEntradaTroca")?.value || 0);
-    const diferenca = total - valorEntrada;
-
-    cupom += `\nTotal Saída: R$ ${total.toFixed(2)}`;
-    cupom += `\nValor Entrada: R$ ${valorEntrada.toFixed(2)}`;
-    cupom += `\nDiferença: R$ ${diferenca.toFixed(2)}`;
-
-    if (diferenca > 0) {
-        cupom += "\nCliente paga diferença";
-    } else if (diferenca < 0) {
-        cupom += "\nLoja devolve diferença";
-    } else {
-        cupom += "\nTroca sem diferença";
-    }
+    const cupom = montarCupomTroca();
 
     imprimirCupom(cupom);
 
-    salvarHistorico("troca", total);
+    salvarHistorico("troca", 0);
 
     venda = [];
+    entrada = [];
+
     atualizarTela();
+    atualizarTelaTroca();
 }
 function abrirTroca(){
   show("troca")
@@ -859,30 +843,47 @@ async function atualizarEstoqueTroca(){
   }
 
 }
-function montarCupom() {
+function montarCupomTroca(){
 
-    if (!venda || venda.length === 0) {
-        alert("Nenhum produto na venda!");
-        return "";
-    }
+    let linha = "----------------------------------------\n";
+    let texto = "*** TROCA ***\n\n";
 
-    let cupom = "";
-    let total = 0;
+    let totalSaida = 0;
+    let totalEntrada = 0;
+
+    texto += "PRODUTOS NOVOS:\n";
 
     venda.forEach(item => {
-        if (!item) return;
-
-        const nome = item.nome || "Produto";
-        const qtd = item.qtd || 1;
-        const preco = item.preco || 0;
-
-        cupom += `${nome} - ${qtd}x R$ ${preco}\n`;
-        total += qtd * preco;
+        const sub = item.qtd * item.preco;
+        texto += `${item.nome} - ${item.qtd}x R$ ${item.preco.toFixed(2)} = R$ ${sub.toFixed(2)}\n`;
+        totalSaida += sub;
     });
 
-    cupom += "\nTOTAL: R$ " + total.toFixed(2);
+    texto += linha;
 
-    return cupom;
+    texto += "PRODUTOS DEVOLVIDOS:\n";
+
+    entrada.forEach(item => {
+        const sub = item.qtd * item.preco;
+        texto += `${item.nome} - ${item.qtd}x R$ ${item.preco.toFixed(2)} = R$ ${sub.toFixed(2)}\n`;
+        totalEntrada += sub;
+    });
+
+    const diferenca = totalSaida - totalEntrada;
+
+    texto += linha;
+    texto += `Total Saída: R$ ${totalSaida.toFixed(2)}\n`;
+    texto += `Total Entrada: R$ ${totalEntrada.toFixed(2)}\n`;
+    texto += `Diferença: R$ ${diferenca.toFixed(2)}\n`;
+
+    if (diferenca > 0) texto += "Cliente paga diferença\n";
+    else if (diferenca < 0) texto += "Loja devolve diferença\n";
+    else texto += "Sem diferença\n";
+
+    texto += linha;
+    texto += "Obrigado pela preferência!\n";
+
+    return texto;
 }
 function imprimirTroca(){
 
@@ -1018,38 +1019,37 @@ function show(tela){
     document.querySelectorAll('.box').forEach(el => el.style.display = "none");
     document.getElementById(tela).style.display = "block";
 } 
-function atualizarTela(){
+function atualizarTelaTroca(){
 
-    const lista = document.getElementById("listaVenda");
-    const totalEl = document.getElementById("total");
-
-    if (!lista || !totalEl) return;
-
+    const lista = document.getElementById("listaEntrada");
     lista.innerHTML = "";
 
-    let total = 0;
+    let totalEntrada = 0;
 
-    venda.forEach((item, i) => {
+    entrada.forEach((item, i) => {
 
-        const preco = Number(item.preco || 0);
-        const subtotal = item.qtd * preco;
-
-        total += subtotal;
+        const subtotal = item.qtd * item.preco;
+        totalEntrada += subtotal;
 
         lista.innerHTML += `
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                <div>
-                    <strong>${item.nome}</strong><br>
-                    ${item.qtd}x R$ ${preco.toFixed(2)}
-                </div>
-                <div>
-                    R$ ${subtotal.toFixed(2)}
-                </div>
-            </div>
+            <tr>
+                <td>${item.nome}</td>
+                <td>
+                    <input type="number" value="${item.qtd}" min="1"
+                    onchange="editarQtdEntrada(${i}, this.value)">
+                </td>
+                <td>R$ ${item.preco.toFixed(2)}</td>
+                <td>
+                    <button onclick="removerEntrada(${i})">❌</button>
+                </td>
+            </tr>
         `;
     });
 
-    totalEl.innerText = "Total: R$ " + total.toFixed(2);
+    document.getElementById("totalEntrada").innerText =
+        "Total Entrada: R$ " + totalEntrada.toFixed(2);
+
+    atualizarDiferenca();
 }
 function salvarHistorico(tipo, total){
 
@@ -1074,6 +1074,27 @@ function verHistorico(){
     });
 
     alert(texto);
+}
+function editarQtdEntrada(index, qtd){
+    entrada[index].qtd = Number(qtd);
+    atualizarTelaTroca();
+}
+function removerEntrada(index){
+    entrada.splice(index, 1);
+    atualizarTelaTroca();
+}
+function atualizarDiferenca(){
+
+    let totalSaida = 0;
+    let totalEntrada = 0;
+
+    venda.forEach(item => totalSaida += item.qtd * item.preco);
+    entrada.forEach(item => totalEntrada += item.qtd * item.preco);
+
+    const diferenca = totalSaida - totalEntrada;
+
+    document.getElementById("diferenca").innerText =
+        "Diferença: R$ " + diferenca.toFixed(2);
 }
 </script>
 </body>
