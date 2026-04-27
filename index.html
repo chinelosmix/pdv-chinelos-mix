@@ -134,7 +134,7 @@ td,th{border-bottom:1px solid #334155;padding:8px}
 <input id="codEntrada" placeholder="Código">
 <input id="qtdEntrada" value="1">
 <button onclick="addEntrada()">Adicionar</button>
-
+<input id="valorEntradaTroca" placeholder="Valor do produto devolvido">
 <table>
 <tbody id="listaEntrada"></tbody>
 </table>
@@ -781,12 +781,39 @@ function finalizarTroca(){
         return;
     }
 
-    const cupom = "*** TROCA ***\n\n" + montarCupom();
+    let total = 0;
+    let cupom = "*** TROCA ***\n\n";
+
+    venda.forEach(item => {
+        const preco = Number(item.preco || 0);
+        const subtotal = item.qtd * preco;
+
+        cupom += `${item.nome} - ${item.qtd}x R$ ${preco.toFixed(2)} = R$ ${subtotal.toFixed(2)}\n`;
+
+        total += subtotal;
+    });
+
+    // 🔥 diferença (valor antigo - valor novo)
+    const valorEntrada = Number(document.getElementById("valorEntradaTroca")?.value || 0);
+    const diferenca = total - valorEntrada;
+
+    cupom += `\nTotal Saída: R$ ${total.toFixed(2)}`;
+    cupom += `\nValor Entrada: R$ ${valorEntrada.toFixed(2)}`;
+    cupom += `\nDiferença: R$ ${diferenca.toFixed(2)}`;
+
+    if (diferenca > 0) {
+        cupom += "\nCliente paga diferença";
+    } else if (diferenca < 0) {
+        cupom += "\nLoja devolve diferença";
+    } else {
+        cupom += "\nTroca sem diferença";
+    }
 
     imprimirCupom(cupom);
 
-    venda = [];
+    salvarHistorico("troca", total);
 
+    venda = [];
     atualizarTela();
 }
 function abrirTroca(){
