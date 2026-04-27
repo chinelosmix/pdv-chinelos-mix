@@ -774,41 +774,25 @@ let dif = totalSaida - totalEntrada
 document.getElementById("diferenca").innerText = dif.toFixed(2)
 }
 
-async function finalizarTroca(){
+function finalizarTroca(){
 
-if(!entrada.length && !saida.length){
-alert("Nenhuma troca")
-return
-}
+    if (!venda || venda.length === 0) {
+        alert("Adicione produtos antes de finalizar!");
+        return;
+    }
 
-// atualiza estoque
-await atualizarEstoqueTroca()
+    const cupom = montarCupom();
 
-// salva no banco
-await salvarTroca()
+    imprimirCupom(cupom);
 
-// imprime
-imprimirTroca()
+    // limpa depois
+    venda = [];
 
-let dif = totalSaida - totalEntrada
+    if (typeof atualizarTela === "function") {
+        atualizarTela();
+    }
 
-if(dif > 0){
-alert("Cliente pagou diferença")
-}else if(dif < 0){
-alert("Cliente ficou com crédito")
-}else{
-alert("Troca concluída")
-}
-
-// limpar
-entrada = []
-saida = []
-totalEntrada = 0
-totalSaida = 0
-
-renderTroca()
-
-show("ven")
+    alert("Troca finalizada!");
 }
 
 function abrirTroca(){
