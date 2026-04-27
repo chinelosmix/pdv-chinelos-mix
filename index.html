@@ -900,11 +900,10 @@ function abrirBusca(){
     show('busca');
     renderBusca();
 }
-}
+
 function renderBusca(){
 
     const termo = document.getElementById("buscaInput").value.toLowerCase();
-
     const lista = document.getElementById("listaBusca");
 
     lista.innerHTML = "";
@@ -938,23 +937,15 @@ function selecionarProduto(codigo){
         return;
     }
 
-    if (produto.valor === undefined) {
-        alert("Produto sem preço!");
-        console.log(produto);
-        return;
-    }
-
-    // 🔥 adiciona direto na venda
     venda.push({
         nome: produto.nome,
         qtd: 1,
         preco: Number(produto.valor)
     });
 
-    console.log("VENDA:", venda);
-
     atualizarTela();
 
+    // 🔥 VOLTA PRA VENDA AUTOMATICO
     show('ven');
 }
 
