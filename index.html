@@ -942,15 +942,20 @@ function adicionarNaVenda(produto) {
 }
 function adicionarProduto() {
 
-    const codigo = document.querySelectorAll("input")[0].value;
+    // 🔥 pega o código do campo correto
+    const codigo = document.querySelector("input").value.trim();
 
-    const produto = produtos.find(p => p.codigo == codigo);
+    // 🔎 procura no array
+    const produto = produtos.find(p => String(p.codigo) === codigo);
 
     if (!produto) {
         alert("Produto não encontrado!");
+        console.log("PRODUTOS:", produtos);
+        console.log("CODIGO DIGITADO:", codigo);
         return;
     }
 
+    // ✅ adiciona com preço correto
     venda.push({
         nome: produto.nome,
         qtd: 1,
