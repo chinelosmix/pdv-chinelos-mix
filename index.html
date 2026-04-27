@@ -903,30 +903,20 @@ function abrirBusca(){
 
 function renderBusca(){
 
-    const termo = document.getElementById("buscaInput").value.toLowerCase();
-    const lista = document.getElementById("listaBusca");
+let termo = document.getElementById("buscaInput").value?.toLowerCase() || ""
 
-    lista.innerHTML = "";
+let filtrados = produtos.filter(p =>
+  p.nome.toLowerCase().includes(termo) ||
+  String(p.codigo).includes(termo)
+)
 
-    produtos
-        .filter(p =>
-            (p.nome && p.nome.toLowerCase().includes(termo)) ||
-            (p.codigo && String(p.codigo).includes(termo))
-        )
-        .forEach(produto => {
-
-            lista.innerHTML += `
-                <tr>
-                    <td>${produto.nome}</td>
-                    <td>R$ ${Number(produto.valor).toFixed(2)}</td>
-                    <td>
-                        <button onclick="selecionarProduto('${produto.codigo}')">
-                            Selecionar
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
+document.getElementById("listaBusca").innerHTML = filtrados.map(p=>`
+<tr>
+<td>${p.nome}</td>
+<td>R$ ${p.valor}</td>
+<td><button onclick="selecionarProduto('${p.codigo}')">Selecionar</button></td>
+</tr>
+`).join("")
 }
 function selecionarProduto(codigo){
 
