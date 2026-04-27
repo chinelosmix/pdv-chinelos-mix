@@ -465,38 +465,30 @@ totalVenda -= venda[i].valor*venda[i].qtd
 venda.splice(i,1)
 renderVenda()
 }
-function montarCupom(venda){
+function montarCupom() {
 
-let numero = venda.cupom || gerarNumeroCupom()
+    if (!venda || venda.length === 0) {
+        alert("Nenhum produto na venda!");
+        return "";
+    }
 
-let texto = ""
+    let cupom = "";
+    let total = 0;
 
-texto += "CHINELOS MIX\n"
-texto += "CNPJ: 46.982.791/0001-01\n"
-texto += "AV. LEONOR BOSONE MARQUES DA SILVA, 45\n"
-texto += "POÁ - SP\n\n"
+    venda.forEach(item => {
 
-texto += "CUPOM: " + numero + "\n"
-texto += "FUNCIONÁRIO: " + (venda.usuario || "") + "\n"
-texto += "DATA: " + new Date().toLocaleString() + "\n"
+        const nome = item.nome || item.produto || "Produto";
+        const qtd = item.qtd || item.quantidade || 1;
+        const preco = item.preco || item.valor || 0;
 
-texto += "--------------------------------\n"
+        cupom += `${nome} - ${qtd}x R$ ${preco.toFixed(2)}\n`;
 
-venda.itens.forEach(p=>{
-texto += `${p.nome} x${p.qtd}\n`
-texto += `R$ ${(p.valor*p.qtd).toFixed(2)}\n`
-})
+        total += qtd * preco;
+    });
 
-texto += "--------------------------------\n"
+    cupom += "\nTOTAL: R$ " + total.toFixed(2);
 
-texto += `TOTAL: R$ ${venda.total.toFixed(2)}\n`
-texto += `PAGAMENTO: ${venda.pagamento}\n`
-texto += `RECEBIDO: R$ ${venda.pago.toFixed(2)}\n`
-texto += `TROCO: R$ ${venda.troco.toFixed(2)}\n`
-
-texto += "\nOBRIGADO, VOLTE SEMPRE!"
-
-return texto
+    return cupom;
 }
 function imprimirCupom(cupom) {
 
