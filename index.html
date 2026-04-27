@@ -498,31 +498,38 @@ texto += "\nOBRIGADO, VOLTE SEMPRE!"
 
 return texto
 }
-function imprimirCupom(){
+function imprimirCupom(cupom) {
 
-let conteudo = montarCupom(venda)
+    const janela = window.open('', '', 'width=300,height=600');
 
-let tela = window.open("", "_blank")
+    janela.document.write(`
+        <html>
+        <head>
+            <title>Cupom</title>
+            <style>
+                body {
+                    font-family: monospace;
+                    font-size: 14px;
+                    padding: 10px;
+                }
+                hr {
+                    border-top: 1px dashed #000;
+                }
+            </style>
+        </head>
+        <body>
+            <h3>*** CUPOM ***</h3>
+            <hr>
+            <pre>${cupom}</pre>
+            <hr>
+            <p>Obrigado pela preferência!</p>
+        </body>
+        </html>
+    `);
 
-tela.document.write(`
-<html>
-<head>
-<title>Cupom</title>
-</head>
-<body style="font-family:monospace;white-space:pre;">
-${conteudo}
-<script>
-window.onload = function(){
-  window.print();
-  setTimeout(()=>window.close(),500);
-}
-<\/script>
-</body>
-</html>
-`)
+    janela.document.close();
 
-tela.document.close()
-
+    janela.print();
 }
 // BUSCA
 function buscarProduto(){
