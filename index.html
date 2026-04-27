@@ -1039,6 +1039,30 @@ function atualizarTela(){
 
     totalEl.innerText = "Total: R$ " + total.toFixed(2);
 }
+function salvarHistorico(tipo, total){
+
+    const historico = JSON.parse(localStorage.getItem("historicoPDV")) || [];
+
+    historico.push({
+        tipo: tipo,
+        total: total,
+        data: new Date().toLocaleString()
+    });
+
+    localStorage.setItem("historicoPDV", JSON.stringify(historico));
+}
+function verHistorico(){
+
+    const historico = JSON.parse(localStorage.getItem("historicoPDV")) || [];
+
+    let texto = "=== HISTÓRICO ===\n\n";
+
+    historico.forEach(h => {
+        texto += `${h.data} - ${h.tipo.toUpperCase()} - R$ ${h.total.toFixed(2)}\n`;
+    });
+
+    alert(texto);
+}
 </script>
 </body>
 </html>
