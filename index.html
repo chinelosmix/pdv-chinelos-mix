@@ -939,42 +939,47 @@ function adicionarNaVenda(produto) {
     if (typeof atualizarTela === "function") {
         atualizarTela();
     }
-}
-function adicionarProduto() {
+}function adicionarProduto() {
 
-    const valorDigitado = document.querySelector("input").value.trim().toLowerCase();
+    const valorDigitado = document.querySelector("input").value.trim();
 
     if (!valorDigitado) {
-        alert("Digite o código ou nome do produto!");
+        alert("Digite o código!");
         return;
     }
 
-    console.log("DIGITADO:", valorDigitado);
-    console.log("PRODUTOS:", produtos);
-
-    // 🔥 busca por código OU nome
-    const produto = produtos.find(p =>
-        String(p.codigo || "").toLowerCase() === valorDigitado ||
-        String(p.nome || "").toLowerCase().includes(valorDigitado)
-    );
+    // 🔎 procura só por código
+    const produto = produtos.find(p => String(p.codigo) === valorDigitado);
 
     if (!produto) {
         alert("Produto não encontrado!");
         return;
     }
 
-    // 🔥 adiciona corretamente com preço
+    // ❌ se não tiver preço
+    if (produto.valor === undefined) {
+        alert("Produto sem preço cadastrado!");
+        console.log("PRODUTO PROBLEMÁTICO:", produto);
+        return;
+    }
+
+    // ❌ se não tiver nome
+    if (!produto.nome) {
+        alert("Produto sem nome!");
+        console.log("PRODUTO PROBLEMÁTICO:", produto);
+        return;
+    }
+
+    // ✅ adiciona corretamente
     venda.push({
         nome: produto.nome,
         qtd: 1,
-        preco: Number(produto.preco || produto.valor || 0)
+        preco: Number(produto.valor)
     });
 
     console.log("VENDA:", venda);
 
-    if (typeof atualizarTela === "function") {
-        atualizarTela();
-    }
+    atualizarTela();
 }
 </script>
 </body>
