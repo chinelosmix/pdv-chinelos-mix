@@ -599,21 +599,11 @@ function enviarWhatsUltima() {
     const cupom = montarCupom();
     if (!cupom) return;
 
-    let numero = prompt("Digite o número com DDD (ex: 11999999999):");
-    if (!numero) return;
+    // 🔥 usa encode completo (mais seguro)
+    const mensagem = encodeURIComponent("🧾 CUPOM DA COMPRA:\n\n" + cupom);
 
-    numero = numero.replace(/\D/g, "");
-
-    // 🔥 QUEBRA DE LINHA CORRETA PRO WHATSAPP
-    let mensagem = "🧾 *CUPOM DA COMPRA*%0A%0A";
-
-    venda.forEach(item => {
-        mensagem += `${item.nome} - ${item.qtd}x R$ ${item.preco}%0A`;
-    });
-
-    mensagem += `%0ATOTAL: R$ ${venda.reduce((t, i) => t + (i.qtd * i.preco), 0).toFixed(2)}`;
-
-    const url = `https://wa.me/55${numero}?text=${mensagem}`;
+    // 🔥 VOLTAMOS PRO MODELO QUE FUNCIONA EM QUALQUER DISPOSITIVO
+    const url = "https://wa.me/?text=" + mensagem;
 
     window.open(url, "_blank");
 }
