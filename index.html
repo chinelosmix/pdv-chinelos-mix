@@ -560,51 +560,26 @@ document.getElementById("troco").innerText = troco.toFixed(2)
 }
 
 // FINALIZAR
-async function finalizarVenda(){
+function finalizarVenda() {
 
-if(venda.length === 0){
-  alert("Venda vazia")
-  return
-}
+    if (!venda || venda.length === 0) {
+        alert("Adicione produtos antes de finalizar!");
+        return;
+    }
 
-// TOTAL
-let total = venda.reduce((s,p)=> s + (Number(p.valor) * Number(p.qtd)),0)
+    const cupom = montarCupom();
 
-// PAGAMENTO
-let forma = document.getElementById("formaPagamento")?.value || ""
+    if (!cupom) return;
 
-// VALOR PAGO
-let pago = Number(
-  (document.getElementById("valorPago").value || "0").replace(",", ".")
-)
+    console.log(cupom);
 
-// TROCO
-let troco = pago - total
+    alert("Venda finalizada!");
 
-// SALVA NO FIREBASE
-await db.collection("vendas").add({
-  itens: venda,
-  total: total,
-  formaPagamento: forma,
-  valorPago: pago,
-  troco: troco,
-  data: new Date(),
-  usuario: usuarioAtual || "Caixa"
-})
+    venda = [];
 
-// IMPRIME CUPOM
-imprimirCupom()
-
-// LIMPA VENDA
-venda = []
-renderVenda()
-
-// LIMPA CAMPOS
-document.getElementById("valorPago").value = ""
-document.getElementById("troco").innerText = "0.00"
-
-alert("Venda finalizada com sucesso!")
-
+    if (typeof atualizarTela === "function") {
+        atualizarTela();
+    }
 }
 function enviarWhats(venda){
 
@@ -844,38 +819,30 @@ async function atualizarEstoqueTroca(){
   }
 
 }
-function montarCupomTroca(){
+function montarCupom() {
 
-let texto = ""
+    if (!venda || venda.length === 0) {
+        alert("Nenhum produto na venda!");
+        return "";
+    }
 
-texto += "CHINELOS MIX\n"
-texto += "TROCA\n\n"
+    let cupom = "";
+    let total = 0;
 
-texto += "DEVOLVIDO:\n"
-entrada.forEach(p=>{
-texto += p.nome + " x" + p.qtd + "\n"
-})
+    venda.forEach(item => {
+        if (!item) return;
 
-texto += "\nNOVO:\n"
-saida.forEach(p=>{
-texto += p.nome + " x" + p.qtd + "\n"
-})
+        const nome = item.nome || "Produto";
+        const qtd = item.qtd || 1;
+        const preco = item.preco || 0;
 
-let dif = totalSaida - totalEntrada
+        cupom += `${nome} - ${qtd}x R$ ${preco}\n`;
+        total += qtd * preco;
+    });
 
-texto += "\n------------------\n"
+    cupom += "\nTOTAL: R$ " + total.toFixed(2);
 
-if(dif > 0){
-texto += "CLIENTE PAGOU: R$ " + dif.toFixed(2)
-}else if(dif < 0){
-texto += "CRÉDITO: R$ " + Math.abs(dif).toFixed(2)
-}else{
-texto += "SEM DIFERENÇA"
-}
-
-texto += "\nOBRIGADO VOLTE SEMPRE"
-
-return texto
+    return cupom;
 }
 function imprimirTroca(){
 
