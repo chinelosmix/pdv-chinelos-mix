@@ -725,17 +725,29 @@ let totalSaida = 0
 
 function addEntrada(){
 
-let p = produtos.find(x=>x.codigo==codEntrada.value)
-if(!p){ alert("Produto não encontrado"); return }
+    const codigo = document.getElementById("codEntrada").value.trim();
+    const qtd = Number(document.getElementById("qtdEntrada").value || 1);
 
-let q = Number(qtdEntrada.value)
+    const produto = produtos.find(p => String(p.codigo) === String(codigo));
 
-entrada.push({...p,qtd:q})
-totalEntrada += p.valor*q
+    if (!produto) {
+        alert("Produto não encontrado!");
+        return;
+    }
 
-renderTroca()
+    // 🔥 AQUI ESTÁ A CORREÇÃO
+    venda.push({
+        nome: produto.nome,
+        qtd: qtd,
+        preco: Number(produto.valor)
+    });
+
+    console.log("TROCA VENDA:", venda);
+
+    if (typeof atualizarTela === "function") {
+        atualizarTela();
+    }
 }
-
 function addSaida(){
 
 let p = produtos.find(x=>x.codigo==codSaida.value)
