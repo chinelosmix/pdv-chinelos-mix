@@ -327,9 +327,7 @@ function etiqueta(codigo,nome,valor,cor="",numero=""){
 
     const w = window.open("", "", "width=800,height=600");
 
-    w.document.open();
-
-    w.document.write(`
+    const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -400,49 +398,51 @@ body{
 
 <div class="pagina">
 
-<div class="etiqueta">
-    <div class="logo">
-        <img src="logo.png">
+    <!-- ETIQUETA 1 -->
+    <div class="etiqueta">
+        <div class="logo">
+            <img src="logo.png">
+        </div>
+
+        <div class="codigo">${codigo}</div>
+
+        <div class="barras">
+            <svg id="barcode1"></svg>
+        </div>
+
+        <div class="info">
+            <strong>${nome}</strong><br>
+            COR: ${cor}<br>
+            TAM: ${numero}
+        </div>
+
+        <div class="preco">
+            R$ <span class="valor">${Number(valor).toFixed(2)}</span>
+        </div>
     </div>
 
-    <div class="codigo">${codigo}</div>
+    <!-- ETIQUETA 2 -->
+    <div class="etiqueta">
+        <div class="logo">
+            <img src="logo.png">
+        </div>
 
-    <div class="barras">
-        <svg id="barcode1"></svg>
+        <div class="codigo">${codigo}</div>
+
+        <div class="barras">
+            <svg id="barcode2"></svg>
+        </div>
+
+        <div class="info">
+            <strong>${nome}</strong><br>
+            COR: ${cor}<br>
+            TAM: ${numero}
+        </div>
+
+        <div class="preco">
+            R$ <span class="valor">${Number(valor).toFixed(2)}</span>
+        </div>
     </div>
-
-    <div class="info">
-        <strong>${nome}</strong><br>
-        COR: ${cor}<br>
-        TAM: ${numero}
-    </div>
-
-    <div class="preco">
-        R$ <span class="valor">${valor}</span>
-    </div>
-</div>
-
-<div class="etiqueta">
-    <div class="logo">
-        <img src="logo.png">
-    </div>
-
-    <div class="codigo">${codigo}</div>
-
-    <div class="barras">
-        <svg id="barcode2"></svg>
-    </div>
-
-    <div class="info">
-        <strong>${nome}</strong><br>
-        COR: ${cor}<br>
-        TAM: ${numero}
-    </div>
-
-    <div class="preco">
-        R$ <span class="valor">${valor}</span>
-    </div>
-</div>
 
 </div>
 
@@ -458,8 +458,10 @@ window.onload = function(){
 
 </body>
 </html>
-`);
+`;
 
+    w.document.open();
+    w.document.write(html);
     w.document.close();
 }
 // ================= VENDA =================
