@@ -323,7 +323,7 @@ db.collection("produtos").doc(id).delete()
 
 }
 
-function etiqueta(codigo, nome, valor, cor = "", numero = "") {
+function etiqueta(codigo, nome, valor, cor="", numero=""){
 
     const w = window.open("", "", "width=800,height=600");
 
@@ -335,70 +335,44 @@ function etiqueta(codigo, nome, valor, cor = "", numero = "") {
 
 <style>
 body{margin:0;font-family:Arial;}
-
-.pagina{
-    width:80mm;
-    display:flex;
-    gap:4mm;
-    padding:2mm;
-}
+.pagina{width:80mm;display:flex;gap:4mm;padding:2mm;}
 
 .etiqueta{
-    width:40mm;
-    height:60mm;
-    border:2px solid #000;
-    border-radius:6px;
-    padding:3mm;
-    box-sizing:border-box;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
+width:40mm;height:60mm;
+border:2px solid #000;
+border-radius:8px;
+padding:3mm;
+box-sizing:border-box;
+display:flex;
+flex-direction:column;
+justify-content:space-between;
 }
 
-/* LOGO */
-.logo{
-    text-align:center;
-}
-.logo img{
-    height:12mm;
-    object-fit:contain;
-}
+.logo{text-align:center;}
+.logo img{height:18mm;object-fit:contain;}
 
-/* NUMERO CODIGO */
 .codigo{
-    text-align:center;
-    font-size:10px;
-    font-weight:bold;
-    letter-spacing:2px;
+text-align:center;
+font-size:12px;
+font-weight:bold;
+margin:2px 0;
 }
 
-/* BARRAS */
-.barras{
-    text-align:center;
-}
 .barras svg{
-    width:100%;
-    height:14mm;
+width:100%;
+height:18mm;
 }
 
-/* INFO */
 .info{
-    font-size:9px;
-    border-top:1px solid #000;
-    padding-top:2px;
-}
-.info strong{
-    font-size:10px;
+font-size:11px;
+border-top:1px solid #000;
+padding-top:2px;
 }
 
-/* PREÇO */
 .preco{
-    text-align:center;
-    font-weight:bold;
-    font-size:22px;
-}
-.preco span{
-    font-size:12px;
+text-align:center;
+font-weight:bold;
+font-size:24px;
 }
 </style>
 
@@ -410,85 +384,72 @@ body{margin:0;font-family:Arial;}
 
 <!-- ETIQUETA 1 -->
 <div class="etiqueta">
+    <div class="logo">
+        <img src="https://i.imgur.com/8Km9tLL.png">
+    </div>
 
-<div class="logo">
-<img src="https://i.imgur.com/YOURLOGO.png">
-</div>
+    <div class="codigo">${codigo}</div>
 
-<div class="codigo">${codigo}</div>
+    <div class="barras">
+        <svg id="barcode1"></svg>
+    </div>
 
-<div class="barras">
-<svg id="barcode1"></svg>
-</div>
+    <div class="info">
+        <strong>${nome}</strong><br>
+        COR: ${cor}<br>
+        TAM: ${numero}
+    </div>
 
-<div class="info">
-<strong>${nome}</strong><br>
-COR: ${cor}<br>
-TAM: ${numero}
-</div>
-
-<div class="preco">
-<span>R$</span> ${Number(valor || 0).toFixed(2)}
-</div>
-
+    <div class="preco">R$ ${Number(valor || 0).toFixed(2)}</div>
 </div>
 
 <!-- ETIQUETA 2 -->
 <div class="etiqueta">
+    <div class="logo">
+        <img src="https://i.imgur.com/8Km9tLL.png">
+    </div>
 
-<div class="logo">
-<img src="https://i.imgur.com/7yUvePI.png">
-</div>
+    <div class="codigo">${codigo}</div>
 
-<div class="codigo">${codigo}</div>
+    <div class="barras">
+        <svg id="barcode2"></svg>
+    </div>
 
-<div class="barras">
-<svg id="barcode2"></svg>
-</div>
+    <div class="info">
+        <strong>${nome}</strong><br>
+        COR: ${cor}<br>
+        TAM: ${numero}
+    </div>
 
-<div class="info">
-<strong>${nome}</strong><br>
-COR: ${cor}<br>
-TAM: ${numero}
-</div>
-
-<div class="preco">
-<span>R$</span> ${Number(valor || 0).toFixed(2)}
-</div>
-
+    <div class="preco">R$ ${Number(valor || 0).toFixed(2)}</div>
 </div>
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode"><\/script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
 <script>
 window.onload = function(){
 
-    const b1 = document.getElementById("barcode1");
-    const b2 = document.getElementById("barcode2");
+    JsBarcode("#barcode1", "${codigo}", {
+        format: "CODE128",
+        width: 2,
+        height: 50,
+        displayValue: false
+    });
 
-    if(b1 && b2){
-        JsBarcode(b1, "${codigo}", {
-            format: "CODE128",
-            width: 2,
-            height: 40,
-            displayValue: false
-        });
+    JsBarcode("#barcode2", "${codigo}", {
+        format: "CODE128",
+        width: 2,
+        height: 50,
+        displayValue: false
+    });
 
-        JsBarcode(b2, "${codigo}", {
-            format: "CODE128",
-            width: 2,
-            height: 40,
-            displayValue: false
-        });
-    } else {
-        console.log("ERRO: barcode não encontrado");
-    }
-
-    window.print();
+    setTimeout(() => {
+        window.print();
+    }, 500);
 }
-<\/script>
+</script>
 
 </body>
 </html>
