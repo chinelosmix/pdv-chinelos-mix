@@ -202,7 +202,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-
+let entrada = [];
 let produtos = [];
 let venda = [];
 let totalVenda = 0;
@@ -742,18 +742,15 @@ function addEntrada(){
         return;
     }
 
-    // 🔥 AQUI ESTÁ A CORREÇÃO
-    venda.push({
+    entrada.push({
         nome: produto.nome,
         qtd: qtd,
         preco: Number(produto.valor)
     });
 
-    console.log("TROCA VENDA:", venda);
+    console.log("ENTRADA:", entrada);
 
-    if (typeof atualizarTela === "function") {
-        atualizarTela();
-    }
+    atualizarTelaTroca();
 }
 function addSaida(){
 
