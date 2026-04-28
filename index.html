@@ -202,7 +202,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-let entrada = [];
+
 let produtos = [];
 let venda = [];
 let totalVenda = 0;
@@ -1104,6 +1104,39 @@ function salvarHistorico(tipo, total){
     });
 
     localStorage.setItem("historicoPDV", JSON.stringify(historico));
+}
+function atualizarTelaTroca(){
+
+    const lista = document.getElementById("listaEntrada");
+    lista.innerHTML = "";
+
+    let totalEntrada = 0;
+
+    entrada.forEach((item, i) => {
+
+        const subtotal = item.qtd * item.preco;
+        totalEntrada += subtotal;
+
+        lista.innerHTML += `
+            <tr>
+                <td>${item.nome}</td>
+                <td>${item.qtd}</td>
+                <td>R$ ${item.preco.toFixed(2)}</td>
+                <td>
+                    <button onclick="removerEntrada(${i})">❌</button>
+                </td>
+            </tr>
+        `;
+    });
+
+    document.getElementById("totalEntrada").innerText =
+        totalEntrada.toFixed(2);
+
+    atualizarDiferenca();
+}
+function removerEntrada(index){
+    entrada.splice(index, 1);
+    atualizarTelaTroca();
 }
 </script>
 </body>
