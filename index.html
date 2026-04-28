@@ -847,45 +847,109 @@ async function atualizarEstoqueTroca(){
 }
 function montarCupomTroca(){
 
-    let linha = "----------------------------------------\n";
-    let texto = "*** TROCA ***\n\n";
+    let cupom = "";
 
+    const data = new Date().toLocaleString();
+
+    cupom += "       *** CUPOM ***\n";
+    cupom += "----------------------------------------\n";
+    cupom += `Data: ${data}\n`;
+    cupom += "           *** TROCA ***\n\n";
+
+    // =========================
+    // PRODUTOS NOVOS (SAÍDA)
+    // =========================
+    cupom += "PRODUTOS NOVOS:\n";
+    cupom += "----------------------------------------\n";
+
+    if (!saida || saida.length === 0) {
+        cupom += "Nenhum produto\n";
+    } else {
+        saida.forEach(item => {
+            const preco = Number(item.preco) || 0;
+            const qtd = Number(item.qtd) || 1;
+            const subtotal = qtd * preco;
+
+            cupom += `${item.nome} - ${qtd}x R$ ${preco.toFixed(2)} = R$ ${subtotal.toFixed(2)}\n`;
+        });
+    }
+
+    cupom += "----------------------------------------\n\n";
+
+
+    // =========================
+    // PRODUTOS DEVOLVIDOS (ENTRADA)
+    // =========================
+    cupom += "PRODUTOS DEVOLVIDOS:\n";
+    cupom += "----------------------------------------\n";
+
+    if (!entrada || entrada.length === 0) {
+        cupom += "Nenhum produto\n";
+    } else {
+        entrada.forEach(item => {
+            const preco = Number(item.preco) || 0;
+            const qtd = Number(item.qtd) || 1;
+            const subtotal = qtd * preco;
+
+            cupom += `${item.nome} - ${qtd}x R$ ${preco.toFixed(2)} = R$ ${subtotal.toFixed(2)}\n`;
+        });
+    }
+
+    cupom += "----------------------------------------\n";
+
+
+    // =========================
+    // TOTAIS
+    // =========================
     let totalSaida = 0;
     let totalEntrada = 0;
 
-    texto += "PRODUTOS NOVOS:\n";
+    if (saida) {
+        totalSaida = saida.reduce((s, i) => {
+            return s + ((Number(i.qtd) || 1) * (Number(i.preco) || 0));
+        }, 0);
+    }
 
-    venda.forEach(item => {
-        const sub = item.qtd * item.preco;
-        texto += `${item.nome} - ${item.qtd}x R$ ${item.preco.toFixed(2)} = R$ ${sub.toFixed(2)}\n`;
-        totalSaida += sub;
-    });
-
-    texto += linha;
-
-    texto += "PRODUTOS DEVOLVIDOS:\n";
-
-    entrada.forEach(item => {
-        const sub = item.qtd * item.preco;
-        texto += `${item.nome} - ${item.qtd}x R$ ${item.preco.toFixed(2)} = R$ ${sub.toFixed(2)}\n`;
-        totalEntrada += sub;
-    });
+    if (entrada) {
+        totalEntrada = entrada.reduce((s, i) => {
+            return s + ((Number(i.qtd) || 1) * (Number(i.preco) || 0));
+        }, 0);
+    }
 
     const diferenca = totalSaida - totalEntrada;
 
-    texto += linha;
-    texto += `Total Saída: R$ ${totalSaida.toFixed(2)}\n`;
-    texto += `Total Entrada: R$ ${totalEntrada.toFixed(2)}\n`;
-    texto += `Diferença: R$ ${diferenca.toFixed(2)}\n`;
+    cupom += `\nTotal Saída: R$ ${totalSaida.toFixed(2)}\n`;
+    cupom += `Total Entrada: R$ ${totalEntrada.toFixed(2)}\n`;
+    cupom += `Diferença: R$ ${Math.abs(diferenca).toFixed(2)}\n`;
 
-    if (diferenca > 0) texto += "Cliente paga diferença\n";
-    else if (diferenca < 0) texto += "Loja devolve diferença\n";
-    else texto += "Sem diferença\n";
+    // =========================
+    // QUEM PAGA
+    // =========================
+    if (diferenca > 0) {
+        cupom += "Cliente paga diferença\n";
+    } else if (diferenca < 0) {
+        cupom += "Loja devolve diferença\n";
+    } else {
+        cupom += "Troca sem diferença\n";
+    }
 
-    texto += linha;
-    texto += "Obrigado pela preferência!\n";
+    cupom += "----------------------------------------\n";
+    cupom += "Obrigado pela preferência!\n";
 
-    return texto;
+
+    // =========================
+    // IMPRIMIR
+    // =========================
+    const win = window.open('', '', 'width=300,height=600');
+
+    win.document.write(`
+        <pre style="font-family: monospace; font-size:12px">
+${cupom}
+        </pre>
+    `);
+
+    win.document.close();
+    win.print();
 }
 function imprimirTroca(){
 
