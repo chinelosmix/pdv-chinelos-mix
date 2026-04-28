@@ -813,6 +813,30 @@ function finalizarTroca(){
 
     atualizarTela();
     atualizarTelaTroca();
+  // limpar tudo
+entrada = [];
+saida = [];
+
+totalEntrada = 0;
+totalSaida = 0;
+
+// atualizar tela
+if (typeof atualizarTelaTroca === "function") {
+    atualizarTelaTroca();
+}
+
+// limpar inputs
+document.getElementById("codEntrada").value = "";
+document.getElementById("qtdEntrada").value = 1;
+document.getElementById("valorEntradaTroca").value = "";
+
+document.getElementById("codSaida").value = "";
+document.getElementById("qtdSaida").value = 1;
+
+// reset valores na tela
+document.getElementById("totalEntrada").innerText = "0.00";
+document.getElementById("totalSaida").innerText = "0.00";
+document.getElementById("diferenca").innerText = "0.00";
 }
 function abrirTroca(){
   show("troca")
@@ -1183,33 +1207,35 @@ function atualizarTelaTroca(){
     const listaEntrada = document.getElementById("listaEntrada");
     listaEntrada.innerHTML = "";
 
-    entrada.forEach(item => {
-        totalEntrada += item.qtd * item.preco;
-
-        listaEntrada.innerHTML += `
-            <tr>
-                <td>${item.nome}</td>
-                <td>${item.qtd}</td>
-                <td>R$ ${item.preco.toFixed(2)}</td>
-            </tr>
-        `;
-    });
+   entrada.forEach((item, index) => {
+    listaEntrada.innerHTML += `
+        <tr>
+            <td>${item.nome}</td>
+            <td>${item.qtd}</td>
+            <td>R$ ${item.preco.toFixed(2)}</td>
+            <td>
+                <button onclick="removerEntrada(${index})">🗑️</button>
+            </td>
+        </tr>
+    `;
+});
 
     // SAÍDA
     const listaSaida = document.getElementById("listaSaida");
     listaSaida.innerHTML = "";
 
-    saida.forEach(item => {
-        totalSaida += item.qtd * item.preco;
-
-        listaSaida.innerHTML += `
-            <tr>
-                <td>${item.nome}</td>
-                <td>${item.qtd}</td>
-                <td>R$ ${item.preco.toFixed(2)}</td>
-            </tr>
-        `;
-    });
+    saida.forEach((item, index) => {
+    listaSaida.innerHTML += `
+        <tr>
+            <td>${item.nome}</td>
+            <td>${item.qtd}</td>
+            <td>R$ ${item.preco.toFixed(2)}</td>
+            <td>
+                <button onclick="removerSaida(${index})">🗑️</button>
+            </td>
+        </tr>
+    `;
+});
 
     // ATUALIZA TOTAIS
     document.getElementById("totalEntrada").innerText = totalEntrada.toFixed(2);
@@ -1220,9 +1246,15 @@ function atualizarTelaTroca(){
 
     document.getElementById("diferenca").innerText =
         "R$ " + diferenca.toFixed(2);
+
 }
 function removerEntrada(index){
     entrada.splice(index, 1);
+    atualizarTelaTroca();
+}
+
+function removerSaida(index){
+    saida.splice(index, 1);
     atualizarTelaTroca();
 }
 </script>
