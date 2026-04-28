@@ -334,62 +334,19 @@ function etiqueta(codigo,nome,valor,cor="",numero=""){
 <meta charset="UTF-8">
 
 <style>
-body{
-    margin:0;
-    font-family: Arial;
-}
-
-.pagina{
-    width:80mm;
-    display:flex;
-    gap:4mm;
-    padding:2mm;
-}
-
+body{margin:0;font-family:Arial;}
+.pagina{width:80mm;display:flex;gap:4mm;padding:2mm;}
 .etiqueta{
-    width:40mm;
-    height:60mm;
-    border:1px solid #000;
-    padding:3mm;
-    box-sizing:border-box;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
+width:40mm;height:60mm;border:1px solid #000;
+padding:3mm;box-sizing:border-box;
+display:flex;flex-direction:column;justify-content:space-between;
 }
-
-.logo{
-    text-align:center;
-}
-
-.logo img{
-    height:18mm;
-}
-
-.codigo{
-    text-align:center;
-    font-size:10px;
-    font-weight:bold;
-}
-
-.barras svg{
-    width:100%;
-    height:16mm;
-}
-
-.info{
-    font-size:10px;
-    border-top:1px solid #000;
-    padding-top:2px;
-}
-
-.preco{
-    text-align:center;
-    font-weight:bold;
-}
-
-.preco .valor{
-    font-size:28px;
-}
+.logo{text-align:center;}
+.logo img{height:18mm;}
+.codigo{text-align:center;font-size:10px;font-weight:bold;}
+.barras svg{width:100%;height:16mm;}
+.info{font-size:10px;border-top:1px solid #000;padding-top:2px;}
+.preco{text-align:center;font-weight:bold;font-size:22px;}
 </style>
 
 </head>
@@ -398,51 +355,33 @@ body{
 
 <div class="pagina">
 
-    <!-- ETIQUETA 1 -->
-    <div class="etiqueta">
-        <div class="logo">
-            <img src="logo.png">
-        </div>
+<div class="etiqueta">
+<div class="logo"><img src="logo.png"></div>
+<div class="codigo">${codigo}</div>
+<div class="barras"><svg id="barcode1"></svg></div>
 
-        <div class="codigo">${codigo}</div>
+<div class="info">
+<strong>${nome}</strong><br>
+COR: ${cor}<br>
+TAM: ${numero}
+</div>
 
-        <div class="barras">
-            <svg id="barcode1"></svg>
-        </div>
+<div class="preco">R$ ${Number(valor || 0).toFixed(2)}</div>
+</div>
 
-        <div class="info">
-            <strong>${nome}</strong><br>
-            COR: ${cor}<br>
-            TAM: ${numero}
-        </div>
+<div class="etiqueta">
+<div class="logo"><img src="logo.png"></div>
+<div class="codigo">${codigo}</div>
+<div class="barras"><svg id="barcode2"></svg></div>
 
-        <div class="preco">
-            R$ <span class="valor">${Number(valor).toFixed(2)}</span>
-        </div>
-    </div>
+<div class="info">
+<strong>${nome}</strong><br>
+COR: ${cor}<br>
+TAM: ${numero}
+</div>
 
-    <!-- ETIQUETA 2 -->
-    <div class="etiqueta">
-        <div class="logo">
-            <img src="logo.png">
-        </div>
-
-        <div class="codigo">${codigo}</div>
-
-        <div class="barras">
-            <svg id="barcode2"></svg>
-        </div>
-
-        <div class="info">
-            <strong>${nome}</strong><br>
-            COR: ${cor}<br>
-            TAM: ${numero}
-        </div>
-
-        <div class="preco">
-            R$ <span class="valor">${Number(valor).toFixed(2)}</span>
-        </div>
-    </div>
+<div class="preco">R$ ${Number(valor || 0).toFixed(2)}</div>
+</div>
 
 </div>
 
@@ -450,8 +389,8 @@ body{
 
 <script>
 window.onload = function(){
-    JsBarcode("#barcode1", "${codigo}");
-    JsBarcode("#barcode2", "${codigo}");
+    JsBarcode(document.getElementById("barcode1"), "${codigo}");
+    JsBarcode(document.getElementById("barcode2"), "${codigo}");
     window.print();
 }
 </script>
