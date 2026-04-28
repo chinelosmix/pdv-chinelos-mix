@@ -412,7 +412,7 @@ body{margin:0;font-family:Arial;}
 <div class="etiqueta">
 
 <div class="logo">
-<img src="https://i.imgur.com/7yUvePI.png">
+<img src="https://i.imgur.com/YOURLOGO.png">
 </div>
 
 <div class="codigo">${codigo}</div>
@@ -465,19 +465,26 @@ TAM: ${numero}
 <script>
 window.onload = function(){
 
-    JsBarcode("#barcode1", "${codigo}", {
-        format: "CODE128",
-        width: 2,
-        height: 40,
-        displayValue: false
-    });
+    const b1 = document.getElementById("barcode1");
+    const b2 = document.getElementById("barcode2");
 
-    JsBarcode("#barcode2", "${codigo}", {
-        format: "CODE128",
-        width: 2,
-        height: 40,
-        displayValue: false
-    });
+    if(b1 && b2){
+        JsBarcode(b1, "${codigo}", {
+            format: "CODE128",
+            width: 2,
+            height: 40,
+            displayValue: false
+        });
+
+        JsBarcode(b2, "${codigo}", {
+            format: "CODE128",
+            width: 2,
+            height: 40,
+            displayValue: false
+        });
+    } else {
+        console.log("ERRO: barcode não encontrado");
+    }
 
     window.print();
 }
