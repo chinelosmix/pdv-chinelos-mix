@@ -325,147 +325,142 @@ db.collection("produtos").doc(id).delete()
 
 function etiqueta(codigo,nome,valor,cor="",numero=""){
 
-    let w = window.open("", "", "width=800,height=600")
+    const w = window.open("", "", "width=800,height=600");
+
+    w.document.open();
 
     w.document.write(`
-    <html>
-    <head>
-    <style>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
 
-    body{
-        margin:0;
-        font-family: Arial;
-    }
+<style>
+body{
+    margin:0;
+    font-family: Arial;
+}
 
-    .pagina{
-        width:80mm;
-        display:flex;
-        gap:4mm;
-        padding:2mm;
-    }
+.pagina{
+    width:80mm;
+    display:flex;
+    gap:4mm;
+    padding:2mm;
+}
 
-    .etiqueta{
-        width:40mm;
-        height:60mm;
-        border:1px solid #000;
-        padding:3mm;
-        box-sizing:border-box;
-        display:flex;
-        flex-direction:column;
-        justify-content:space-between;
-    }
+.etiqueta{
+    width:40mm;
+    height:60mm;
+    border:1px solid #000;
+    padding:3mm;
+    box-sizing:border-box;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+}
 
-    .logo{
-        text-align:center;
-    }
+.logo{
+    text-align:center;
+}
 
-    .logo img{
-        height:18mm;
-    }
+.logo img{
+    height:18mm;
+}
 
-    .codigo{
-        text-align:center;
-        font-size:10px;
-        font-weight:bold;
-    }
+.codigo{
+    text-align:center;
+    font-size:10px;
+    font-weight:bold;
+}
 
-    .barras svg{
-        width:100%;
-        height:16mm;
-    }
+.barras svg{
+    width:100%;
+    height:16mm;
+}
 
-    .info{
-        font-size:10px;
-        border-top:1px solid #000;
-        padding-top:2px;
-    }
+.info{
+    font-size:10px;
+    border-top:1px solid #000;
+    padding-top:2px;
+}
 
-    .preco{
-        text-align:center;
-        font-weight:bold;
-    }
+.preco{
+    text-align:center;
+    font-weight:bold;
+}
 
-    .preco .valor{
-        font-size:28px;
-    }
+.preco .valor{
+    font-size:28px;
+}
+</style>
 
-    @media print{
-        body{
-            margin:0;
-        }
-    }
+</head>
 
-    </style>
-    </head>
+<body>
 
-    <body>
+<div class="pagina">
 
-    <div class="pagina">
-
-        <!-- ETIQUETA 1 -->
-        <div class="etiqueta">
-
-            <div class="logo">
-                <img src="logo.png">
-            </div>
-
-            <div class="codigo">${codigo}</div>
-
-            <div class="barras">
-                <svg id="barcode1"></svg>
-            </div>
-
-            <div class="info">
-                <strong>${nome}</strong><br>
-                COR: ${cor}<br>
-                TAM: ${numero}
-            </div>
-
-            <div class="preco">
-                R$ <span class="valor">${valor}</span>
-            </div>
-
-        </div>
-
-        <!-- ETIQUETA 2 -->
-        <div class="etiqueta">
-
-            <div class="logo">
-                <img src="logo.png">
-            </div>
-
-            <div class="codigo">${codigo}</div>
-
-            <div class="barras">
-                <svg id="barcode2"></svg>
-            </div>
-
-            <div class="info">
-                <strong>${nome}</strong><br>
-                COR: ${cor}<br>
-                TAM: ${numero}
-            </div>
-
-            <div class="preco">
-                R$ <span class="valor">${valor}</span>
-            </div>
-
-        </div>
-
+<div class="etiqueta">
+    <div class="logo">
+        <img src="logo.png">
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode"></script>
+    <div class="codigo">${codigo}</div>
 
-    <script>
-        JsBarcode("#barcode1","${codigo}");
-        JsBarcode("#barcode2","${codigo}");
+    <div class="barras">
+        <svg id="barcode1"></svg>
+    </div>
 
-        window.print();
-    </script>
+    <div class="info">
+        <strong>${nome}</strong><br>
+        COR: ${cor}<br>
+        TAM: ${numero}
+    </div>
 
-    </body>
-    </html>
-    `)
+    <div class="preco">
+        R$ <span class="valor">${valor}</span>
+    </div>
+</div>
+
+<div class="etiqueta">
+    <div class="logo">
+        <img src="logo.png">
+    </div>
+
+    <div class="codigo">${codigo}</div>
+
+    <div class="barras">
+        <svg id="barcode2"></svg>
+    </div>
+
+    <div class="info">
+        <strong>${nome}</strong><br>
+        COR: ${cor}<br>
+        TAM: ${numero}
+    </div>
+
+    <div class="preco">
+        R$ <span class="valor">${valor}</span>
+    </div>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode"></script>
+
+<script>
+window.onload = function(){
+    JsBarcode("#barcode1", "${codigo}");
+    JsBarcode("#barcode2", "${codigo}");
+    window.print();
+}
+</script>
+
+</body>
+</html>
+`);
+
+    w.document.close();
 }
 // ================= VENDA =================
 function addVenda(){
