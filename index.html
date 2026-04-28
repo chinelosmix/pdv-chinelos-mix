@@ -748,23 +748,28 @@ function addEntrada(){
         preco: Number(produto.valor)
     });
 
-    console.log("ENTRADA:", entrada);
-
     atualizarTelaTroca();
 }
 function addSaida(){
 
-let p = produtos.find(x=>x.codigo==codSaida.value)
-if(!p){ alert("Produto não encontrado"); return }
+    const codigo = document.getElementById("codSaida").value.trim();
+    const qtd = Number(document.getElementById("qtdSaida").value || 1);
 
-let q = Number(qtdSaida.value)
+    const produto = produtos.find(p => String(p.codigo) === String(codigo));
 
-saida.push({...p,qtd:q})
-totalSaida += p.valor*q
+    if (!produto) {
+        alert("Produto não encontrado!");
+        return;
+    }
 
-renderTroca()
+    saida.push({
+        nome: produto.nome,
+        qtd: qtd,
+        preco: Number(produto.valor)
+    });
+
+    atualizarTelaTroca();
 }
-
 function renderTroca(){
 
 listaEntrada.innerHTML = entrada.map(p=>`
@@ -1107,32 +1112,50 @@ function salvarHistorico(tipo, total){
 }
 function atualizarTelaTroca(){
 
-    const lista = document.getElementById("listaEntrada");
-    lista.innerHTML = "";
-
     let totalEntrada = 0;
+    let totalSaida = 0;
 
-    entrada.forEach((item, i) => {
+    // ENTRADA
+    const listaEntrada = document.getElementById("listaEntrada");
+    listaEntrada.innerHTML = "";
 
-        const subtotal = item.qtd * item.preco;
-        totalEntrada += subtotal;
+    entrada.forEach(item => {
+        totalEntrada += item.qtd * item.preco;
 
-        lista.innerHTML += `
+        listaEntrada.innerHTML += `
             <tr>
                 <td>${item.nome}</td>
                 <td>${item.qtd}</td>
                 <td>R$ ${item.preco.toFixed(2)}</td>
-                <td>
-                    <button onclick="removerEntrada(${i})">❌</button>
-                </td>
             </tr>
         `;
     });
 
-    document.getElementById("totalEntrada").innerText =
-        totalEntrada.toFixed(2);
+    // SAÍDA
+    const listaSaida = document.getElementById("listaSaida");
+    listaSaida.innerHTML = "";
 
-    atualizarDiferenca();
+    saida.forEach(item => {
+        totalSaida += item.qtd * item.preco;
+
+        listaSaida.innerHTML += `
+            <tr>
+                <td>${item.nome}</td>
+                <td>${item.qtd}</td>
+                <td>R$ ${item.preco.toFixed(2)}</td>
+            </tr>
+        `;
+    });
+
+    // ATUALIZA TOTAIS
+    document.getElementById("totalEntrada").innerText = totalEntrada.toFixed(2);
+    document.getElementById("totalSaida").innerText = totalSaida.toFixed(2);
+
+    // DIFERENÇA
+    const diferenca = totalSaida - totalEntrada;
+
+    document.getElementById("diferenca").innerText =
+        "R$ " + diferenca.toFixed(2);
 }
 function removerEntrada(index){
     entrada.splice(index, 1);
