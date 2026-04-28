@@ -323,11 +323,11 @@ db.collection("produtos").doc(id).delete()
 
 }
 
-function etiqueta(codigo,nome,valor,cor="",numero=""){
+function etiqueta(codigo, nome, valor, cor = "", numero = "") {
 
     const w = window.open("", "", "width=800,height=600");
 
-    const html = `
+    w.document.write(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -388,19 +388,17 @@ TAM: ${numero}
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode"></script>
 
 <script>
-window.onload = function(){
-    JsBarcode(document.getElementById("barcode1"), "${codigo}");
-    JsBarcode(document.getElementById("barcode2"), "${codigo}");
+setTimeout(() => {
+    JsBarcode("#barcode1", "${codigo}");
+    JsBarcode("#barcode2", "${codigo}");
     window.print();
-}
+}, 300);
 </script>
 
 </body>
 </html>
-`;
+    `);
 
-    w.document.open();
-    w.document.write(html);
     w.document.close();
 }
 // ================= VENDA =================
