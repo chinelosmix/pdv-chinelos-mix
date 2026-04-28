@@ -327,7 +327,7 @@ function etiqueta(codigo, nome, valor, cor = "", numero = "") {
 
     const w = window.open("", "", "width=800,height=600");
 
-    w.document.write(`
+    const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -385,20 +385,22 @@ TAM: ${numero}
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode"><\/script>
 
 <script>
-setTimeout(() => {
+window.onload = function(){
     JsBarcode("#barcode1", "${codigo}");
     JsBarcode("#barcode2", "${codigo}");
     window.print();
-}, 300);
-</script>
+}
+<\/script>
 
 </body>
 </html>
-    `);
+`;
 
+    w.document.open();
+    w.document.write(html);
     w.document.close();
 }
 // ================= VENDA =================
