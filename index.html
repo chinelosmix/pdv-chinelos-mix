@@ -325,100 +325,147 @@ db.collection("produtos").doc(id).delete()
 
 function etiqueta(codigo,nome,valor,cor="",numero=""){
 
-let w = window.open("", "", "width=300,height=400")
+    let w = window.open("", "", "width=800,height=600")
 
-w.document.write(`
-<html>
-<head>
-<style>
+    w.document.write(`
+    <html>
+    <head>
+    <style>
 
-@page { size: 40mm 50mm; margin:0; }
+    body{
+        margin:0;
+        font-family: Arial;
+    }
 
-body{
-margin:0;
-font-family:Arial;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-}
+    .pagina{
+        width:80mm;
+        display:flex;
+        gap:4mm;
+        padding:2mm;
+    }
 
-/* CAIXA CENTRAL */
-.box{
-width:40mm;
-height:50mm;
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-text-align:center;
-border:1px solid #000;
-padding:4px;
-box-sizing:border-box;
-}
+    .etiqueta{
+        width:40mm;
+        height:60mm;
+        border:1px solid #000;
+        padding:3mm;
+        box-sizing:border-box;
+        display:flex;
+        flex-direction:column;
+        justify-content:space-between;
+    }
 
-/* NOME */
-.nome{
-font-size:11px;
-font-weight:bold;
-margin-bottom:2px;
-}
+    .logo{
+        text-align:center;
+    }
 
-/* COR + NUMERO */
-.info{
-font-size:10px;
-margin-bottom:4px;
-}
+    .logo img{
+        height:18mm;
+    }
 
-/* CÓDIGO */
-.barcode{
-margin:4px 0;
-}
+    .codigo{
+        text-align:center;
+        font-size:10px;
+        font-weight:bold;
+    }
 
-/* PREÇO */
-.preco{
-font-size:20px;
-font-weight:bold;
-color:#000;
-margin-top:4px;
-}
+    .barras svg{
+        width:100%;
+        height:16mm;
+    }
 
-</style>
-</head>
+    .info{
+        font-size:10px;
+        border-top:1px solid #000;
+        padding-top:2px;
+    }
 
-<body>
+    .preco{
+        text-align:center;
+        font-weight:bold;
+    }
 
-<div class="box">
+    .preco .valor{
+        font-size:28px;
+    }
 
-<div class="nome">${nome}</div>
+    @media print{
+        body{
+            margin:0;
+        }
+    }
 
-<div class="info">${cor} ${numero}</div>
+    </style>
+    </head>
 
-<div class="barcode">
-<svg id="barcode"></svg>
-</div>
+    <body>
 
-<div class="preco">R$ ${Number(valor || 0).toFixed(2)}</div>
+    <div class="pagina">
 
-</div>
+        <!-- ETIQUETA 1 -->
+        <div class="etiqueta">
 
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
+            <div class="logo">
+                <img src="logo.png">
+            </div>
 
-<script>
-JsBarcode("#barcode","${codigo}",{
-format:"CODE128",
-width:1.2,
-height:30,
-displayValue:false,
-margin:0
-})
+            <div class="codigo">${codigo}</div>
 
-window.print()
-<\/script>
+            <div class="barras">
+                <svg id="barcode1"></svg>
+            </div>
 
-</body>
-</html>
-`)
+            <div class="info">
+                <strong>${nome}</strong><br>
+                COR: ${cor}<br>
+                TAM: ${numero}
+            </div>
+
+            <div class="preco">
+                R$ <span class="valor">${valor}</span>
+            </div>
+
+        </div>
+
+        <!-- ETIQUETA 2 -->
+        <div class="etiqueta">
+
+            <div class="logo">
+                <img src="logo.png">
+            </div>
+
+            <div class="codigo">${codigo}</div>
+
+            <div class="barras">
+                <svg id="barcode2"></svg>
+            </div>
+
+            <div class="info">
+                <strong>${nome}</strong><br>
+                COR: ${cor}<br>
+                TAM: ${numero}
+            </div>
+
+            <div class="preco">
+                R$ <span class="valor">${valor}</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode"></script>
+
+    <script>
+        JsBarcode("#barcode1","${codigo}");
+        JsBarcode("#barcode2","${codigo}");
+
+        window.print();
+    </script>
+
+    </body>
+    </html>
+    `)
 }
 // ================= VENDA =================
 function addVenda(){
@@ -1259,5 +1306,13 @@ function removerSaida(index){
     atualizarTelaTroca();
 }
 </script>
+<div id="areaEtiquetas" style="display:none">
+    <div class="pagina-etiquetas">
+
+        <div class="etiqueta" id="etq1"></div>
+        <div class="etiqueta" id="etq2"></div>
+
+    </div>
+</div>
 </body>
 </html>
