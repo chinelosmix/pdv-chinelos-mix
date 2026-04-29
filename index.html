@@ -1,1320 +1,1467 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDV CHINELOS MIX</title>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-<meta charset="UTF-8">
-<title>PDV CHINELOS MIX</title>
-
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-body{margin:0;font-family:Arial;background:#0f172a;color:#fff}
-header{background:#020617;padding:15px;text-align:center;font-weight:bold}
-nav{display:flex;background:#020617}
-nav button{flex:1;padding:12px;border:none;background:#020617;color:#fff}
-.box{display:none;padding:10px}
-input,select{width:100%;padding:10px;margin:5px 0;border:none;border-radius:5px}
-button{padding:10px;background:#22c55e;color:#fff;border:none;border-radius:5px;margin-top:5px}
-table{width:100%;margin-top:10px;border-collapse:collapse}
-td,th{border-bottom:1px solid #334155;padding:8px}
+:root {
+  --bg: #080c14;
+  --bg2: #0d1320;
+  --bg3: #111827;
+  --bg4: #1a2236;
+  --border: #1e2d45;
+  --border2: #243452;
+  --accent: #00e676;
+  --accent2: #00c853;
+  --accent-dim: rgba(0,230,118,0.12);
+  --accent-dim2: rgba(0,230,118,0.06);
+  --red: #ff5252;
+  --red-dim: rgba(255,82,82,0.12);
+  --blue: #448aff;
+  --blue-dim: rgba(68,138,255,0.12);
+  --amber: #ffab40;
+  --amber-dim: rgba(255,171,64,0.12);
+  --text: #e8edf5;
+  --text2: #8899b0;
+  --text3: #4a5a72;
+  --radius: 10px;
+  --radius2: 14px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── TELA DE LOGIN ── */
+#loginScreen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 30% 50%, #0a1f3a 0%, var(--bg) 70%);
+}
+.login-card {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+.login-logo { font-family: 'Rajdhani', sans-serif; font-size: 32px; font-weight: 700; color: var(--accent); letter-spacing: 2px; margin-bottom: 4px; }
+.login-sub { color: var(--text2); font-size: 13px; margin-bottom: 36px; }
+.login-card input, .login-card select {
+  width: 100%; padding: 13px 16px; background: var(--bg3);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text); font-size: 14px; margin-bottom: 12px; outline: none;
+  transition: border-color 0.2s;
+}
+.login-card input:focus, .login-card select:focus { border-color: var(--accent); }
+.btn-login {
+  width: 100%; padding: 14px; background: var(--accent); border: none;
+  border-radius: var(--radius); color: #000; font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; font-family: 'Rajdhani', sans-serif; letter-spacing: 1px;
+}
+.btn-login:hover { background: var(--accent2); transform: translateY(-1px); }
+
+/* ── LAYOUT PRINCIPAL ── */
+#app { display: none; height: 100vh; flex-direction: column; }
+#app.active { display: flex; }
+
+/* ── HEADER ── */
+.app-header {
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  padding: 0 20px; height: 56px; display: flex; align-items: center;
+  justify-content: space-between; flex-shrink: 0; z-index: 100;
+}
+.header-logo { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; color: var(--accent); letter-spacing: 1px; }
+.header-info { display: flex; align-items: center; gap: 16px; }
+.header-user { font-size: 13px; color: var(--text2); }
+.header-user span { color: var(--text); font-weight: 500; }
+.header-clock { font-family: 'Rajdhani', sans-serif; font-size: 16px; color: var(--accent); font-weight: 600; }
+.btn-logout { padding: 6px 14px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text2); font-size: 12px; cursor: pointer; transition: all 0.2s; }
+.btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+/* ── LAYOUT BODY ── */
+.app-body { display: flex; flex: 1; overflow: hidden; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 64px; background: var(--bg2); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 4px;
+  flex-shrink: 0; z-index: 50;
+}
+.nav-item {
+  width: 48px; height: 48px; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; border-radius: 12px; cursor: pointer; gap: 2px;
+  border: 1px solid transparent; transition: all 0.2s; position: relative;
+}
+.nav-item:hover { background: var(--bg4); border-color: var(--border2); }
+.nav-item.active { background: var(--accent-dim); border-color: var(--accent); }
+.nav-icon { font-size: 18px; line-height: 1; }
+.nav-label { font-size: 9px; color: var(--text2); font-weight: 500; }
+.nav-item.active .nav-label { color: var(--accent); }
+.nav-divider { width: 32px; height: 1px; background: var(--border); margin: 4px 0; }
+
+/* ── CONTEÚDO ── */
+.content { flex: 1; overflow-y: auto; padding: 20px; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── PAGE HEADER ── */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.page-title { font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700; color: var(--text); }
+.page-title span { color: var(--accent); }
+
+/* ── CARDS SUMMARY ── */
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.summary-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius2);
+  padding: 16px; position: relative; overflow: hidden;
+}
+.summary-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.summary-card.green::before { background: var(--accent); }
+.summary-card.blue::before { background: var(--blue); }
+.summary-card.amber::before { background: var(--amber); }
+.summary-card.red::before { background: var(--red); }
+.summary-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.summary-value { font-family: 'Rajdhani', sans-serif; font-size: 24px; font-weight: 700; }
+.summary-card.green .summary-value { color: var(--accent); }
+.summary-card.blue .summary-value { color: var(--blue); }
+.summary-card.amber .summary-value { color: var(--amber); }
+.summary-card.red .summary-value { color: var(--red); }
+
+/* ── PANELS ── */
+.panel {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius2); overflow: hidden; margin-bottom: 16px;
+}
+.panel-header {
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg3);
+}
+.panel-title { font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: 0.3px; }
+.panel-body { padding: 16px 18px; }
+
+/* ── INPUTS ── */
+input, select, textarea {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font-size: 14px;
+  padding: 10px 14px; width: 100%; outline: none; transition: border-color 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+input:focus, select:focus { border-color: var(--accent); }
+input::placeholder { color: var(--text3); }
+label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 5px; font-weight: 500; }
+.field { margin-bottom: 12px; }
+.row { display: grid; gap: 12px; }
+.row.c2 { grid-template-columns: 1fr 1fr; }
+.row.c3 { grid-template-columns: 1fr 1fr 1fr; }
+
+/* ── BOTÕES ── */
+.btn {
+  padding: 10px 18px; border: none; border-radius: var(--radius); font-size: 13px;
+  font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex;
+  align-items: center; gap: 6px; font-family: 'Inter', sans-serif; white-space: nowrap;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn-primary { background: var(--accent); color: #000; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-secondary { background: var(--bg4); color: var(--text); border: 1px solid var(--border2); }
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid transparent; }
+.btn-danger:hover { border-color: var(--red); }
+.btn-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid transparent; }
+.btn-blue:hover { border-color: var(--blue); }
+.btn-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid transparent; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-icon { width: 34px; height: 34px; padding: 0; justify-content: center; border-radius: 8px; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ── TABELAS ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { padding: 10px 12px; text-align: left; color: var(--text3); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+td { padding: 11px 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--accent-dim2); }
+
+/* ── BADGES ── */
+.badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+.badge-green { background: var(--accent-dim); color: var(--accent); }
+.badge-red { background: var(--red-dim); color: var(--red); }
+.badge-amber { background: var(--amber-dim); color: var(--amber); }
+.badge-blue { background: var(--blue-dim); color: var(--blue); }
+
+/* ── VENDA LAYOUT ── */
+.venda-layout { display: grid; grid-template-columns: 1fr 340px; gap: 16px; height: calc(100vh - 120px); }
+.venda-left { display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+.venda-right { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+.item-lista { overflow-y: auto; flex: 1; }
+.item-row { display: flex; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); gap: 10px; }
+.item-nome { flex: 1; font-size: 13px; }
+.item-qtd { width: 60px; }
+.item-qtd input { text-align: center; padding: 6px 4px; }
+.item-preco { width: 90px; text-align: right; color: var(--accent); font-weight: 600; font-size: 13px; }
+.total-bar { background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius2); padding: 16px; }
+.total-line { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.total-line:last-child { margin-bottom: 0; }
+.total-label { font-size: 12px; color: var(--text2); }
+.total-value { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; }
+.total-final { font-size: 26px; color: var(--accent); }
+.troco-value { color: var(--amber); font-size: 20px; }
+
+/* ── CAIXA ── */
+.caixa-status { display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: var(--bg3); border-radius: var(--radius2); border: 1px solid var(--border); margin-bottom: 16px; }
+.caixa-dot { width: 10px; height: 10px; border-radius: 50%; }
+.caixa-dot.open { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.caixa-dot.closed { background: var(--red); }
+
+/* ── RELATÓRIO TABS ── */
+.rel-tabs { display: flex; gap: 4px; background: var(--bg3); padding: 4px; border-radius: 10px; margin-bottom: 16px; width: fit-content; }
+.rel-tab { padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text2); transition: all 0.2s; border: none; background: transparent; }
+.rel-tab.active { background: var(--accent); color: #000; }
+
+/* ── GRAFICOS SIMPLES ── */
+.bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 120px; padding: 0 4px; }
+.bar-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+.bar-fill { width: 100%; border-radius: 4px 4px 0 0; background: var(--accent); opacity: 0.7; min-height: 4px; transition: height 0.5s; }
+.bar-label { font-size: 10px; color: var(--text2); }
+.bar-val { font-size: 10px; color: var(--accent); font-weight: 600; }
+
+/* ── FUNCIONÁRIOS ── */
+.func-card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius2); padding: 14px 16px; display: flex; align-items: center; gap: 14px; }
+.func-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+.func-info { flex: 1; }
+.func-nome { font-size: 14px; font-weight: 600; }
+.func-cargo { font-size: 12px; color: var(--text2); }
+.func-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+
+/* ── MODAL ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; z-index: 1000; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg2); border: 1px solid var(--border2); border-radius: 16px; padding: 28px; width: 90%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.modal-title { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; }
+.modal-close { background: transparent; border: none; color: var(--text2); font-size: 22px; cursor: pointer; line-height: 1; }
+
+/* ── BUSCA MODAL ── */
+#buscaModal .panel-body { padding: 0; max-height: 400px; overflow-y: auto; }
+
+/* ── SCANNER ── */
+.scanner-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 8px 0; }
+
+/* ── EMPTY STATE ── */
+.empty { text-align: center; padding: 40px; color: var(--text3); }
+.empty-icon { font-size: 36px; margin-bottom: 8px; }
+
+/* ── SCROLL ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+/* ── NOTIF ── */
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg2); border: 1px solid var(--border2); border-radius: 10px; padding: 12px 18px; font-size: 13px; color: var(--text); z-index: 9999; display: none; gap: 8px; align-items: center; box-shadow: var(--shadow); }
+.toast.show { display: flex; }
+.toast.success { border-color: var(--accent); }
+.toast.error { border-color: var(--red); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .venda-layout { grid-template-columns: 1fr; height: auto; }
+  .row.c3 { grid-template-columns: 1fr 1fr; }
+  .sidebar { width: 56px; }
+  .content { padding: 12px; }
+  .summary-grid { grid-template-columns: 1fr 1fr; }
+}
 </style>
 </head>
-
 <body>
 
-<header>PDV CHINELOS MIX</header>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
-<div id="loginBox">
-<input id="user" placeholder="Nome">
-<button onclick="login()">Entrar</button>
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">⊕ CHINELOS MIX</div>
+    <div class="login-sub">Sistema de Ponto de Venda</div>
+    <div class="field">
+      <label>Nome do funcionário</label>
+      <input id="loginNome" placeholder="Seu nome completo">
+    </div>
+    <div class="field">
+      <label>Senha</label>
+      <input id="loginSenha" type="password" placeholder="••••••">
+    </div>
+    <button class="btn-login" onclick="fazerLogin()">ENTRAR NO SISTEMA</button>
+  </div>
 </div>
 
-<nav>
-<button onclick="show('prod')">Produtos</button>
-<button onclick="show('ven')">Venda</button>
-<button onclick="show('rel')">Relatório</button>
-</nav>
+<!-- APP -->
+<div id="app">
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-logo">⊕ CHINELOS MIX</div>
+    <div class="header-info">
+      <div class="header-user">Operador: <span id="headerNome">—</span></div>
+      <div class="header-clock" id="relogio">00:00:00</div>
+      <button class="btn-logout" onclick="sair()">Sair</button>
+    </div>
+  </header>
 
-<div id="prod" class="box">
+  <div class="app-body">
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="nav-item active" onclick="navegar('venda')" id="nav-venda">
+        <div class="nav-icon">🛒</div>
+        <div class="nav-label">Venda</div>
+      </div>
+      <div class="nav-item" onclick="navegar('produtos')" id="nav-produtos">
+        <div class="nav-icon">📦</div>
+        <div class="nav-label">Estoque</div>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="nav-item" onclick="navegar('caixa')" id="nav-caixa">
+        <div class="nav-icon">💰</div>
+        <div class="nav-label">Caixa</div>
+      </div>
+      <div class="nav-item" onclick="navegar('relatorio')" id="nav-relatorio">
+        <div class="nav-icon">📊</div>
+        <div class="nav-label">Relatório</div>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="nav-item" onclick="navegar('funcionarios')" id="nav-funcionarios">
+        <div class="nav-icon">👥</div>
+        <div class="nav-label">Equipe</div>
+      </div>
+      <div class="nav-item" onclick="navegar('troca')" id="nav-troca">
+        <div class="nav-icon">🔄</div>
+        <div class="nav-label">Troca</div>
+      </div>
+    </nav>
 
-<h3>Cadastro de Produtos</h3>
+    <!-- CONTEÚDO -->
+    <main class="content">
 
-<input id="codigo" placeholder="Código">
+      <!-- ══ VENDA ══ -->
+      <div class="page active" id="page-venda">
+        <div class="page-header">
+          <div class="page-title">Nova <span>Venda</span></div>
+          <div style="font-size:12px;color:var(--text2)" id="vendaData"></div>
+        </div>
+        <div class="venda-layout">
+          <!-- ESQUERDA -->
+          <div class="venda-left">
+            <div class="panel" style="flex-shrink:0">
+              <div class="panel-header"><div class="panel-title">Adicionar Produto</div></div>
+              <div class="panel-body">
+                <div class="row c3">
+                  <div class="field" style="margin:0;grid-column:span 2">
+                    <label>Código / Busca</label>
+                    <input id="codVenda" placeholder="Digite ou escaneie..." onkeydown="if(event.key==='Enter') adicionarPorCodigo()">
+                  </div>
+                  <div class="field" style="margin:0">
+                    <label>Qtd</label>
+                    <input id="qtdVenda" type="number" value="1" min="1">
+                  </div>
+                </div>
+                <div class="btn-group" style="margin-top:10px">
+                  <button class="btn btn-primary btn-sm" onclick="adicionarPorCodigo()">＋ Adicionar</button>
+                  <button class="btn btn-secondary btn-sm" onclick="toggleScannerVenda()">📷 Scanner</button>
+                  <button class="btn btn-secondary btn-sm" onclick="abrirBusca()">🔎 Buscar</button>
+                </div>
+                <div id="readerVenda" style="margin-top:8px"></div>
+              </div>
+            </div>
 
-<button onclick="gerarCodigo()">Gerar Código</button>
-<button onclick="toggleScanner()">📷 Scanner</button>
+            <div class="panel" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+              <div class="panel-header">
+                <div class="panel-title">Itens da Venda</div>
+                <button class="btn btn-danger btn-sm" onclick="limparVenda()">Limpar</button>
+              </div>
+              <div class="item-lista" id="listaVenda">
+                <div class="empty"><div class="empty-icon">🛒</div>Nenhum item adicionado</div>
+              </div>
+            </div>
+          </div>
 
-<div id="reader" style="width:250px"></div>
+          <!-- DIREITA -->
+          <div class="venda-right">
+            <div class="panel">
+              <div class="panel-header"><div class="panel-title">Resumo</div></div>
+              <div class="panel-body">
+                <div class="total-bar">
+                  <div class="total-line">
+                    <div class="total-label">Subtotal</div>
+                    <div class="total-value">R$ <span id="vSubtotal">0,00</span></div>
+                  </div>
+                  <div class="total-line">
+                    <div class="total-label">Desconto</div>
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <input id="desconto" type="number" value="0" min="0" style="width:70px;padding:4px 8px;font-size:13px" oninput="calcularTotais()">
+                      <span style="font-size:12px;color:var(--text2)">R$</span>
+                    </div>
+                  </div>
+                  <div style="border-top:1px solid var(--border);margin:10px 0"></div>
+                  <div class="total-line">
+                    <div class="total-label" style="font-size:14px;font-weight:600">TOTAL</div>
+                    <div class="total-value total-final">R$ <span id="vTotal">0,00</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-<input id="nome" placeholder="Nome">
-<input id="cor" placeholder="Cor">
-<input id="numero" placeholder="Numeração">
-<input id="estoque" placeholder="Quantidade">
-<input id="valor" placeholder="Valor">
+            <div class="panel">
+              <div class="panel-header"><div class="panel-title">Pagamento</div></div>
+              <div class="panel-body">
+                <div class="field">
+                  <label>Forma de Pagamento</label>
+                  <select id="formaPgto">
+                    <option>Dinheiro</option>
+                    <option>Pix</option>
+                    <option>Débito</option>
+                    <option>Crédito à vista</option>
+                    <option>Crédito 2x</option>
+                    <option>Crédito 3x</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Valor Recebido</label>
+                  <input id="valorRecebido" type="number" step="0.01" placeholder="0,00" oninput="calcularTroco()">
+                </div>
+                <div class="total-bar" style="margin-bottom:12px">
+                  <div class="total-line">
+                    <div class="total-label">Troco</div>
+                    <div class="total-value troco-value">R$ <span id="vTroco">0,00</span></div>
+                  </div>
+                </div>
+                <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:15px" onclick="finalizarVenda()">
+                  ✅ FINALIZAR VENDA
+                </button>
+                <div class="btn-group" style="margin-top:8px">
+                  <button class="btn btn-secondary btn-sm" style="flex:1;justify-content:center" onclick="enviarWhats()">📲 WhatsApp</button>
+                  <button class="btn btn-secondary btn-sm" style="flex:1;justify-content:center" onclick="imprimirUltimaCupom()">🖨️ Imprimir</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-<button onclick="salvarProduto()">Salvar</button>
+      <!-- ══ PRODUTOS ══ -->
+      <div class="page" id="page-produtos">
+        <div class="page-header">
+          <div class="page-title">Gestão de <span>Estoque</span></div>
+          <button class="btn btn-primary" onclick="abrirModalProduto()">＋ Novo Produto</button>
+        </div>
+        <div class="summary-grid" id="resumoEstoque"></div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Produtos Cadastrados</div>
+            <input id="filtroProduto" placeholder="Buscar produto..." style="width:200px;padding:7px 12px;font-size:13px" oninput="renderProdutos()">
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Código</th><th>Nome</th><th>Cor</th><th>Tamanho</th><th>Estoque</th><th>Valor</th><th>Ações</th></tr></thead>
+              <tbody id="tabelaProdutos"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
-<table>
-<thead>
-<tr>
-<th>Código</th>
-<th>Nome</th>
-<th>Cor</th>
-<th>Numeração</th>
-<th>Quantidade</th>
-<th>Valor</th>
-<th>Ações</th>
-</tr>
-</thead>
-<tbody id="listaProdutos"></tbody>
-</table>
+      <!-- ══ CAIXA ══ -->
+      <div class="page" id="page-caixa">
+        <div class="page-header">
+          <div class="page-title">Controle de <span>Caixa</span></div>
+        </div>
 
+        <div class="caixa-status" id="caixaStatus">
+          <div class="caixa-dot closed" id="caixaDot"></div>
+          <div>
+            <div style="font-weight:600;font-size:14px" id="caixaStatusText">Caixa Fechado</div>
+            <div style="font-size:12px;color:var(--text2)" id="caixaHorario">—</div>
+          </div>
+        </div>
+
+        <div class="summary-grid" id="resumoCaixa"></div>
+
+        <div class="row c2">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Abertura de Caixa</div></div>
+            <div class="panel-body">
+              <div class="field">
+                <label>Valor Inicial (fundo de troco)</label>
+                <input id="fundoCaixa" type="number" step="0.01" placeholder="R$ 0,00">
+              </div>
+              <div class="field">
+                <label>Observação</label>
+                <input id="obsCaixa" placeholder="Opcional">
+              </div>
+              <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="abrirCaixa()">Abrir Caixa</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Sangria / Suprimento</div></div>
+            <div class="panel-body">
+              <div class="field">
+                <label>Tipo</label>
+                <select id="tipoMovCaixa">
+                  <option value="suprimento">Suprimento (entrada)</option>
+                  <option value="sangria">Sangria (saída)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Valor</label>
+                <input id="valorMovCaixa" type="number" step="0.01" placeholder="R$ 0,00">
+              </div>
+              <div class="field">
+                <label>Motivo</label>
+                <input id="motivoMovCaixa" placeholder="Descreva o motivo">
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-secondary" style="flex:1;justify-content:center" onclick="registrarMovCaixa()">Registrar</button>
+                <button class="btn btn-danger" style="flex:1;justify-content:center" onclick="fecharCaixa()">Fechar Caixa</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Movimentações de Hoje</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Hora</th><th>Tipo</th><th>Descrição</th><th>Valor</th><th>Operador</th></tr></thead>
+              <tbody id="tabelaCaixa"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ RELATÓRIO ══ -->
+      <div class="page" id="page-relatorio">
+        <div class="page-header">
+          <div class="page-title">Central de <span>Relatórios</span></div>
+          <button class="btn btn-secondary" onclick="exportarRelatorio()">⬇ Exportar</button>
+        </div>
+
+        <div class="rel-tabs">
+          <button class="rel-tab active" onclick="mudarRelTab('hoje',this)">Hoje</button>
+          <button class="rel-tab" onclick="mudarRelTab('semana',this)">Semana</button>
+          <button class="rel-tab" onclick="mudarRelTab('mes',this)">Mês</button>
+          <button class="rel-tab" onclick="mudarRelTab('custom',this)">Personalizado</button>
+        </div>
+
+        <div id="relCustom" style="display:none;margin-bottom:16px">
+          <div class="row c2" style="max-width:400px">
+            <div class="field"><label>Data Início</label><input type="date" id="relDataInicio"></div>
+            <div class="field"><label>Data Fim</label><input type="date" id="relDataFim"></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="carregarRelatorio()">Buscar</button>
+        </div>
+
+        <div class="summary-grid" id="resumoRel"></div>
+
+        <div class="row c2">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Vendas por Forma de Pagamento</div></div>
+            <div class="panel-body" id="graficoForma"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Produtos Mais Vendidos</div></div>
+            <div class="panel-body" id="topProdutos"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Histórico de Vendas</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Data/Hora</th><th>Operador</th><th>Itens</th><th>Forma</th><th>Total</th><th>Ações</th></tr></thead>
+              <tbody id="tabelaRelatorio"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ FUNCIONÁRIOS ══ -->
+      <div class="page" id="page-funcionarios">
+        <div class="page-header">
+          <div class="page-title">Equipe de <span>Funcionários</span></div>
+          <button class="btn btn-primary" onclick="abrirModalFuncionario()">＋ Novo Funcionário</button>
+        </div>
+        <div class="func-grid" id="listaFuncionarios"></div>
+      </div>
+
+      <!-- ══ TROCA ══ -->
+      <div class="page" id="page-troca">
+        <div class="page-header">
+          <div class="page-title">Registro de <span>Troca</span></div>
+        </div>
+        <div class="row c2">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Produto Devolvido</div>
+              <span class="badge badge-red">Entrada</span>
+            </div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="field"><label>Código</label><input id="codEntrada" placeholder="Código do produto"></div>
+                <div class="field"><label>Qtd</label><input id="qtdEntrada" type="number" value="1" min="1" style="width:80px"></div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="addEntrada()">＋ Adicionar</button>
+              <div class="table-wrap" style="margin-top:10px">
+                <table><thead><tr><th>Produto</th><th>Qtd</th><th>Valor</th><th></th></tr></thead>
+                <tbody id="tabelaEntrada"></tbody></table>
+              </div>
+              <div style="text-align:right;margin-top:8px;color:var(--red);font-weight:600">Total: R$ <span id="totalEntrada">0,00</span></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Produto Novo</div>
+              <span class="badge badge-green">Saída</span>
+            </div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="field"><label>Código</label><input id="codSaida" placeholder="Código do produto"></div>
+                <div class="field"><label>Qtd</label><input id="qtdSaida" type="number" value="1" min="1" style="width:80px"></div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="addSaida()">＋ Adicionar</button>
+              <div class="table-wrap" style="margin-top:10px">
+                <table><thead><tr><th>Produto</th><th>Qtd</th><th>Valor</th><th></th></tr></thead>
+                <tbody id="tabelaSaida"></tbody></table>
+              </div>
+              <div style="text-align:right;margin-top:8px;color:var(--accent);font-weight:600">Total: R$ <span id="totalSaida">0,00</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Finalizar Troca</div></div>
+          <div class="panel-body">
+            <div class="row c3">
+              <div class="total-bar">
+                <div class="total-label">Diferença</div>
+                <div class="total-value" id="difTroca" style="font-size:22px">R$ 0,00</div>
+              </div>
+              <div class="field"><label>Forma de Pagamento</label>
+                <select id="pagTroca"><option>Dinheiro</option><option>Pix</option><option>Débito</option><option>Crédito</option><option>Vale</option></select>
+              </div>
+              <div style="display:flex;align-items:flex-end">
+                <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="finalizarTroca()">✅ Finalizar Troca</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
 </div>
 
-<!-- VENDA -->
-<div id="ven" class="box">
-
-<input id="codVenda" placeholder="Código">
-<input id="qtd" value="1">
-
-<div style="margin-top:10px; display:flex; gap:10px;">
-<button onclick="toggleScannerVenda()">📷 Scanner</button>
-<button onclick="adicionarPorCodigo()">Adicionar</button>
-<button onclick="abrirBusca()">Buscar</button>
+<!-- MODAL PRODUTO -->
+<div class="modal-overlay" id="modalProduto">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalProdutoTitulo">Novo Produto</div>
+      <button class="modal-close" onclick="fecharModal('modalProduto')">×</button>
+    </div>
+    <div class="field"><label>Código</label>
+      <div style="display:flex;gap:8px">
+        <input id="pCodigo" placeholder="Código único">
+        <button class="btn btn-secondary btn-sm" onclick="gerarCodigo()" style="white-space:nowrap">Gerar</button>
+        <button class="btn btn-secondary btn-sm" onclick="toggleScannerProd()" style="white-space:nowrap">📷</button>
+      </div>
+      <div id="readerProd" style="margin-top:6px"></div>
+    </div>
+    <div class="field"><label>Nome do Produto</label><input id="pNome" placeholder="Ex: Chinelo Slide Feminino"></div>
+    <div class="row c2">
+      <div class="field"><label>Cor</label><input id="pCor" placeholder="Ex: Rosa"></div>
+      <div class="field"><label>Tamanho / Numeração</label><input id="pNumero" placeholder="Ex: 36-37"></div>
+    </div>
+    <div class="row c2">
+      <div class="field"><label>Estoque</label><input id="pEstoque" type="number" placeholder="0"></div>
+      <div class="field"><label>Valor (R$)</label><input id="pValor" type="number" step="0.01" placeholder="0,00"></div>
+    </div>
+    <div class="field"><label>Estoque Mínimo (alerta)</label><input id="pEstoqueMin" type="number" placeholder="5"></div>
+    <div class="btn-group" style="justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-secondary" onclick="fecharModal('modalProduto')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarProduto()">Salvar Produto</button>
+    </div>
+  </div>
 </div>
 
-<div id="readerVenda" style="width:250px"></div>
-
-<hr>
-<table>
-<tbody id="listaVenda"></tbody>
-</table>
-<h3>Total: R$ <span id="total">0.00</span></h3>
-
-<h4>Pagamento</h4>
-
-<select id="formaPagamento">
-<option value="Dinheiro">Dinheiro</option>
-<option value="Pix">Pix</option>
-<option value="Cartão">Cartão</option>
-</select>
-
-<input id="valorRecebido" placeholder="Valor recebido">
-<p>Troco: R$ <span id="troco">0.00</span></p>
-
-<button onclick="calcularTroco()">Calcular Troco</button>
-
-<hr>
-
-<button onclick="finalizarVenda()">Finalizar Venda</button>
-<button onclick="abrirTroca()">🔄 Troca</button>
-<button onclick="enviarWhatsUltima()">📲 Enviar WhatsApp</button>
-</div> <!-- VENDA -->
-  <div id="busca" class="box" style="display:none;">
-
-<h3>🔎 Buscar Produto</h3>
-
-<input id="buscaInput" oninput="renderBusca()" placeholder="Digite nome ou código">
-
-<table>
-<tbody id="listaBusca"></tbody>
-</table>
-
-<button onclick="show('ven')">⬅ Voltar</button>
-
+<!-- MODAL FUNCIONÁRIO -->
+<div class="modal-overlay" id="modalFuncionario">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Cadastro de Funcionário</div>
+      <button class="modal-close" onclick="fecharModal('modalFuncionario')">×</button>
+    </div>
+    <div class="field"><label>Nome Completo</label><input id="fNome" placeholder="Nome do funcionário"></div>
+    <div class="row c2">
+      <div class="field"><label>Cargo</label>
+        <select id="fCargo">
+          <option>Vendedor(a)</option>
+          <option>Gerente</option>
+          <option>Caixa</option>
+          <option>Estoquista</option>
+          <option>Proprietário(a)</option>
+        </select>
+      </div>
+      <div class="field"><label>Turno</label>
+        <select id="fTurno"><option>Manhã</option><option>Tarde</option><option>Integral</option></select>
+      </div>
+    </div>
+    <div class="row c2">
+      <div class="field"><label>Telefone</label><input id="fTel" placeholder="(00) 00000-0000"></div>
+      <div class="field"><label>Senha de Acesso</label><input id="fSenha" type="password" placeholder="••••••"></div>
+    </div>
+    <div class="field">
+      <label>Permissão</label>
+      <select id="fPermissao">
+        <option value="operador">Operador (venda apenas)</option>
+        <option value="gerente">Gerente (venda + relatório)</option>
+        <option value="admin">Admin (acesso total)</option>
+      </select>
+    </div>
+    <div class="btn-group" style="justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-secondary" onclick="fecharModal('modalFuncionario')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarFuncionario()">Salvar</button>
+    </div>
+  </div>
 </div>
-<div id="troca" class="box" style="display:none;">
 
-<h3>🔄 Troca</h3>
-
-<!-- ENTRADA -->
-<h4>Produto devolvido</h4>
-<input id="codEntrada" placeholder="Código">
-<input id="qtdEntrada" value="1">
-<button onclick="addEntrada()">Adicionar</button>
-<table>
-    <thead>
-        <tr>
-            <th>Produto</th>
-            <th>Qtd</th>
-            <th>Valor</th>
-            <th>Ações</th>
-        </tr>
-    </thead>
-    <tbody id="listaEntrada"></tbody>
-</table>
-
-<h3>Total Entrada: R$ <span id="totalEntrada">0.00</span></h3>
-
-<hr>
-
-<!-- SAÍDA -->
-<h4>Produto novo</h4>
-<input id="codSaida" placeholder="Código">
-<input id="qtdSaida" value="1">
-<button onclick="addSaida()">Adicionar</button>
-
-<table>
-<tbody id="listaSaida"></tbody>
-</table>
-
-<h3>Total Saída: R$ <span id="totalSaida">0.00</span></h3>
-
-<hr>
-
-<h3>Diferença: R$ <span id="diferenca">0.00</span></h3>
-
-<select id="pagTroca">
-<option>Dinheiro</option>
-<option>Pix</option>
-<option>Débito</option>
-<option>Crédito à vista</option>
-<option>Crédito 2x</option>
-<option>Crédito 3x</option>
-<option>Vale</option>
-</select>
-
-<button onclick="finalizarTroca()">Finalizar Troca</button>
-<button onclick="show('ven')">⬅ Voltar</button>
-
-</div>
-<!-- RELATORIO -->
-<div id="rel" class="box">
-<h3>Relatório</h3>
-<table>
-<thead>
-<tr><th>Data</th><th>Total</th><th>Usuário</th></tr>
-</thead>
-<tbody id="tabelaRel"></tbody>
-</table>
-<button onclick="atualizarRelatorio()">Atualizar</button>
+<!-- MODAL BUSCA -->
+<div class="modal-overlay" id="buscaModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <div class="modal-title">🔎 Buscar Produto</div>
+      <button class="modal-close" onclick="fecharModal('buscaModal')">×</button>
+    </div>
+    <input id="buscaInput" placeholder="Nome ou código..." oninput="renderBusca()" style="margin-bottom:12px">
+    <div class="panel">
+      <div class="panel-body" style="padding:0;max-height:360px;overflow-y:auto">
+        <table>
+          <thead><tr><th>Produto</th><th>Cor</th><th>Tam</th><th>Estoque</th><th>Valor</th><th></th></tr></thead>
+          <tbody id="listaBusca"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-
+// ══════════════════════════════════════════
+// FIREBASE
+// ══════════════════════════════════════════
 const firebaseConfig = {
   apiKey: "AIzaSyARpePSrPuvzOwLP6v9gzmhWfzdo0JZJK4",
   authDomain: "pdv-chinelos.firebaseapp.com",
   projectId: "pdv-chinelos-2"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// ══════════════════════════════════════════
+// ESTADO GLOBAL
+// ══════════════════════════════════════════
 let produtos = [];
+let funcionarios = [];
 let venda = [];
-let totalVenda = 0;
-let usuarioAtual = "";
-let editandoId = null;
+let entrada = [];
+let saida = [];
+let usuario = null;
+let editandoProdId = null;
+let scannerVenda = null;
+let scannerProd = null;
+let caixaAberto = false;
+let caixaId = null;
+let relTab = 'hoje';
+let ultimoCupom = null;
 
+// ══════════════════════════════════════════
+// RELÓGIO
+// ══════════════════════════════════════════
+setInterval(() => {
+  const agora = new Date();
+  document.getElementById('relogio').textContent = agora.toLocaleTimeString('pt-BR');
+}, 1000);
+
+document.getElementById('vendaData').textContent = new Date().toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+// ══════════════════════════════════════════
 // LOGIN
-function login(){
-usuarioAtual = user.value
-loginBox.style.display="none"
-show("ven")
+// ══════════════════════════════════════════
+async function fazerLogin() {
+  const nome = document.getElementById('loginNome').value.trim();
+  const senha = document.getElementById('loginSenha').value;
+  if (!nome) { toast('Digite seu nome', 'error'); return; }
+
+  // Verifica funcionário no Firestore
+  const snap = await db.collection('funcionarios').where('nome','==',nome).get();
+  let func = null;
+  if (!snap.empty) {
+    const doc = snap.docs[0];
+    const data = doc.data();
+    if (data.senha && data.senha !== senha) { toast('Senha incorreta', 'error'); return; }
+    func = { id: doc.id, ...data };
+  } else {
+    // Primeiro acesso — cria como admin
+    func = { nome, cargo: 'Proprietário(a)', permissao: 'admin' };
+  }
+
+  usuario = func;
+  document.getElementById('headerNome').textContent = usuario.nome;
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').classList.add('active');
+  iniciar();
 }
 
+function sair() {
+  if (confirm('Deseja sair do sistema?')) location.reload();
+}
+
+// ══════════════════════════════════════════
+// INICIAR
+// ══════════════════════════════════════════
+function iniciar() {
+  // Escuta produtos
+  db.collection('produtos').onSnapshot(snap => {
+    produtos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderProdutos();
+    atualizarResumoEstoque();
+  });
+  // Escuta funcionários
+  db.collection('funcionarios').onSnapshot(snap => {
+    funcionarios = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderFuncionarios();
+  });
+  // Verifica caixa aberto hoje
+  verificarCaixa();
+}
+
+// ══════════════════════════════════════════
 // NAVEGAÇÃO
-function show(t){
-document.querySelectorAll(".box").forEach(x=>x.style.display="none")
-document.getElementById(t).style.display="block"
+// ══════════════════════════════════════════
+function navegar(pagina) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + pagina).classList.add('active');
+  document.getElementById('nav-' + pagina).classList.add('active');
+  if (pagina === 'relatorio') carregarRelatorio();
+  if (pagina === 'caixa') { verificarCaixa(); carregarMovCaixa(); }
 }
 
-db.collection("produtos").onSnapshot(s=>{
-
-produtos = s.docs.map(d=>({id:d.id,...d.data()}))
-
-listaProdutos.innerHTML = produtos.map(p=>`
-<tr>
-
-<td>${p.codigo}</td>
-
-<td>${p.nome}</td>
-
-<td>${p.cor || ""}</td>
-
-<td>${p.numero || ""}</td>
-
-<td>${p.estoque}</td>
-
-<td>R$ ${Number(p.valor || 0).toFixed(2)}</td>
-
-<td>
-<button onclick="editar('${p.id}')">✏️</button>
-<button onclick="excluir('${p.id}')">🗑️</button>
-<button onclick="etiqueta('${p.codigo}','${p.nome}',${p.valor},'${p.cor}','${p.numero}')">🏷️</button>
-</td>
-
-</tr>
-`).join("")
-})
-// SALVAR / EDITAR
-function salvarProduto(){
-
-if(editandoId){
-
-db.collection("produtos").doc(editandoId).update({
-codigo: codigo.value,
-nome: nome.value,
-cor: cor.value,
-numero: numero.value,
-estoque: Number(estoque.value),
-valor: Number(valor.value)
-})
-
-editandoId = null
-
-}else{
-
-db.collection("produtos").add({
-codigo: codigo.value,
-nome: nome.value,
-cor: cor.value,
-numero: numero.value,
-estoque: Number(estoque.value),
-valor: Number(valor.value)
-})
-
+// ══════════════════════════════════════════
+// PRODUTOS
+// ══════════════════════════════════════════
+function abrirModalProduto(id = null) {
+  editandoProdId = id;
+  document.getElementById('modalProdutoTitulo').textContent = id ? 'Editar Produto' : 'Novo Produto';
+  if (id) {
+    const p = produtos.find(x => x.id === id);
+    document.getElementById('pCodigo').value = p.codigo;
+    document.getElementById('pNome').value = p.nome;
+    document.getElementById('pCor').value = p.cor || '';
+    document.getElementById('pNumero').value = p.numero || '';
+    document.getElementById('pEstoque').value = p.estoque;
+    document.getElementById('pValor').value = p.valor;
+    document.getElementById('pEstoqueMin').value = p.estoqueMin || 5;
+  } else {
+    ['pCodigo','pNome','pCor','pNumero','pEstoque','pValor'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('pEstoqueMin').value = 5;
+  }
+  abrirModal('modalProduto');
 }
 
-codigo.value=""
-nome.value=""
-cor.value=""
-numero.value=""
-estoque.value=""
-valor.value=""
+function gerarCodigo() {
+  document.getElementById('pCodigo').value = Date.now().toString().slice(-10);
 }
 
-// GERAR CÓDIGO
-function gerarCodigo(){
-  const campo = document.getElementById("codigo")
+async function salvarProduto() {
+  const dados = {
+    codigo: document.getElementById('pCodigo').value.trim(),
+    nome: document.getElementById('pNome').value.trim(),
+    cor: document.getElementById('pCor').value.trim(),
+    numero: document.getElementById('pNumero').value.trim(),
+    estoque: Number(document.getElementById('pEstoque').value),
+    valor: Number(document.getElementById('pValor').value),
+    estoqueMin: Number(document.getElementById('pEstoqueMin').value) || 5,
+  };
+  if (!dados.codigo || !dados.nome) { toast('Código e nome obrigatórios', 'error'); return; }
+  if (editandoProdId) {
+    await db.collection('produtos').doc(editandoProdId).update(dados);
+  } else {
+    await db.collection('produtos').add(dados);
+  }
+  fecharModal('modalProduto');
+  toast('Produto salvo com sucesso!');
+}
 
-  if(!campo){
-    alert("Campo código não encontrado")
-    return
+function renderProdutos() {
+  const filtro = (document.getElementById('filtroProduto')?.value || '').toLowerCase();
+  const lista = filtro ? produtos.filter(p =>
+    (p.nome||'').toLowerCase().includes(filtro) || String(p.codigo||'').includes(filtro)
+  ) : produtos;
+
+  document.getElementById('tabelaProdutos').innerHTML = lista.length ? lista.map(p => {
+    const baixo = p.estoque <= (p.estoqueMin || 5);
+    return `<tr>
+      <td><code style="font-size:11px;color:var(--text2)">${p.codigo}</code></td>
+      <td><strong>${p.nome}</strong></td>
+      <td>${p.cor||'—'}</td>
+      <td>${p.numero||'—'}</td>
+      <td><span class="badge ${baixo ? 'badge-red' : 'badge-green'}">${p.estoque}</span></td>
+      <td style="color:var(--accent);font-weight:600">R$ ${Number(p.valor||0).toFixed(2)}</td>
+      <td>
+        <div class="btn-group">
+          <button class="btn btn-secondary btn-icon btn-sm" onclick="abrirModalProduto('${p.id}')">✏️</button>
+          <button class="btn btn-danger btn-icon btn-sm" onclick="excluirProduto('${p.id}')">🗑</button>
+          <button class="btn btn-blue btn-icon btn-sm" onclick="imprimirEtiqueta('${p.codigo}','${p.nome}',${p.valor},'${p.cor||''}','${p.numero||''}')">🏷</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Nenhum produto encontrado</td></tr>';
+}
+
+function atualizarResumoEstoque() {
+  const total = produtos.length;
+  const baixo = produtos.filter(p => p.estoque <= (p.estoqueMin||5)).length;
+  const valorTotal = produtos.reduce((s,p) => s + (p.estoque * p.valor), 0);
+  document.getElementById('resumoEstoque').innerHTML = `
+    <div class="summary-card blue"><div class="summary-label">Total Produtos</div><div class="summary-value">${total}</div></div>
+    <div class="summary-card red"><div class="summary-label">Estoque Baixo</div><div class="summary-value">${baixo}</div></div>
+    <div class="summary-card green"><div class="summary-label">Valor em Estoque</div><div class="summary-value">R$ ${valorTotal.toFixed(2)}</div></div>
+  `;
+}
+
+async function excluirProduto(id) {
+  if (confirm('Excluir este produto?')) {
+    await db.collection('produtos').doc(id).delete();
+    toast('Produto excluído');
+  }
+}
+
+// SCANNER PRODUTO
+function toggleScannerProd() {
+  const el = document.getElementById('readerProd');
+  if (scannerProd) { scannerProd.stop(); scannerProd = null; el.innerHTML = ''; return; }
+  scannerProd = new Html5Qrcode('readerProd');
+  scannerProd.start({facingMode:'environment'},{fps:10},(text) => {
+    document.getElementById('pCodigo').value = text;
+    scannerProd.stop(); scannerProd = null; el.innerHTML = '';
+  }).catch(e => alert('Erro: ' + e));
+}
+
+// ETIQUETA
+function imprimirEtiqueta(codigo, nome, valor, cor='', numero='') {
+  const w = window.open('','','width=800,height=600');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
+  <style>@page{size:80mm auto;margin:0}body{margin:0;font-family:Arial}
+  .pagina{width:80mm;display:flex;gap:4mm;padding:2mm}
+  .etiqueta{width:40mm;height:60mm;border:2px solid #000;border-radius:6px;padding:3mm;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between}
+  .logo img{width:100%;height:16mm;object-fit:contain}.codigo{text-align:center;font-size:11px;font-weight:bold}
+  svg{width:100%;height:18mm}.info{font-size:10px;border-top:1px solid #000;padding-top:2px}
+  .preco{text-align:center;font-weight:bold;font-size:22px;margin-top:4px}</style></head><body>
+  <div class="pagina">${[1,2].map(n=>`
+  <div class="etiqueta">
+    <div class="logo"><img src="https://i.postimg.cc/QdHGJbs2/5ec2d3be-9be2-4458-891d-cc7232a46959.jpg"></div>
+    <div class="codigo">${codigo}</div><svg id="b${n}"></svg>
+    <div class="info"><strong>${nome}</strong><br>COR: ${cor}<br>TAM: ${numero}</div>
+    <div class="preco">R$ ${Number(valor||0).toFixed(2)}</div>
+  </div>`).join('')}</div>
+  <button onclick="window.print()" style="padding:10px;font-size:16px;margin:10px">IMPRIMIR</button>
+  <script>window.onload=function(){
+    JsBarcode('#b1','${codigo}',{format:'CODE128',width:2,height:40,displayValue:false});
+    JsBarcode('#b2','${codigo}',{format:'CODE128',width:2,height:40,displayValue:false});
+  }<\/script></body></html>`);
+  w.document.close();
+}
+
+// ══════════════════════════════════════════
+// VENDA
+// ══════════════════════════════════════════
+function toggleScannerVenda() {
+  const el = document.getElementById('readerVenda');
+  if (scannerVenda) { scannerVenda.stop(); scannerVenda = null; el.innerHTML = ''; return; }
+  scannerVenda = new Html5Qrcode('readerVenda');
+  scannerVenda.start({facingMode:'environment'},{fps:10},(text) => {
+    document.getElementById('codVenda').value = text;
+    adicionarPorCodigo();
+    scannerVenda.stop(); scannerVenda = null; el.innerHTML = '';
+  }).catch(e => alert('Erro: ' + e));
+}
+
+function adicionarPorCodigo() {
+  const codigo = document.getElementById('codVenda').value.trim();
+  const qtd = Number(document.getElementById('qtdVenda').value || 1);
+  if (!codigo) { toast('Digite o código', 'error'); return; }
+  const produto = produtos.find(p => String(p.codigo) === String(codigo));
+  if (!produto) { toast('Produto não encontrado!', 'error'); return; }
+  const item = venda.find(x => x.codigo === produto.codigo);
+  if (item) { item.qtd += qtd; } else {
+    venda.push({ codigo: produto.codigo, nome: produto.nome, valor: Number(produto.valor), qtd });
+  }
+  document.getElementById('codVenda').value = '';
+  document.getElementById('qtdVenda').value = 1;
+  renderVenda();
+}
+
+function renderVenda() {
+  const el = document.getElementById('listaVenda');
+  if (!venda.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🛒</div>Nenhum item adicionado</div>';
+    calcularTotais(); return;
+  }
+  el.innerHTML = venda.map((p, i) => `
+    <div class="item-row">
+      <div class="item-nome">
+        <div style="font-weight:500">${p.nome}</div>
+        <div style="font-size:11px;color:var(--text2)">R$ ${p.valor.toFixed(2)} / un</div>
+      </div>
+      <div class="item-qtd"><input type="number" value="${p.qtd}" min="1" onchange="alterarQtd(${i},this.value)"></div>
+      <div class="item-preco">R$ ${(p.valor*p.qtd).toFixed(2)}</div>
+      <button class="btn btn-danger btn-icon btn-sm" onclick="removerItem(${i})">×</button>
+    </div>
+  `).join('');
+  calcularTotais();
+}
+
+function alterarQtd(i, qtd) {
+  venda[i].qtd = Math.max(1, Number(qtd));
+  renderVenda();
+}
+
+function removerItem(i) { venda.splice(i,1); renderVenda(); }
+function limparVenda() { if (venda.length && confirm('Limpar venda?')) { venda = []; renderVenda(); } }
+
+function calcularTotais() {
+  const subtotal = venda.reduce((s,p) => s + p.valor*p.qtd, 0);
+  const desconto = Number(document.getElementById('desconto')?.value || 0);
+  const total = Math.max(0, subtotal - desconto);
+  document.getElementById('vSubtotal').textContent = subtotal.toFixed(2);
+  document.getElementById('vTotal').textContent = total.toFixed(2);
+  calcularTroco();
+}
+
+function calcularTroco() {
+  const total = Number(document.getElementById('vTotal')?.textContent || 0);
+  const pago = Number(document.getElementById('valorRecebido')?.value || 0);
+  document.getElementById('vTroco').textContent = Math.max(0, pago - total).toFixed(2);
+}
+
+async function finalizarVenda() {
+  if (!venda.length) { toast('Adicione produtos!', 'error'); return; }
+  const subtotal = venda.reduce((s,p) => s + p.valor*p.qtd, 0);
+  const desconto = Number(document.getElementById('desconto').value || 0);
+  const total = Math.max(0, subtotal - desconto);
+  const forma = document.getElementById('formaPgto').value;
+
+  const dadosVenda = {
+    itens: venda.map(x=>({...x})),
+    subtotal, desconto, total, forma,
+    usuario: usuario.nome,
+    data: new Date()
+  };
+
+  const ref = await db.collection('vendas').add(dadosVenda);
+  ultimoCupom = dadosVenda;
+
+  // Descontar estoque
+  for (const item of venda) {
+    const prod = produtos.find(x => x.codigo === item.codigo);
+    if (prod) await db.collection('produtos').doc(prod.id).update({ estoque: Math.max(0,(prod.estoque||0)-item.qtd) });
   }
 
-  campo.value = Date.now().toString().slice(-12)
-}
-
-// EDITAR
-function editar(id){
-
-let p = produtos.find(x=>x.id==id)
-
-codigo.value = p.codigo
-nome.value = p.nome
-cor.value = p.cor || ""
-numero.value = p.numero || ""
-estoque.value = p.estoque
-valor.value = p.valor
-
-editandoId = id
-}
-
-// EXCLUIR
-function excluir(id){
-
-if(confirm("Excluir produto?")){
-db.collection("produtos").doc(id).delete()
-}
-
-}
-
-function etiqueta(codigo, nome, valor, cor="", numero=""){
-
-    const w = window.open("", "", "width=800,height=600");
-
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-
-<style>
-@page {
-    size: 80mm auto;
-    margin: 0;
-}
-
-body{
-    margin:0;
-    font-family:Arial;
-}
-
-.pagina{
-    width:80mm;
-    display:flex;
-    gap:4mm;
-    padding:2mm;
-}
-
-.etiqueta{
-    width:40mm;
-    height:60mm;
-    border:2px solid #000;
-    border-radius:6px;
-    padding:3mm;
-    box-sizing:border-box;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-}
-
-.logo{
-    text-align:center;
-}
-
-.logo img{
-    width:100%;
-    height:16mm;
-    object-fit:contain;
-}
-
-.codigo{
-    text-align:center;
-    font-size:11px;
-    font-weight:bold;
-}
-
-.barras svg{
-    width:100%;
-    height:18mm;
-}
-
-.info{
-    font-size:10px;
-    border-top:1px solid #000;
-    padding-top:2px;
-}
-
-.preco{
-    text-align:center;
-    font-weight:bold;
-    font-size:22px;
-    margin-top:4px;
-}
-
-.botao{
-    margin-top:10px;
-    padding:10px;
-    font-size:16px;
-    font-weight:bold;
-}
-</style>
-
-</head>
-
-<body>
-
-<div class="pagina">
-
-<div class="etiqueta">
-<div class="logo">
-<img src="https://i.postimg.cc/QdHGJbs2/5ec2d3be-9be2-4458-891d-cc7232a46959.jpg">
-</div>
-
-<div class="codigo">${codigo}</div>
-
-<svg id="barcode1"></svg>
-
-<div class="info">
-<strong>${nome}</strong>
-COR: ${cor}<br>
-TAM: ${numero}
-</div>
-
-<div class="preco">R$ ${Number(valor || 0).toFixed(2)}</div>
-</div>
-
-<div class="etiqueta">
-<div class="logo">
-<img src="https://i.postimg.cc/QdHGJbs2/5ec2d3be-9be2-4458-891d-cc7232a46959.jpg">
-</div>
-
-<div class="codigo">${codigo}</div>
-
-<svg id="barcode2"></svg>
-
-<div class="info">
-<strong>${nome}</strong>
-COR: ${cor}<br>
-TAM: ${numero}
-</div>
-
-<div class="preco">R$ ${Number(valor || 0).toFixed(2)}</div>
-</div>
-
-</div>
-
-<button class="botao" onclick="window.print()">IMPRIMIR</button>
-
-<script>
-window.onload = function(){
-
-    JsBarcode("#barcode1", "${codigo}", {
-        format: "CODE128",
-        width: 2,
-        height: 40,
-        displayValue: false
+  // Registrar no caixa
+  if (caixaId) {
+    await db.collection('movimentacoes').add({
+      caixaId, tipo:'venda', descricao:`Venda #${ref.id.slice(-6)}`,
+      valor: total, forma, usuario: usuario.nome, data: new Date()
     });
+  }
 
-    JsBarcode("#barcode2", "${codigo}", {
-        format: "CODE128",
-        width: 2,
-        height: 40,
-        displayValue: false
-    });
-
-}
-</script>
-
-</body>
-</html>
-`;
-
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
-}
-// ================= VENDA =================
-function addVenda(){
-
-let codigo = document.getElementById("codVenda").value
-let quantidade = Number(document.getElementById("qtd").value || 1)
-
-let p = produtos.find(x => String(x.codigo) === String(codigo))
-
-if(!p){
-  alert("Produto não encontrado")
-  return
+  imprimirCupom(dadosVenda);
+  toast('Venda finalizada! ✅');
+  venda = [];
+  document.getElementById('desconto').value = 0;
+  document.getElementById('valorRecebido').value = '';
+  renderVenda();
 }
 
-// 👇 AQUI QUE FALTAVA
-let item = venda.find(x => x.codigo == p.codigo)
-
-if(item){
-  item.qtd += quantidade
-}else{
-  venda.push({
-    codigo: p.codigo,
-    nome: p.nome,
-    valor: Number(p.valor),
-    qtd: quantidade
-  })
+function montarTextoCupom(v) {
+  const data = new Date().toLocaleString('pt-BR');
+  let c = `   ═══════════════════════\n`;
+  c += `        CHINELOS MIX\n`;
+  c += `   ═══════════════════════\n`;
+  c += `   ${data}\n`;
+  c += `   Vendedor: ${v.usuario}\n`;
+  c += `   ───────────────────────\n`;
+  v.itens.forEach(i => { c += `   ${i.nome}\n   ${i.qtd}x R$ ${i.valor.toFixed(2)} = R$ ${(i.valor*i.qtd).toFixed(2)}\n`; });
+  c += `   ───────────────────────\n`;
+  c += `   Subtotal: R$ ${(v.subtotal||v.total).toFixed(2)}\n`;
+  if (v.desconto) c += `   Desconto: R$ ${v.desconto.toFixed(2)}\n`;
+  c += `   TOTAL: R$ ${v.total.toFixed(2)}\n`;
+  c += `   Pagamento: ${v.forma}\n`;
+  c += `   ═══════════════════════\n`;
+  c += `     Obrigado pela visita!\n`;
+  return c;
 }
 
-renderVenda()
-
+function imprimirCupom(v) {
+  const cupom = montarTextoCupom(v);
+  const w = window.open('','','width=300,height=600');
+  w.document.write(`<html><head><style>body{font-family:monospace;font-size:13px;padding:10px;white-space:pre}</style></head><body>${cupom}<button onclick="window.print()" style="display:block;margin:10px auto;padding:8px 20px">Imprimir</button></body></html>`);
+  w.document.close();
 }
 
-function renderVenda(){
-
-document.getElementById("listaVenda").innerHTML = venda.map((p,i)=>`
-<tr>
-<td>${p.nome}</td>
-<td>${p.qtd}</td>
-<td>R$ ${(p.valor*p.qtd).toFixed(2)}</td>
-<td><button onclick="remover(${i})">X</button></td>
-</tr>
-`).join("")
-
-let total = venda.reduce((s,p)=> s + (p.valor*p.qtd),0)
-
-document.getElementById("total").innerText = total.toFixed(2)
+function imprimirUltimaCupom() {
+  if (!ultimoCupom) { toast('Nenhuma venda recente', 'error'); return; }
+  imprimirCupom(ultimoCupom);
 }
-// REMOVER
-function remover(i){
-totalVenda -= venda[i].valor*venda[i].qtd
-venda.splice(i,1)
-renderVenda()
+
+function enviarWhats() {
+  if (!venda.length && !ultimoCupom) { toast('Nenhuma venda', 'error'); return; }
+  const v = venda.length ? { itens:[...venda], total: Number(document.getElementById('vTotal').textContent), subtotal:0, desconto:0, forma: document.getElementById('formaPgto').value, usuario: usuario.nome } : ultimoCupom;
+  const msg = encodeURIComponent('🧾 ' + montarTextoCupom(v));
+  window.open('https://wa.me/?text=' + msg, '_blank');
 }
-function montarCupom() {
 
-    if (!venda || venda.length === 0) {
-        alert("Nenhum produto na venda!");
-        return "";
-    }
-
-    let cupom = "";
-    let total = 0;
-
-    venda.forEach(item => {
-
-        // 🧠 nome
-        const nome = item.nome || item.produto || "Produto";
-
-        // 🧠 quantidade
-        const qtd = Number(item.qtd || item.quantidade || 1);
-
-        // 🧠 preço (resolve QUALQUER formato)
-        let preco = item.preco ?? item.valor ?? item.price ?? item.preço ?? 0;
-
-        // 🔥 converte para número (resolve string)
-        preco = Number(preco);
-
-        // 🔥 se ainda for inválido, vira 0
-        if (isNaN(preco)) preco = 0;
-
-        cupom += `${nome} - ${qtd}x R$ ${preco.toFixed(2)}\n`;
-
-        total += qtd * preco;
-    });
-
-    cupom += "\nTOTAL: R$ " + total.toFixed(2);
-
-    return cupom;
-}
-function imprimirCupom(cupom) {
-
-    const janela = window.open('', '', 'width=300,height=600');
-
-    janela.document.write(`
-        <html>
-        <head>
-            <title>Cupom</title>
-            <style>
-                body {
-                    font-family: monospace;
-                    font-size: 14px;
-                    padding: 10px;
-                }
-                hr {
-                    border-top: 1px dashed #000;
-                }
-            </style>
-        </head>
-        <body>
-            <h3>*** CUPOM ***</h3>
-            <hr>
-            <pre>${cupom}</pre>
-            <hr>
-            <p>Obrigado pela preferência!</p>
-        </body>
-        </html>
-    `);
-
-    janela.document.close();
-
-    janela.print();
-}
 // BUSCA
-function buscarProduto(){
-let termo = buscaProduto.value.toLowerCase()
+function abrirBusca() { abrirModal('buscaModal'); document.getElementById('buscaInput').value = ''; renderBusca(); }
 
-let p = produtos.find(x=>
-(x.nome||"").toLowerCase().includes(termo) ||
-(x.codigo||"").includes(termo)
-)
-
-if(p){
-codVenda.value = p.codigo
-addVenda()
-}
-}
-
-// TROCO
-function calcularTroco(){
-
-    const pagoInput = document.getElementById("valorRecebido").value;
-
-    const pago = Number(pagoInput || 0);
-
-    let total = 0;
-
-    venda.forEach(item => {
-        total += item.qtd * Number(item.preco || 0);
-    });
-
-    let troco = pago - total;
-
-    if (isNaN(troco) || troco < 0) {
-        troco = 0;
-    }
-
-    document.getElementById("troco").innerText = 
-        "Troco: R$ " + troco.toFixed(2);
-}
-// FINALIZAR
-function finalizarVenda() {
-
-    if (!venda || venda.length === 0) {
-        alert("Adicione produtos antes de finalizar!");
-        return;
-    }
-
-    const cupom = montarCupom();
-
-    if (!cupom) return;
-
-    // 🔥 AQUI CHAMA IMPRESSÃO
-    imprimirCupom(cupom);
-
-    alert("Venda finalizada!");
-
-    venda = [];
-
-    if (typeof atualizarTela === "function") {
-        atualizarTela();
-    }
-}
-function enviarWhatsUltima() {
-
-    if (!venda || venda.length === 0) {
-        alert("Nenhuma venda para enviar!");
-        return;
-    }
-
-    const cupom = montarCupom();
-    if (!cupom) return;
-
-    // 🔥 usa encode completo (mais seguro)
-    const mensagem = encodeURIComponent("🧾 CUPOM DA COMPRA:\n\n" + cupom);
-
-    // 🔥 VOLTAMOS PRO MODELO QUE FUNCIONA EM QUALQUER DISPOSITIVO
-    const url = "https://wa.me/?text=" + mensagem;
-
-    window.open(url, "_blank");
+function renderBusca() {
+  const t = document.getElementById('buscaInput').value.toLowerCase();
+  const lista = produtos.filter(p => (p.nome||'').toLowerCase().includes(t) || String(p.codigo).includes(t));
+  document.getElementById('listaBusca').innerHTML = lista.map(p => `
+    <tr>
+      <td><strong>${p.nome}</strong></td>
+      <td>${p.cor||'—'}</td><td>${p.numero||'—'}</td>
+      <td><span class="badge ${p.estoque>0?'badge-green':'badge-red'}">${p.estoque}</span></td>
+      <td style="color:var(--accent);font-weight:600">R$ ${Number(p.valor||0).toFixed(2)}</td>
+      <td><button class="btn btn-primary btn-sm" onclick="selecionarProduto('${p.codigo}')">Adicionar</button></td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3)">Nenhum resultado</td></tr>';
 }
 
-// ================= RELATÓRIO =================
-async function atualizarRelatorio(){
-
-let snap = await db.collection("vendas").get()
-
-let vendasLista = snap.docs.map(d=>d.data())
-
-tabelaRel.innerHTML = vendasLista.map(v=>{
-
-let data = ""
-if(v.data){
-if(v.data.seconds){
-data = new Date(v.data.seconds*1000).toLocaleDateString()
-}else{
-data = new Date(v.data).toLocaleDateString()
-}
+function selecionarProduto(codigo) {
+  const p = produtos.find(x => String(x.codigo) === String(codigo));
+  if (!p) return;
+  const item = venda.find(x => x.codigo === p.codigo);
+  if (item) { item.qtd++; } else { venda.push({ codigo:p.codigo, nome:p.nome, valor:Number(p.valor), qtd:1 }); }
+  fecharModal('buscaModal');
+  renderVenda();
 }
 
-return `
-<tr>
-<td>${data}</td>
-<td>R$ ${Number(v.total||0).toFixed(2)}</td>
-<td>${v.usuario||""}</td>
-</tr>
-`
-
-}).join("")
+// ══════════════════════════════════════════
+// CAIXA
+// ══════════════════════════════════════════
+async function verificarCaixa() {
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const snap = await db.collection('caixas').where('usuario','==',usuario.nome).where('status','==','aberto').limit(1).get();
+  if (!snap.empty) {
+    const doc = snap.docs[0];
+    caixaAberto = true;
+    caixaId = doc.id;
+    const data = doc.data();
+    const hora = data.abertura?.seconds ? new Date(data.abertura.seconds*1000).toLocaleTimeString('pt-BR') : '—';
+    document.getElementById('caixaDot').className = 'caixa-dot open';
+    document.getElementById('caixaStatusText').textContent = 'Caixa Aberto';
+    document.getElementById('caixaHorario').textContent = `Aberto às ${hora} | Fundo: R$ ${Number(data.fundo||0).toFixed(2)}`;
+    await calcularResumoCaixa();
+  } else {
+    caixaAberto = false; caixaId = null;
+    document.getElementById('caixaDot').className = 'caixa-dot closed';
+    document.getElementById('caixaStatusText').textContent = 'Caixa Fechado';
+    document.getElementById('caixaHorario').textContent = '—';
+    document.getElementById('resumoCaixa').innerHTML = '';
+  }
 }
 
-// START
-show("ven")
-let scannerVenda = null
-
-function toggleScannerVenda(){
-
-const reader = document.getElementById("readerVenda")
-
-if(!reader){
-alert("readerVenda não encontrado")
-return
+async function abrirCaixa() {
+  if (caixaAberto) { toast('Caixa já está aberto!', 'error'); return; }
+  const fundo = Number(document.getElementById('fundoCaixa').value || 0);
+  const obs = document.getElementById('obsCaixa').value;
+  const ref = await db.collection('caixas').add({ fundo, obs, abertura: new Date(), usuario: usuario.nome, status: 'aberto' });
+  await db.collection('movimentacoes').add({ caixaId: ref.id, tipo:'abertura', descricao:'Abertura de caixa', valor:fundo, usuario:usuario.nome, data:new Date() });
+  caixaId = ref.id; caixaAberto = true;
+  toast('Caixa aberto!');
+  verificarCaixa(); carregarMovCaixa();
 }
 
-if(scannerVenda){
-scannerVenda.stop()
-scannerVenda = null
-reader.innerHTML = ""
-return
+async function fecharCaixa() {
+  if (!caixaAberto) { toast('Caixa não está aberto', 'error'); return; }
+  if (!confirm('Fechar o caixa agora?')) return;
+  await db.collection('caixas').doc(caixaId).update({ status:'fechado', fechamento: new Date() });
+  toast('Caixa fechado!');
+  caixaAberto = false; caixaId = null;
+  verificarCaixa();
 }
 
-scannerVenda = new Html5Qrcode("readerVenda")
-
-scannerVenda.start(
-{ facingMode: "environment" },
-{ fps: 10 },
-(decodedText)=>{
-
-document.getElementById("codVenda").value = decodedText
-
-addVenda()
-
-scannerVenda.stop()
-scannerVenda = null
-reader.innerHTML = ""
-
-}
-)
-
-}
-let scanner = null
-
-function toggleScanner(){
-
-const reader = document.getElementById("reader")
-
-if(!reader){
-alert("reader não encontrado")
-return
+async function registrarMovCaixa() {
+  if (!caixaId) { toast('Abra o caixa primeiro!', 'error'); return; }
+  const tipo = document.getElementById('tipoMovCaixa').value;
+  const valor = Number(document.getElementById('valorMovCaixa').value);
+  const motivo = document.getElementById('motivoMovCaixa').value;
+  if (!valor) { toast('Digite o valor', 'error'); return; }
+  await db.collection('movimentacoes').add({ caixaId, tipo, descricao: motivo || tipo, valor, usuario: usuario.nome, data: new Date() });
+  document.getElementById('valorMovCaixa').value = '';
+  document.getElementById('motivoMovCaixa').value = '';
+  toast('Registrado!');
+  carregarMovCaixa(); calcularResumoCaixa();
 }
 
-if(scanner){
-scanner.stop()
-scanner = null
-reader.innerHTML = ""
-return
+async function calcularResumoCaixa() {
+  if (!caixaId) return;
+  const snap = await db.collection('movimentacoes').where('caixaId','==',caixaId).get();
+  const movs = snap.docs.map(d => d.data());
+  const totalVendas = movs.filter(m=>m.tipo==='venda').reduce((s,m)=>s+m.valor,0);
+  const totalSangria = movs.filter(m=>m.tipo==='sangria').reduce((s,m)=>s+m.valor,0);
+  const totalSuprimento = movs.filter(m=>m.tipo==='suprimento').reduce((s,m)=>s+m.valor,0);
+  const fundo = movs.find(m=>m.tipo==='abertura')?.valor || 0;
+  const saldo = fundo + totalVendas + totalSuprimento - totalSangria;
+  document.getElementById('resumoCaixa').innerHTML = `
+    <div class="summary-card green"><div class="summary-label">Vendas do Dia</div><div class="summary-value">R$ ${totalVendas.toFixed(2)}</div></div>
+    <div class="summary-card amber"><div class="summary-label">Sangrias</div><div class="summary-value">R$ ${totalSangria.toFixed(2)}</div></div>
+    <div class="summary-card blue"><div class="summary-label">Suprimentos</div><div class="summary-value">R$ ${totalSuprimento.toFixed(2)}</div></div>
+    <div class="summary-card green"><div class="summary-label">Saldo Atual</div><div class="summary-value">R$ ${saldo.toFixed(2)}</div></div>
+  `;
 }
 
-scanner = new Html5Qrcode("reader")
-
-scanner.start(
-{ facingMode: "environment" },
-{ fps: 10 },
-(decodedText)=>{
-
-document.getElementById("codigo").value = decodedText
-
-scanner.stop()
-scanner = null
-reader.innerHTML = ""
-}
-).catch(err=>{
-alert("Erro no scanner: " + err)
-})
-
-}
-let entrada = []
-let saida = []
-
-let totalEntrada = 0
-let totalSaida = 0
-
-function addEntrada(){
-
-    const codigo = document.getElementById("codEntrada").value.trim();
-    const qtd = Number(document.getElementById("qtdEntrada").value || 1);
-
-    const produto = produtos.find(p => String(p.codigo) === String(codigo));
-
-    if (!produto) {
-        alert("Produto não encontrado!");
-        return;
-    }
-
-    entrada.push({
-        nome: produto.nome,
-        qtd: qtd,
-        preco: Number(produto.valor)
-    });
-
-    atualizarTelaTroca();
-}
-function addSaida(){
-
-    const codigo = document.getElementById("codSaida").value.trim();
-    const qtd = Number(document.getElementById("qtdSaida").value || 1);
-
-    const produto = produtos.find(p => String(p.codigo) === String(codigo));
-
-    if (!produto) {
-        alert("Produto não encontrado!");
-        return;
-    }
-
-    saida.push({
-        nome: produto.nome,
-        qtd: qtd,
-        preco: Number(produto.valor)
-    });
-
-    atualizarTelaTroca();
-}
-function renderTroca(){
-
-listaEntrada.innerHTML = entrada.map(p=>`
-<tr>
-<td>${p.nome}</td>
-<td>${p.qtd}</td>
-<td>R$ ${(p.valor*p.qtd).toFixed(2)}</td>
-</tr>
-`).join("")
-
-listaSaida.innerHTML = saida.map(p=>`
-<tr>
-<td>${p.nome}</td>
-<td>${p.qtd}</td>
-<td>R$ ${(p.valor*p.qtd).toFixed(2)}</td>
-</tr>
-`).join("")
-
-document.getElementById("totalEntrada").innerText = totalEntrada.toFixed(2)
-document.getElementById("totalSaida").innerText = totalSaida.toFixed(2)
-
-let dif = totalSaida - totalEntrada
-document.getElementById("diferenca").innerText = dif.toFixed(2)
+async function carregarMovCaixa() {
+  if (!caixaId) { document.getElementById('tabelaCaixa').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3)">Abra o caixa para ver movimentações</td></tr>'; return; }
+  const snap = await db.collection('movimentacoes').where('caixaId','==',caixaId).orderBy('data','desc').get();
+  const cores = { venda:'green', abertura:'blue', sangria:'red', suprimento:'amber', fechamento:'red' };
+  document.getElementById('tabelaCaixa').innerHTML = snap.docs.map(d => {
+    const m = d.data();
+    const hora = m.data?.seconds ? new Date(m.data.seconds*1000).toLocaleTimeString('pt-BR') : '—';
+    return `<tr>
+      <td style="color:var(--text2);font-size:12px">${hora}</td>
+      <td><span class="badge badge-${cores[m.tipo]||'blue'}">${m.tipo}</span></td>
+      <td>${m.descricao||'—'}</td>
+      <td style="color:var(--accent);font-weight:600">R$ ${Number(m.valor||0).toFixed(2)}</td>
+      <td style="color:var(--text2);font-size:12px">${m.usuario||'—'}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3)">Nenhuma movimentação</td></tr>';
 }
 
-function finalizarTroca(){
-
-    if (!venda.length && !entrada.length) {
-        alert("Adicione produtos!");
-        return;
-    }
-
-    const cupom = montarCupomTroca();
-
-    imprimirCupom(cupom);
-
-    salvarHistorico("troca", 0);
-
-    venda = [];
-    entrada = [];
-
-    atualizarTela();
-    atualizarTelaTroca();
-  // limpar tudo
-entrada = [];
-saida = [];
-
-totalEntrada = 0;
-totalSaida = 0;
-
-// atualizar tela
-if (typeof atualizarTelaTroca === "function") {
-    atualizarTelaTroca();
+// ══════════════════════════════════════════
+// RELATÓRIO
+// ══════════════════════════════════════════
+function mudarRelTab(tab, el) {
+  relTab = tab;
+  document.querySelectorAll('.rel-tab').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('relCustom').style.display = tab === 'custom' ? 'block' : 'none';
+  if (tab !== 'custom') carregarRelatorio();
 }
 
-// limpar inputs
-document.getElementById("codEntrada").value = "";
-document.getElementById("qtdEntrada").value = 1;
-document.getElementById("valorEntradaTroca").value = "";
-
-document.getElementById("codSaida").value = "";
-document.getElementById("qtdSaida").value = 1;
-
-// reset valores na tela
-document.getElementById("totalEntrada").innerText = "0.00";
-document.getElementById("totalSaida").innerText = "0.00";
-document.getElementById("diferenca").innerText = "0.00";
-}
-function abrirTroca(){
-  show("troca")
-
-}
-async function atualizarEstoqueTroca(){
-
-  // DEVOLVIDO (entra no estoque)
-  for(let p of entrada){
-
-    let prod = produtos.find(x => x.codigo == p.codigo)
-    if(!prod) continue
-
-    await db.collection("produtos").doc(prod.id).update({
-      estoque: (prod.estoque || 0) + p.qtd
-    })
-
+async function carregarRelatorio() {
+  const agora = new Date();
+  let inicio, fim = new Date();
+  if (relTab === 'hoje') { inicio = new Date(); inicio.setHours(0,0,0,0); }
+  else if (relTab === 'semana') { inicio = new Date(); inicio.setDate(agora.getDate()-7); }
+  else if (relTab === 'mes') { inicio = new Date(); inicio.setDate(1); inicio.setHours(0,0,0,0); }
+  else {
+    const di = document.getElementById('relDataInicio').value;
+    const df = document.getElementById('relDataFim').value;
+    if (!di || !df) return;
+    inicio = new Date(di); fim = new Date(df); fim.setHours(23,59,59);
   }
 
-  // NOVO (sai do estoque)
-  for(let p of saida){
+  let query = db.collection('vendas').orderBy('data','desc');
+  const snap = await query.get();
+  const vendas = snap.docs.map(d=>({id:d.id,...d.data()})).filter(v => {
+    const d = v.data?.seconds ? new Date(v.data.seconds*1000) : new Date(v.data);
+    return d >= inicio && d <= fim;
+  });
 
-    let prod = produtos.find(x => x.codigo == p.codigo)
-    if(!prod) continue
+  const totalGeral = vendas.reduce((s,v)=>s+(v.total||0),0);
+  const qtdVendas = vendas.length;
+  const ticketMedio = qtdVendas ? totalGeral/qtdVendas : 0;
+  const totalDesconto = vendas.reduce((s,v)=>s+(v.desconto||0),0);
 
-    await db.collection("produtos").doc(prod.id).update({
-      estoque: (prod.estoque || 0) - p.qtd
-    })
+  document.getElementById('resumoRel').innerHTML = `
+    <div class="summary-card green"><div class="summary-label">Faturamento</div><div class="summary-value">R$ ${totalGeral.toFixed(2)}</div></div>
+    <div class="summary-card blue"><div class="summary-label">Nº Vendas</div><div class="summary-value">${qtdVendas}</div></div>
+    <div class="summary-card amber"><div class="summary-label">Ticket Médio</div><div class="summary-value">R$ ${ticketMedio.toFixed(2)}</div></div>
+    <div class="summary-card red"><div class="summary-label">Descontos</div><div class="summary-value">R$ ${totalDesconto.toFixed(2)}</div></div>
+  `;
 
-  }
+  // Gráfico formas
+  const formas = {};
+  vendas.forEach(v => { formas[v.forma||'Outro'] = (formas[v.forma||'Outro']||0) + (v.total||0); });
+  const maxF = Math.max(...Object.values(formas), 1);
+  document.getElementById('graficoForma').innerHTML = `
+    <div class="bar-chart">
+      ${Object.entries(formas).map(([k,v])=>`
+        <div class="bar-item">
+          <div class="bar-val">R$ ${v.toFixed(0)}</div>
+          <div class="bar-fill" style="height:${(v/maxF)*80}px"></div>
+          <div class="bar-label">${k.substring(0,8)}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
 
-}
-function montarCupomTroca(){
+  // Top produtos
+  const prods = {};
+  vendas.forEach(v => (v.itens||[]).forEach(i => { prods[i.nome] = (prods[i.nome]||0) + i.qtd; }));
+  const topP = Object.entries(prods).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  document.getElementById('topProdutos').innerHTML = topP.length ? topP.map(([n,q],i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="width:20px;height:20px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent)">${i+1}</div>
+      <div style="flex:1;font-size:13px">${n}</div>
+      <div style="font-size:13px;font-weight:600;color:var(--accent)">${q} un</div>
+    </div>
+  `).join('') : '<div style="text-align:center;padding:20px;color:var(--text3)">Sem dados</div>';
 
-    let cupom = "";
-
-    const data = new Date().toLocaleString();
-
-    cupom += "       *** CUPOM ***\n";
-    cupom += "----------------------------------------\n";
-    cupom += `Data: ${data}\n`;
-    cupom += "           *** TROCA ***\n\n";
-
-    // =========================
-    // PRODUTOS NOVOS (SAÍDA)
-    // =========================
-    cupom += "PRODUTOS NOVOS:\n";
-    cupom += "----------------------------------------\n";
-
-    if (!saida || saida.length === 0) {
-        cupom += "Nenhum produto\n";
-    } else {
-        saida.forEach(item => {
-            const preco = Number(item.preco) || 0;
-            const qtd = Number(item.qtd) || 1;
-            const subtotal = qtd * preco;
-
-            cupom += `${item.nome} - ${qtd}x R$ ${preco.toFixed(2)} = R$ ${subtotal.toFixed(2)}\n`;
-        });
-    }
-
-    cupom += "----------------------------------------\n\n";
-
-
-    // =========================
-    // PRODUTOS DEVOLVIDOS (ENTRADA)
-    // =========================
-    cupom += "PRODUTOS DEVOLVIDOS:\n";
-    cupom += "----------------------------------------\n";
-
-    if (!entrada || entrada.length === 0) {
-        cupom += "Nenhum produto\n";
-    } else {
-        entrada.forEach(item => {
-            const preco = Number(item.preco) || 0;
-            const qtd = Number(item.qtd) || 1;
-            const subtotal = qtd * preco;
-
-            cupom += `${item.nome} - ${qtd}x R$ ${preco.toFixed(2)} = R$ ${subtotal.toFixed(2)}\n`;
-        });
-    }
-
-    cupom += "----------------------------------------\n";
-
-
-    // =========================
-    // TOTAIS
-    // =========================
-    let totalSaida = 0;
-    let totalEntrada = 0;
-
-    if (saida) {
-        totalSaida = saida.reduce((s, i) => {
-            return s + ((Number(i.qtd) || 1) * (Number(i.preco) || 0));
-        }, 0);
-    }
-
-    if (entrada) {
-        totalEntrada = entrada.reduce((s, i) => {
-            return s + ((Number(i.qtd) || 1) * (Number(i.preco) || 0));
-        }, 0);
-    }
-
-    const diferenca = totalSaida - totalEntrada;
-
-    cupom += `\nTotal Saída: R$ ${totalSaida.toFixed(2)}\n`;
-    cupom += `Total Entrada: R$ ${totalEntrada.toFixed(2)}\n`;
-    cupom += `Diferença: R$ ${Math.abs(diferenca).toFixed(2)}\n`;
-
-    // =========================
-    // QUEM PAGA
-    // =========================
-    if (diferenca > 0) {
-        cupom += "Cliente paga diferença\n";
-    } else if (diferenca < 0) {
-        cupom += "Loja devolve diferença\n";
-    } else {
-        cupom += "Troca sem diferença\n";
-    }
-
-    cupom += "----------------------------------------\n";
-    cupom += "Obrigado pela preferência!\n";
-
-
-    // =========================
-    // IMPRIMIR
-    // =========================
-    const win = window.open('', '', 'width=300,height=600');
-
-    win.document.write(`
-        <pre style="font-family: monospace; font-size:12px">
-${cupom}
-        </pre>
-    `);
-
-    win.document.close();
-    win.print();
-}
-function imprimirTroca(){
-
-let w = window.open("")
-
-w.document.write(`
-<html>
-<body style="font-family:monospace;white-space:pre;">
-
-${montarCupomTroca()}
-
-
-
-</body>
-</html>
-`)
-}
-async function salvarTroca(){
-
-await db.collection("trocas").add({
-entrada: entrada,
-saida: saida,
-totalEntrada,
-totalSaida,
-data: new Date(),
-usuario: usuarioAtual
-})
-
-}
-function abrirBusca(){
-    show('busca');
-    renderBusca();
+  // Tabela
+  document.getElementById('tabelaRelatorio').innerHTML = vendas.length ? vendas.map(v => {
+    const d = v.data?.seconds ? new Date(v.data.seconds*1000) : new Date(v.data);
+    return `<tr>
+      <td style="font-size:12px;color:var(--text2)">${d.toLocaleString('pt-BR')}</td>
+      <td>${v.usuario||'—'}</td>
+      <td>${(v.itens||[]).length} itens</td>
+      <td><span class="badge badge-blue">${v.forma||'—'}</span></td>
+      <td style="color:var(--accent);font-weight:600">R$ ${Number(v.total||0).toFixed(2)}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick='imprimirCupom(${JSON.stringify(v)})'>🖨</button></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)">Nenhuma venda no período</td></tr>';
 }
 
-function renderBusca(){
-
-let termo = document.getElementById("buscaInput").value?.toLowerCase() || ""
-
-let filtrados = produtos.filter(p =>
-  p.nome.toLowerCase().includes(termo) ||
-  String(p.codigo).includes(termo)
-)
-
-document.getElementById("listaBusca").innerHTML = filtrados.map(p=>`
-<tr>
-<td>${p.nome}</td>
-<td>R$ ${p.valor}</td>
-<td><button onclick="selecionarProduto('${p.codigo}')">Selecionar</button></td>
-</tr>
-`).join("")
-}
-function selecionarProduto(codigo){
-
-    const produto = produtos.find(p => String(p.codigo) === String(codigo));
-
-    if (!produto) {
-        alert("Produto não encontrado!");
-        return;
-    }
-
-    venda.push({
-        nome: produto.nome,
-        qtd: 1,
-        preco: Number(produto.valor)
-    });
-
-    atualizarTela();
-
-    // 🔥 VOLTA PRA VENDA AUTOMATICO
-    show('ven');
+function exportarRelatorio() {
+  const rows = [['Data','Operador','Itens','Forma','Total']];
+  document.querySelectorAll('#tabelaRelatorio tr').forEach(tr => {
+    const cols = [...tr.querySelectorAll('td')].map(td => td.textContent.trim());
+    if (cols.length) rows.push(cols);
+  });
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'relatorio-chinelos-mix.csv';
+  a.click();
+  toast('Relatório exportado!');
 }
 
-function gerarNumeroCupom() {
-    const agora = new Date();
-    return 'CUPOM-' + agora.getFullYear() +
-           (agora.getMonth() + 1).toString().padStart(2, '0') +
-           agora.getDate().toString().padStart(2, '0') + '-' +
-           Math.floor(Math.random() * 10000);
-}
-function adicionarPorCodigo(){
+// ══════════════════════════════════════════
+// FUNCIONÁRIOS
+// ══════════════════════════════════════════
+function abrirModalFuncionario() { abrirModal('modalFuncionario'); ['fNome','fTel','fSenha'].forEach(id=>document.getElementById(id).value=''); }
 
-    const codigo = document.getElementById("codVenda").value.trim();
-
-    if (!codigo) {
-        alert("Digite o código do produto!");
-        return;
-    }
-
-    const produto = produtos.find(p => String(p.codigo) === String(codigo));
-
-    if (!produto) {
-        alert("Produto não encontrado!");
-        return;
-    }
-
-    venda.push({
-        nome: produto.nome,
-        qtd: 1,
-        preco: Number(produto.valor)
-    });
-
-    console.log("VENDA:", venda);
-
-    if (typeof atualizarTela === "function") {
-        atualizarTela();
-    }
-}
-function selecionarProduto(codigo){
-
-    const produto = produtos.find(p => String(p.codigo) === String(codigo));
-
-    if (!produto) {
-        alert("Produto não encontrado!");
-        return;
-    }
-
-    venda.push({
-        nome: produto.nome,
-        qtd: 1,
-        preco: Number(produto.valor)
-    });
-
-    console.log("VENDA:", venda);
-
-    if (typeof atualizarTela === "function") {
-        atualizarTela();
-    }
-}
-function show(tela){
-    document.querySelectorAll('.box').forEach(el => el.style.display = "none");
-    document.getElementById(tela).style.display = "block";
-} 
-function atualizarTelaTroca(){
-
-    const lista = document.getElementById("listaEntrada");
-    lista.innerHTML = "";
-
-    let totalEntrada = 0;
-
-    entrada.forEach((item, i) => {
-
-        const subtotal = item.qtd * item.preco;
-        totalEntrada += subtotal;
-
-        lista.innerHTML += `
-            <tr>
-                <td>${item.nome}</td>
-                <td>
-                    <input type="number" value="${item.qtd}" min="1"
-                    onchange="editarQtdEntrada(${i}, this.value)">
-                </td>
-                <td>R$ ${item.preco.toFixed(2)}</td>
-                <td>
-                    <button onclick="removerEntrada(${i})">❌</button>
-                </td>
-            </tr>
-        `;
-    });
-
-    document.getElementById("totalEntrada").innerText =
-        "Total Entrada: R$ " + totalEntrada.toFixed(2);
-
-    atualizarDiferenca();
-}
-function salvarHistorico(tipo, total){
-
-    const historico = JSON.parse(localStorage.getItem("historicoPDV")) || [];
-
-    historico.push({
-        tipo: tipo,
-        total: total,
-        data: new Date().toLocaleString()
-    });
-
-    localStorage.setItem("historicoPDV", JSON.stringify(historico));
-}
-function verHistorico(){
-
-    const historico = JSON.parse(localStorage.getItem("historicoPDV")) || [];
-
-    let texto = "=== HISTÓRICO ===\n\n";
-
-    historico.forEach(h => {
-        texto += `${h.data} - ${h.tipo.toUpperCase()} - R$ ${h.total.toFixed(2)}\n`;
-    });
-
-    alert(texto);
-}
-function editarQtdEntrada(index, qtd){
-    entrada[index].qtd = Number(qtd);
-    atualizarTelaTroca();
-}
-function removerEntrada(index){
-    entrada.splice(index, 1);
-    atualizarTelaTroca();
-}
-function atualizarDiferenca(){
-
-    let totalSaida = 0;
-    let totalEntrada = 0;
-
-    venda.forEach(item => totalSaida += item.qtd * item.preco);
-    entrada.forEach(item => totalEntrada += item.qtd * item.preco);
-
-    const diferenca = totalSaida - totalEntrada;
-
-    document.getElementById("diferenca").innerText =
-        "Diferença: R$ " + diferenca.toFixed(2);
-}
-function salvarHistorico(tipo, total){
-
-    const historico = JSON.parse(localStorage.getItem("historicoPDV")) || [];
-
-    historico.push({
-        tipo,
-        total,
-        data: new Date().toLocaleString()
-    });
-
-    localStorage.setItem("historicoPDV", JSON.stringify(historico));
-}
-function atualizarTelaTroca(){
-
-    const listaEntrada = document.getElementById("listaEntrada");
-    const listaSaida = document.getElementById("listaSaida");
-
-    listaEntrada.innerHTML = "";
-    listaSaida.innerHTML = "";
-
-    totalEntrada = 0;
-    totalSaida = 0;
-
-    // ENTRADA
-    entrada.forEach((item, index) => {
-        totalEntrada += item.qtd * item.preco;
-
-        listaEntrada.innerHTML += `
-            <tr>
-                <td>${item.nome}</td>
-                <td>${item.qtd}</td>
-                <td>R$ ${item.preco.toFixed(2)}</td>
-                <td>
-                    <button onclick="removerEntrada(${index})">❌</button>
-                </td>
-            </tr>
-        `;
-    });
-
-    // SAÍDA
-    saida.forEach((item, index) => {
-        totalSaida += item.qtd * item.preco;
-
-        listaSaida.innerHTML += `
-            <tr>
-                <td>${item.nome}</td>
-                <td>${item.qtd}</td>
-                <td>R$ ${item.preco.toFixed(2)}</td>
-                <td>
-                    <button onclick="removerSaida(${index})">❌</button>
-                </td>
-            </tr>
-        `;
-    });
-
-    // ATUALIZA VALORES
-    document.getElementById("totalEntrada").innerText = totalEntrada.toFixed(2);
-    document.getElementById("totalSaida").innerText = totalSaida.toFixed(2);
-
-    let diferenca = totalSaida - totalEntrada;
-
-    document.getElementById("diferenca").innerText = diferenca.toFixed(2);
-}
-function removerEntrada(index){
-    entrada.splice(index, 1);
-    atualizarTelaTroca();
+async function salvarFuncionario() {
+  const nome = document.getElementById('fNome').value.trim();
+  if (!nome) { toast('Nome obrigatório', 'error'); return; }
+  await db.collection('funcionarios').add({
+    nome, cargo: document.getElementById('fCargo').value,
+    turno: document.getElementById('fTurno').value,
+    telefone: document.getElementById('fTel').value,
+    senha: document.getElementById('fSenha').value,
+    permissao: document.getElementById('fPermissao').value,
+    ativo: true, cadastro: new Date()
+  });
+  fecharModal('modalFuncionario');
+  toast('Funcionário cadastrado!');
 }
 
-function removerSaida(index){
-    saida.splice(index, 1);
-    atualizarTelaTroca();
+function renderFuncionarios() {
+  const el = document.getElementById('listaFuncionarios');
+  if (!funcionarios.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">👥</div>Nenhum funcionário cadastrado</div>'; return; }
+  const cores = ['var(--accent)','var(--blue)','var(--amber)','var(--red)'];
+  el.innerHTML = funcionarios.map((f,i) => {
+    const iniciais = f.nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    const cor = cores[i % cores.length];
+    return `<div class="func-card">
+      <div class="func-avatar" style="background:${cor}22;color:${cor}">${iniciais}</div>
+      <div class="func-info">
+        <div class="func-nome">${f.nome}</div>
+        <div class="func-cargo">${f.cargo} · ${f.turno||'—'}</div>
+        ${f.telefone ? `<div style="font-size:11px;color:var(--text3);margin-top:2px">${f.telefone}</div>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+        <span class="badge badge-${f.permissao==='admin'?'red':f.permissao==='gerente'?'amber':'green'}">${f.permissao}</span>
+        <button class="btn btn-danger btn-icon btn-sm" onclick="excluirFuncionario('${f.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function excluirFuncionario(id) {
+  if (confirm('Remover funcionário?')) { await db.collection('funcionarios').doc(id).delete(); toast('Removido'); }
+}
+
+// ══════════════════════════════════════════
+// TROCA
+// ══════════════════════════════════════════
+function addEntrada() {
+  const codigo = document.getElementById('codEntrada').value.trim();
+  const qtd = Number(document.getElementById('qtdEntrada').value || 1);
+  const p = produtos.find(x => String(x.codigo) === String(codigo));
+  if (!p) { toast('Produto não encontrado!', 'error'); return; }
+  entrada.push({ codigo:p.codigo, nome:p.nome, qtd, preco:Number(p.valor) });
+  renderTroca();
+}
+
+function addSaida() {
+  const codigo = document.getElementById('codSaida').value.trim();
+  const qtd = Number(document.getElementById('qtdSaida').value || 1);
+  const p = produtos.find(x => String(x.codigo) === String(codigo));
+  if (!p) { toast('Produto não encontrado!', 'error'); return; }
+  saida.push({ codigo:p.codigo, nome:p.nome, qtd, preco:Number(p.valor) });
+  renderTroca();
+}
+
+function renderTroca() {
+  const tE = entrada.reduce((s,i)=>s+i.qtd*i.preco,0);
+  const tS = saida.reduce((s,i)=>s+i.qtd*i.preco,0);
+  document.getElementById('tabelaEntrada').innerHTML = entrada.map((p,i)=>`<tr><td>${p.nome}</td><td>${p.qtd}</td><td>R$ ${p.preco.toFixed(2)}</td><td><button class="btn btn-danger btn-icon btn-sm" onclick="entrada.splice(${i},1);renderTroca()">×</button></td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;padding:12px;color:var(--text3)">—</td></tr>';
+  document.getElementById('tabelaSaida').innerHTML = saida.map((p,i)=>`<tr><td>${p.nome}</td><td>${p.qtd}</td><td>R$ ${p.preco.toFixed(2)}</td><td><button class="btn btn-danger btn-icon btn-sm" onclick="saida.splice(${i},1);renderTroca()">×</button></td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;padding:12px;color:var(--text3)">—</td></tr>';
+  document.getElementById('totalEntrada').textContent = tE.toFixed(2);
+  document.getElementById('totalSaida').textContent = tS.toFixed(2);
+  const dif = tS - tE;
+  document.getElementById('difTroca').textContent = `R$ ${Math.abs(dif).toFixed(2)} ${dif>0?'(cliente paga)':dif<0?'(loja devolve)':''}`;
+  document.getElementById('difTroca').style.color = dif>0?'var(--amber)':dif<0?'var(--red)':'var(--accent)';
+}
+
+async function finalizarTroca() {
+  if (!entrada.length && !saida.length) { toast('Adicione produtos!', 'error'); return; }
+  const tE = entrada.reduce((s,i)=>s+i.qtd*i.preco,0);
+  const tS = saida.reduce((s,i)=>s+i.qtd*i.preco,0);
+  await db.collection('trocas').add({ entrada, saida, totalEntrada:tE, totalSaida:tS, diferenca:tS-tE, forma:document.getElementById('pagTroca').value, usuario:usuario.nome, data:new Date() });
+  for (const item of entrada) { const p=produtos.find(x=>x.codigo===item.codigo); if(p) await db.collection('produtos').doc(p.id).update({estoque:(p.estoque||0)+item.qtd}); }
+  for (const item of saida) { const p=produtos.find(x=>x.codigo===item.codigo); if(p) await db.collection('produtos').doc(p.id).update({estoque:Math.max(0,(p.estoque||0)-item.qtd)}); }
+  toast('Troca finalizada!');
+  entrada=[]; saida=[]; renderTroca();
+}
+
+// ══════════════════════════════════════════
+// UTILITÁRIOS
+// ══════════════════════════════════════════
+function abrirModal(id) { document.getElementById(id).classList.add('open'); }
+function fecharModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+function toast(msg, tipo='success') {
+  const el = document.getElementById('toast');
+  el.textContent = (tipo==='success'?'✅ ':'❌ ') + msg;
+  el.className = 'toast show ' + tipo;
+  setTimeout(() => el.classList.remove('show'), 3000);
 }
 </script>
 </body>
