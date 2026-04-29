@@ -336,6 +336,11 @@ function etiqueta(codigo, nome, valor, cor="", numero=""){
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
 <style>
+@page {
+    size: 80mm auto;
+    margin: 0;
+}
+
 body{
     margin:0;
     font-family:Arial;
@@ -374,7 +379,6 @@ body{
     text-align:center;
     font-size:11px;
     font-weight:bold;
-    margin-top:2px;
 }
 
 .barras svg{
@@ -388,15 +392,18 @@ body{
     padding-top:2px;
 }
 
-.info strong{
-    display:block;
-}
-
 .preco{
     text-align:center;
     font-weight:bold;
     font-size:22px;
     margin-top:4px;
+}
+
+.botao{
+    margin-top:10px;
+    padding:10px;
+    font-size:16px;
+    font-weight:bold;
 }
 </style>
 
@@ -406,18 +413,14 @@ body{
 
 <div class="pagina">
 
-<!-- ETIQUETA 1 -->
 <div class="etiqueta">
-
 <div class="logo">
 <img src="https://i.postimg.cc/QdHGJbs2/5ec2d3be-9be2-4458-891d-cc7232a46959.jpg">
 </div>
 
 <div class="codigo">${codigo}</div>
 
-<div class="barras">
 <svg id="barcode1"></svg>
-</div>
 
 <div class="info">
 <strong>${nome}</strong>
@@ -426,21 +429,16 @@ TAM: ${numero}
 </div>
 
 <div class="preco">R$ ${Number(valor || 0).toFixed(2)}</div>
-
 </div>
 
-<!-- ETIQUETA 2 -->
 <div class="etiqueta">
-
 <div class="logo">
 <img src="https://i.postimg.cc/QdHGJbs2/5ec2d3be-9be2-4458-891d-cc7232a46959.jpg">
 </div>
 
 <div class="codigo">${codigo}</div>
 
-<div class="barras">
 <svg id="barcode2"></svg>
-</div>
 
 <div class="info">
 <strong>${nome}</strong>
@@ -449,10 +447,11 @@ TAM: ${numero}
 </div>
 
 <div class="preco">R$ ${Number(valor || 0).toFixed(2)}</div>
-
 </div>
 
 </div>
+
+<button class="botao" onclick="window.print()">IMPRIMIR</button>
 
 <script>
 window.onload = function(){
@@ -471,9 +470,6 @@ window.onload = function(){
         displayValue: false
     });
 
-    setTimeout(() => {
-        window.print();
-    }, 300);
 }
 </script>
 
