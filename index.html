@@ -327,6 +327,8 @@ function etiqueta(codigo, nome, valor, cor = "", numero = "") {
 
     const w = window.open("", "", "width=800,height=600");
 
+    const logo = "https://i.imgur.com/3ZQ3Z6K.png"; // pode trocar depois
+
     const html = `
 <!DOCTYPE html>
 <html>
@@ -334,10 +336,7 @@ function etiqueta(codigo, nome, valor, cor = "", numero = "") {
 <meta charset="UTF-8">
 
 <style>
-body{
-    margin:0;
-    font-family:Arial;
-}
+body{margin:0;font-family:Arial;}
 
 .pagina{
     width:80mm;
@@ -358,20 +357,13 @@ body{
     justify-content:space-between;
 }
 
-.logo{
-    text-align:center;
-}
-
-.logo img{
-    height:16mm;
-    object-fit:contain;
-}
+.logo{text-align:center;}
+.logo img{height:14mm;}
 
 .codigo{
     text-align:center;
     font-size:12px;
     font-weight:bold;
-    margin-top:2px;
 }
 
 .barras svg{
@@ -389,7 +381,6 @@ body{
     text-align:center;
     font-weight:bold;
     font-size:20px;
-    margin-top:2px;
 }
 </style>
 
@@ -399,49 +390,33 @@ body{
 
 <div class="pagina">
 
-    <div class="etiqueta">
-        <div class="logo">
-            <img src="logo.png">
-        </div>
+<div class="etiqueta">
+<div class="logo"><img src="${logo}"></div>
+<div class="codigo">${codigo}</div>
+<div class="barras"><svg id="barcode1"></svg></div>
 
-        <div class="codigo">${codigo}</div>
+<div class="info">
+<strong>${nome}</strong><br>
+COR: ${cor}<br>
+TAM: ${numero}
+</div>
 
-        <div class="barras">
-            <svg id="barcode1"></svg>
-        </div>
+<div class="preco">R$ ${Number(valor || 0).toFixed(2)}</div>
+</div>
 
-        <div class="info">
-            <strong>${nome}</strong><br>
-            COR: ${cor}<br>
-            TAM: ${numero}
-        </div>
+<div class="etiqueta">
+<div class="logo"><img src="${logo}"></div>
+<div class="codigo">${codigo}</div>
+<div class="barras"><svg id="barcode2"></svg></div>
 
-        <div class="preco">
-            R$ ${Number(valor || 0).toFixed(2)}
-        </div>
-    </div>
+<div class="info">
+<strong>${nome}</strong><br>
+COR: ${cor}<br>
+TAM: ${numero}
+</div>
 
-    <div class="etiqueta">
-        <div class="logo">
-            <img src="logo.png">
-        </div>
-
-        <div class="codigo">${codigo}</div>
-
-        <div class="barras">
-            <svg id="barcode2"></svg>
-        </div>
-
-        <div class="info">
-            <strong>${nome}</strong><br>
-            COR: ${cor}<br>
-            TAM: ${numero}
-        </div>
-
-        <div class="preco">
-            R$ ${Number(valor || 0).toFixed(2)}
-        </div>
-    </div>
+<div class="preco">R$ ${Number(valor || 0).toFixed(2)}</div>
+</div>
 
 </div>
 
