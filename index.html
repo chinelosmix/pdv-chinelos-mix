@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>PDV CHINELOS MIX</title>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -274,13 +274,44 @@ tr:hover td { background: var(--accent-dim2); }
 .toast.success { border-color: var(--accent); }
 .toast.error { border-color: var(--red); }
 
-/* ── RESPONSIVE ── */
-@media (max-width: 768px) {
-  .venda-layout { grid-template-columns: 1fr; height: auto; }
+/* ── RESPONSIVE — ajuste automático ── */
+html, body { height: 100%; overflow: hidden; }
+#app { height: 100vh; overflow: hidden; }
+.app-body { height: calc(100vh - 56px); overflow: hidden; }
+.content { height: 100%; overflow-y: auto; }
+
+@media (max-width: 1100px) {
+  .venda-layout { grid-template-columns: 1fr 300px; }
+}
+@media (max-width: 860px) {
+  .venda-layout { grid-template-columns: 1fr; height: auto; overflow-y: auto; }
+  .venda-right { overflow-y: visible; }
   .row.c3 { grid-template-columns: 1fr 1fr; }
-  .sidebar { width: 56px; }
-  .content { padding: 12px; }
+  .row.c2 { grid-template-columns: 1fr; }
   .summary-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .sidebar { width: 52px; }
+  .nav-item { width: 42px; height: 42px; }
+  .nav-label { font-size: 8px; }
+  .content { padding: 10px; }
+  .app-header { padding: 0 12px; }
+  .header-user { display: none; }
+  .summary-grid { grid-template-columns: 1fr 1fr; }
+  .row.c3 { grid-template-columns: 1fr 1fr; }
+  .func-grid { grid-template-columns: 1fr; }
+  .page-title { font-size: 18px; }
+  .rel-tabs { flex-wrap: wrap; }
+  .rel-tab { padding: 6px 12px; font-size: 12px; }
+}
+/* Zoom automático para monitores pequenos */
+@media (max-height: 700px) {
+  .app-header { height: 46px; }
+  .app-body { height: calc(100vh - 46px); }
+  .panel-body { padding: 10px 14px; }
+  .panel-header { padding: 10px 14px; }
+  .summary-card { padding: 12px; }
+  .summary-value { font-size: 20px; }
 }
 </style>
 </head>
@@ -292,7 +323,9 @@ tr:hover td { background: var(--accent-dim2); }
 <!-- LOGIN -->
 <div id="loginScreen">
   <div class="login-card">
-    <div class="login-logo">⊕ CHINELOS MIX</div>
+    <div style="text-align:center;margin-bottom:16px">
+      <img src="https://i.postimg.cc/9XGzTyB1/c49300e3-118f-4dc2-8442-e4c4e06c91a8.jpg" style="max-width:180px;max-height:80px;object-fit:contain;border-radius:10px">
+    </div>
     <div class="login-sub">Sistema de Ponto de Venda</div>
     <div class="field">
       <label>Nome do funcionário</label>
@@ -310,7 +343,7 @@ tr:hover td { background: var(--accent-dim2); }
 <div id="app">
   <!-- HEADER -->
   <header class="app-header">
-    <div class="header-logo">⊕ CHINELOS MIX</div>
+    <div class="header-logo"><img src="https://i.postimg.cc/9XGzTyB1/c49300e3-118f-4dc2-8442-e4c4e06c91a8.jpg" style="height:36px;object-fit:contain;vertical-align:middle;border-radius:6px"></div>
     <div class="header-info">
       <div class="header-user">Operador: <span id="headerNome">—</span></div>
       <div class="header-clock" id="relogio">00:00:00</div>
@@ -965,151 +998,150 @@ function toggleScannerProd() {
   }).catch(e => alert('Erro: ' + e));
 }
 
-// ETIQUETA
+// ETIQUETA — rolo 40x60mm, 2 colunas por linha (80mm total)
 function imprimirEtiqueta(codigo, nome, valor, cor='', numero='') {
-  // Formata o preço separando reais e centavos para exibição estilo R$ 89,90
   const valorNum = Number(valor||0);
   const partes = valorNum.toFixed(2).split('.');
   const reais = partes[0];
   const centavos = partes[1];
+  const LOGO = 'https://i.postimg.cc/9XGzTyB1/c49300e3-118f-4dc2-8442-e4c4e06c91a8.jpg';
 
-  const etiquetaHTML = (id) => `
-  <div class="etiqueta">
-    <div class="logo-wrap">
-      <img src="https://i.postimg.cc/QdHGJbs2/5ec2d3be-9be2-4458-891d-cc7232a46959.jpg" class="logo-img">
-    </div>
-    <div class="barcode-area">
-      <div class="cod-num">${codigo}</div>
-      <svg id="${id}"></svg>
-    </div>
-    <div class="info-area">
-      <div class="prod-nome">${nome.toUpperCase()}</div>
-      <div class="prod-det"><span class="det-label">COR:</span> ${cor||'—'}</div>
-      <div class="prod-det"><span class="det-label">CÓD:</span> ${codigo}</div>
-      <div class="prod-det"><span class="det-label">TAM:</span> ${numero||'—'}</div>
-    </div>
-    <div class="preco-area">
-      <span class="preco-rs">R$</span>
-      <span class="preco-valor">${reais}<span class="preco-cents">,${centavos}</span></span>
-    </div>
-  </div>`;
-
-  const w = window.open('', '', 'width=900,height=700');
+  const w = window.open('', '', 'width=960,height=720');
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
   <style>
-    @page { size: 80mm 60mm; margin: 0; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; background: #f0f0f0; display: flex; flex-direction: column; align-items: center; padding: 20px; gap: 16px; }
-    .controles { background: #fff; border-radius: 10px; padding: 14px 20px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .controles label { font-size: 13px; color: #555; font-weight: 600; }
-    .controles select, .controles input { padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
-    .btn-imprimir { padding: 10px 24px; background: #22c55e; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
-    .btn-imprimir:hover { background: #16a34a; }
-    .preview-label { font-size: 12px; color: #888; margin-top: 4px; }
+    body { font-family: Arial, sans-serif; background: #e8e8e8; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; gap: 16px; min-height: 100vh; }
 
-    /* FOLHA DE IMPRESSÃO */
-    .folha { background: white; padding: 2mm; display: flex; flex-wrap: wrap; gap: 0; width: 80mm; }
-    .etiqueta {
-      width: 40mm; height: 60mm;
-      border: 1px solid #ccc;
-      display: flex; flex-direction: column;
-      overflow: hidden; position: relative;
-      page-break-inside: avoid;
+    /* ── BARRA DE CONTROLES ── */
+    .ctrl { background:#fff; border-radius:12px; padding:14px 22px; display:flex; align-items:center; gap:18px; box-shadow:0 2px 10px rgba(0,0,0,.12); flex-wrap:wrap; }
+    .ctrl label { font-size:13px; color:#444; font-weight:700; }
+    .ctrl select { padding:7px 12px; border:1px solid #ddd; border-radius:7px; font-size:13px; cursor:pointer; }
+    .btn-p { padding:10px 28px; background:#22c55e; color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; letter-spacing:.5px; }
+    .btn-p:hover { background:#16a34a; }
+    .info-label { font-size:11px; color:#888; text-align:center; }
+
+    /* ── FOLHA (área real de impressão: 80mm de largura) ── */
+    .folha {
+      background: #fff;
+      width: 302px;          /* 80mm ≈ 302px a 96dpi */
+      display: flex;
+      flex-wrap: wrap;
+      box-shadow: 0 4px 20px rgba(0,0,0,.18);
+      border-radius: 4px;
+      overflow: hidden;
     }
-    .logo-wrap { width: 100%; height: 18mm; display: flex; align-items: center; justify-content: center; padding: 2mm 2mm 1mm; border-bottom: 1px solid #eee; }
-    .logo-img { max-width: 100%; max-height: 100%; object-fit: contain; }
-    .barcode-area { padding: 1mm 2mm 0; }
-    .cod-num { text-align: center; font-size: 7px; letter-spacing: 2px; color: #333; margin-bottom: 1px; font-family: 'Courier New', monospace; }
-    .barcode-area svg { width: 100%; height: 12mm; display: block; }
-    .info-area { padding: 1.5mm 2mm; border-top: 1px solid #eee; flex: 1; }
-    .prod-nome { font-size: 8px; font-weight: 700; color: #111; margin-bottom: 1.5mm; line-height: 1.2; }
-    .prod-det { font-size: 7px; color: #333; line-height: 1.5; }
-    .det-label { font-weight: 700; }
-    .preco-area {
+
+    /* ── ETIQUETA individual: 40mm × 60mm ── */
+    .etq {
+      width: 151px;          /* 40mm ≈ 151px */
+      height: 227px;         /* 60mm ≈ 227px */
+      border: 0.5px solid #bbb;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    /* Seção logo — altura ~25,4mm da referência */
+    .etq-logo {
+      height: 72px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 5px 6px 3px;
+      border-bottom: 1px solid #ddd;
+      background: #fff;
+    }
+    .etq-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+    /* Seção código de barras — ~44mm da referência */
+    .etq-barcode { padding: 3px 5px 0; }
+    .etq-codnum { text-align:center; font-size:6.5px; letter-spacing:3px; color:#222; font-family:'Courier New',monospace; margin-bottom:1px; }
+    .etq-barcode svg { width:100%; height:44px; display:block; }
+
+    /* Seção info — flex:1 (ocupa o restante) */
+    .etq-info { padding: 3px 6px 2px; border-top:1px solid #eee; flex:1; }
+    .etq-nome { font-size:7.5px; font-weight:900; color:#111; line-height:1.2; margin-bottom:2px; }
+    .etq-det { font-size:6.5px; color:#333; line-height:1.6; }
+    .etq-det b { font-weight:800; }
+
+    /* Seção preço — fundo preto, ~16mm conforme rolo */
+    .etq-preco {
+      height: 50px;
       background: #111; color: #fff;
       display: flex; align-items: center; justify-content: center;
-      gap: 2px; padding: 2mm; border-top: 1px solid #000;
+      gap: 3px; border-top: 1px solid #000; flex-shrink: 0;
     }
-    .preco-rs { font-size: 9px; font-weight: 700; margin-top: 6px; align-self: flex-start; }
-    .preco-valor { font-size: 20px; font-weight: 900; line-height: 1; }
-    .preco-cents { font-size: 10px; font-weight: 700; vertical-align: super; }
+    .etq-rs { font-size:9px; font-weight:700; align-self:flex-start; margin-top:10px; }
+    .etq-val { font-size:26px; font-weight:900; line-height:1; }
+    .etq-cents { font-size:12px; font-weight:700; vertical-align:super; }
 
-    /* TELA PREVIEW AMPLIADO */
-    .preview-wrap { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; }
-    .preview-inner { display: flex; gap: 0; transform-origin: top left; }
-    .preview-inner .etiqueta { transform: scale(2.5); transform-origin: top left; width: 40mm; height: 60mm; }
-    .preview-box { width: calc(40mm * 2.5); height: calc(60mm * 2.5); overflow: hidden; }
-
+    /* ── IMPRESSÃO ── */
     @media print {
-      body { background: none; padding: 0; gap: 0; }
-      .controles, .preview-label, .btn-imprimir, .preview-wrap { display: none !important; }
-      .folha { margin: 0; padding: 0; box-shadow: none; border: none; }
-      .etiqueta { border: 0.5px solid #999; }
-      @page { size: 80mm 60mm; margin: 0; }
+      body { background:none; padding:0; gap:0; align-items:flex-start; }
+      .ctrl, .info-label, .btn-p { display:none !important; }
+      .folha { box-shadow:none; border-radius:0; width:80mm; }
+      .etq { width:40mm; height:60mm; border:0.3px solid #aaa; }
+      .etq-logo { height:25.4mm; }
+      .etq-barcode svg { height:11mm; }
+      .etq-preco { height:16mm; }
+      @page { size:80mm auto; margin:0; }
     }
   </style></head><body>
 
-  <div class="controles">
-    <label>Qtd de etiquetas:</label>
-    <select id="qtdEtiq" onchange="renderizar()">
+  <div class="ctrl">
+    <label>Quantidade:</label>
+    <select id="qtd" onchange="render()">
       <option value="2">2 etiquetas</option>
       <option value="4">4 etiquetas</option>
       <option value="6">6 etiquetas</option>
       <option value="8">8 etiquetas</option>
       <option value="10">10 etiquetas</option>
+      <option value="20">20 etiquetas</option>
     </select>
-    <button class="btn-imprimir" onclick="window.print()">🖨️ IMPRIMIR</button>
+    <button class="btn-p" onclick="window.print()">🖨️ IMPRIMIR</button>
   </div>
 
-  <div class="preview-label">Pré-visualização (etiqueta 40mm × 60mm — 2 por linha)</div>
+  <div class="info-label">Pré-visualização · Rolo 40mm × 60mm · 2 etiquetas por linha</div>
 
-  <div class="preview-wrap">
-    <div class="folha" id="folha"></div>
-  </div>
+  <div class="folha" id="folha"></div>
 
   <script>
-  function gerarEtiqueta(sufixo){
-    return \`${etiquetaHTML('bc'+Date.now()+'_'+Math.random().toString(36).slice(2))}\`;
-  }
-
-  function renderizar(){
-    const qtd = Number(document.getElementById('qtdEtiq').value);
+  function render(){
+    const qtd = Number(document.getElementById('qtd').value);
     const folha = document.getElementById('folha');
     folha.innerHTML = '';
     const ids = [];
-    for(let i=0;i<qtd;i++){
-      const id = 'bc_'+i;
+    for(let i = 0; i < qtd; i++){
+      const id = 'b'+i;
       ids.push(id);
-      const div = document.createElement('div');
-      div.className = 'etiqueta';
-      div.innerHTML = \`
-        <div class="logo-wrap"><img src="https://i.postimg.cc/QdHGJbs2/5ec2d3be-9be2-4458-891d-cc7232a46959.jpg" class="logo-img"></div>
-        <div class="barcode-area">
-          <div class="cod-num">${codigo}</div>
+      const el = document.createElement('div');
+      el.className = 'etq';
+      el.innerHTML = \`
+        <div class="etq-logo"><img src="${LOGO}"></div>
+        <div class="etq-barcode">
+          <div class="etq-codnum">${codigo}</div>
           <svg id="\${id}"></svg>
         </div>
-        <div class="info-area">
-          <div class="prod-nome">${nome.toUpperCase()}</div>
-          <div class="prod-det"><span class="det-label">COR:</span> ${cor||'—'}</div>
-          <div class="prod-det"><span class="det-label">CÓD:</span> ${codigo}</div>
-          <div class="prod-det"><span class="det-label">TAM:</span> ${numero||'—'}</div>
+        <div class="etq-info">
+          <div class="etq-nome">${nome.toUpperCase()}</div>
+          <div class="etq-det"><b>COR:</b> ${cor||'—'}</div>
+          <div class="etq-det"><b>CÓD:</b> ${codigo}</div>
+          <div class="etq-det"><b>TAM:</b> ${numero||'—'}</div>
         </div>
-        <div class="preco-area">
-          <span class="preco-rs">R$</span>
-          <span class="preco-valor">${reais}<span class="preco-cents">,${centavos}</span></span>
+        <div class="etq-preco">
+          <span class="etq-rs">R$</span>
+          <span class="etq-val">${reais}<span class="etq-cents">,${centavos}</span></span>
         </div>
       \`;
-      folha.appendChild(div);
+      folha.appendChild(el);
     }
     setTimeout(()=>{
-      ids.forEach(id=>{
-        JsBarcode('#'+id,'${codigo}',{format:'CODE128',width:1.5,height:35,displayValue:false,margin:0});
+      ids.forEach(id => {
+        JsBarcode('#'+id, '${codigo}', {format:'CODE128',width:1.4,height:40,displayValue:false,margin:0});
       });
-    },100);
+    }, 120);
   }
-
-  window.onload = renderizar;
+  window.onload = render;
   <\/script>
   </body></html>`);
   w.document.close();
@@ -1332,7 +1364,12 @@ function imprimirCupom(v, tipo='venda') {
   <div class="cupom">
     <div class="corpo">
       <div class="logo-wrap">
-        <img src="https://i.postimg.cc/QdHGJbs2/5ec2d3be-9be2-4458-891d-cc7232a46959.jpg">
+        <img src="https://i.postimg.cc/9XGzTyB1/c49300e3-118f-4dc2-8442-e4c4e06c91a8.jpg">
+      </div>
+      <div style="text-align:center;font-size:10px;color:#555;line-height:1.6;margin-bottom:6px">
+        CNPJ: 46.982.791/0001-01<br>
+        Av. Leonor Bolsone Marques da Silva, 45<br>
+        Centro — Poá / SP
       </div>
       <div class="divisor"></div>
       <div class="cupom-num">${isTroca?'🔄 CUPOM DE TROCA':'🧾 CUPOM FISCAL'} · Nº ${numeroCupom}</div>
