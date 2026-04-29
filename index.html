@@ -275,43 +275,51 @@ tr:hover td { background: var(--accent-dim2); }
 .toast.error { border-color: var(--red); }
 
 /* ── RESPONSIVE — ajuste automático ── */
-html, body { height: 100%; overflow: hidden; }
-#app { height: 100vh; overflow: hidden; }
+html { height: 100%; overflow: hidden; }
+body { height: 100%; overflow: hidden; }
+#app { height: 100vh; max-height: 100vh; overflow: hidden; }
 .app-body { height: calc(100vh - 56px); overflow: hidden; }
-.content { height: 100%; overflow-y: auto; }
+.content { height: 100%; overflow-y: auto; overflow-x: hidden; }
+.venda-layout { height: calc(100vh - 130px); }
 
 @media (max-width: 1100px) {
-  .venda-layout { grid-template-columns: 1fr 300px; }
+  .venda-layout { grid-template-columns: 1fr 290px; }
 }
-@media (max-width: 860px) {
-  .venda-layout { grid-template-columns: 1fr; height: auto; overflow-y: auto; }
+@media (max-width: 900px) {
+  .venda-layout { grid-template-columns: 1fr; height: auto; }
+  .venda-left { max-height: 55vh; }
   .venda-right { overflow-y: visible; }
   .row.c3 { grid-template-columns: 1fr 1fr; }
-  .row.c2 { grid-template-columns: 1fr; }
   .summary-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 600px) {
   .sidebar { width: 52px; }
   .nav-item { width: 42px; height: 42px; }
   .nav-label { font-size: 8px; }
-  .content { padding: 10px; }
-  .app-header { padding: 0 12px; }
+  .content { padding: 8px; }
+  .app-header { padding: 0 10px; }
   .header-user { display: none; }
-  .summary-grid { grid-template-columns: 1fr 1fr; }
+  .row.c2 { grid-template-columns: 1fr; }
   .row.c3 { grid-template-columns: 1fr 1fr; }
   .func-grid { grid-template-columns: 1fr; }
-  .page-title { font-size: 18px; }
-  .rel-tabs { flex-wrap: wrap; }
-  .rel-tab { padding: 6px 12px; font-size: 12px; }
+  .page-title { font-size: 17px; }
+  .rel-tabs { flex-wrap: wrap; width: 100%; }
+  .rel-tab { padding: 6px 10px; font-size: 12px; }
 }
-/* Zoom automático para monitores pequenos */
-@media (max-height: 700px) {
-  .app-header { height: 46px; }
-  .app-body { height: calc(100vh - 46px); }
-  .panel-body { padding: 10px 14px; }
-  .panel-header { padding: 10px 14px; }
-  .summary-card { padding: 12px; }
-  .summary-value { font-size: 20px; }
+@media (max-height: 650px) {
+  .app-header { height: 44px; }
+  .app-body { height: calc(100vh - 44px); }
+  .venda-layout { height: calc(100vh - 110px); }
+  .panel-body { padding: 8px 12px; }
+  .panel-header { padding: 8px 14px; }
+  .summary-card { padding: 10px 12px; }
+  .summary-value { font-size: 18px; }
+  .field { margin-bottom: 8px; }
+  input, select { padding: 7px 12px; font-size: 13px; }
+}
+@media (max-height: 550px) {
+  .nav-label { display: none; }
+  .nav-item { height: 38px; }
 }
 </style>
 </head>
@@ -1053,37 +1061,38 @@ function imprimirEtiqueta(codigo, nome, valor, cor='', numero='') {
     }
     .etq-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-    /* Seção código de barras — ~44mm da referência */
+    /* Seção código de barras */
     .etq-barcode { padding: 3px 5px 0; }
-    .etq-codnum { text-align:center; font-size:6.5px; letter-spacing:3px; color:#222; font-family:'Courier New',monospace; margin-bottom:1px; }
+    .etq-codnum { text-align:center; font-size:7px; letter-spacing:3px; color:#000; font-family:'Courier New',monospace; margin-bottom:1px; font-weight:700; }
     .etq-barcode svg { width:100%; height:44px; display:block; }
 
-    /* Seção info — flex:1 (ocupa o restante) */
-    .etq-info { padding: 3px 6px 2px; border-top:1px solid #eee; flex:1; }
-    .etq-nome { font-size:7.5px; font-weight:900; color:#111; line-height:1.2; margin-bottom:2px; }
-    .etq-det { font-size:6.5px; color:#333; line-height:1.6; }
-    .etq-det b { font-weight:800; }
+    /* Seção info */
+    .etq-info { padding: 3px 6px 2px; border-top:1.5px solid #000; flex:1; }
+    .etq-nome { font-size:8px; font-weight:900; color:#000; line-height:1.2; margin-bottom:2px; }
+    .etq-det { font-size:7px; color:#000; line-height:1.7; font-weight:600; }
+    .etq-det b { font-weight:900; }
 
-    /* Seção preço — fundo preto, ~16mm conforme rolo */
+    /* Seção preço — fundo BRANCO com borda, texto preto bem visível */
     .etq-preco {
       height: 50px;
-      background: #111; color: #fff;
+      background: #fff; color: #000;
       display: flex; align-items: center; justify-content: center;
-      gap: 3px; border-top: 1px solid #000; flex-shrink: 0;
+      gap: 3px; border-top: 2px solid #000; flex-shrink: 0;
     }
-    .etq-rs { font-size:9px; font-weight:700; align-self:flex-start; margin-top:10px; }
-    .etq-val { font-size:26px; font-weight:900; line-height:1; }
-    .etq-cents { font-size:12px; font-weight:700; vertical-align:super; }
+    .etq-rs { font-size:10px; font-weight:900; align-self:flex-start; margin-top:10px; color:#000; }
+    .etq-val { font-size:28px; font-weight:900; line-height:1; color:#000; }
+    .etq-cents { font-size:13px; font-weight:900; vertical-align:super; color:#000; }
 
     /* ── IMPRESSÃO ── */
     @media print {
       body { background:none; padding:0; gap:0; align-items:flex-start; }
       .ctrl, .info-label, .btn-p { display:none !important; }
       .folha { box-shadow:none; border-radius:0; width:80mm; }
-      .etq { width:40mm; height:60mm; border:0.3px solid #aaa; }
+      .etq { width:40mm; height:60mm; border:0.5px solid #888; }
       .etq-logo { height:25.4mm; }
-      .etq-barcode svg { height:11mm; }
-      .etq-preco { height:16mm; }
+      .etq-barcode svg { height:12mm; }
+      .etq-preco { height:16mm; min-height:16mm; }
+      .etq-val { font-size:22px; }
       @page { size:80mm auto; margin:0; }
     }
   </style></head><body>
@@ -1294,16 +1303,16 @@ function imprimirCupom(v, tipo='venda') {
 
   const linhaItem = (nome, qtd, valor) => `
     <tr>
-      <td style="padding:4px 0;font-size:12px;max-width:140px">${nome}</td>
-      <td style="padding:4px 0;font-size:12px;text-align:center">${qtd}x</td>
-      <td style="padding:4px 0;font-size:12px;text-align:right">R$ ${Number(valor).toFixed(2)}</td>
-      <td style="padding:4px 0;font-size:12px;text-align:right;font-weight:600">R$ ${(qtd*Number(valor)).toFixed(2)}</td>
+      <td style="padding:5px 0;font-size:12px;max-width:140px;color:#000;font-weight:700">${nome}</td>
+      <td style="padding:5px 0;font-size:12px;text-align:center;color:#000;font-weight:600">${qtd}x</td>
+      <td style="padding:5px 0;font-size:12px;text-align:right;color:#000;font-weight:600">R$ ${Number(valor).toFixed(2)}</td>
+      <td style="padding:5px 0;font-size:12px;text-align:right;font-weight:900;color:#000">R$ ${(qtd*Number(valor)).toFixed(2)}</td>
     </tr>`;
 
   const itensHTML = isTroca ? `
-    <tr><td colspan="4" style="padding:6px 0 2px;font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.5px">Devolvido</td></tr>
+    <tr><td colspan="4" style="padding:7px 0 3px;font-size:12px;font-weight:900;color:#000;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #000">▼ Devolvido</td></tr>
     ${entradaItens.map(i=>linhaItem(i.nome,i.qtd,i.preco)).join('')}
-    <tr><td colspan="4" style="padding:6px 0 2px;font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.5px">Produto Novo</td></tr>
+    <tr><td colspan="4" style="padding:7px 0 3px;font-size:12px;font-weight:900;color:#000;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #000">▼ Produto Novo</td></tr>
     ${saidaItens.map(i=>linhaItem(i.nome,i.qtd,i.preco)).join('')}
   ` : itens.map(i=>linhaItem(i.nome,i.qtd,i.valor)).join('');
 
@@ -1312,14 +1321,14 @@ function imprimirCupom(v, tipo='venda') {
     <div class="linha-total"><span>Total Novo</span><span>R$ ${totalSaida.toFixed(2)}</span></div>
     <div class="linha-total grande">
       <span>DIFERENÇA</span>
-      <span style="color:${diferenca>0?'#e53e3e':diferenca<0?'#2f855a':'#333'}">R$ ${Math.abs(diferenca).toFixed(2)}</span>
+      <span style="color:${diferenca>0?'#c00000':diferenca<0?'#006600':'#000'}">R$ ${Math.abs(diferenca).toFixed(2)}</span>
     </div>
-    <div style="font-size:11px;text-align:center;color:#666;margin-top:4px">
-      ${diferenca>0?'Cliente paga diferença':diferenca<0?'Loja devolve diferença':'Troca sem diferença'}
+    <div style="font-size:12px;text-align:center;color:#000;margin-top:5px;font-weight:700">
+      ${diferenca>0?'⚠ Cliente paga diferença':diferenca<0?'✓ Loja devolve diferença':'✓ Troca sem diferença'}
     </div>
   ` : `
     <div class="linha-total"><span>Subtotal</span><span>R$ ${subtotal.toFixed(2)}</span></div>
-    ${desconto ? `<div class="linha-total" style="color:#c53030"><span>Desconto</span><span>- R$ ${desconto.toFixed(2)}</span></div>` : ''}
+    ${desconto ? `<div class="linha-total" style="color:#c00000;font-weight:700"><span>Desconto</span><span>- R$ ${desconto.toFixed(2)}</span></div>` : ''}
     <div class="linha-total grande"><span>TOTAL</span><span>R$ ${total.toFixed(2)}</span></div>
     <div class="linha-total"><span>Pagamento</span><span>${v.forma||'—'}</span></div>
     ${Number(v.troco||0)>0?`<div class="linha-total"><span>Troco</span><span>R$ ${Number(v.troco).toFixed(2)}</span></div>`:''}
@@ -1330,29 +1339,28 @@ function imprimirCupom(v, tipo='venda') {
   <style>
     @page { size: 80mm auto; margin: 0; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Courier New', monospace; background: #f5f5f5; display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 12px; }
+    body { font-family: 'Courier New', monospace; background: #e0e0e0; display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 12px; }
     .cupom {
       width: 80mm; background: #fff;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
       padding: 0; position: relative;
     }
-    /* topo recortado */
-    .topo-zig { width: 100%; height: 10px; background: repeating-linear-gradient(90deg,#fff 0,#fff 7px,transparent 7px,transparent 10px); }
-    .corpo { padding: 12px 14px; }
+    .corpo { padding: 14px 16px; }
     .logo-wrap { text-align: center; margin-bottom: 8px; }
-    .logo-wrap img { max-width: 55mm; max-height: 20mm; object-fit: contain; }
-    .loja-nome { text-align: center; font-size: 16px; font-weight: 900; letter-spacing: 2px; margin-bottom: 2px; }
-    .loja-sub { text-align: center; font-size: 10px; color: #666; margin-bottom: 10px; }
-    .divisor { border: none; border-top: 1px dashed #bbb; margin: 8px 0; }
-    .info-row { display: flex; justify-content: space-between; font-size: 10px; color: #555; margin-bottom: 2px; }
-    .cupom-num { text-align: center; font-size: 11px; font-weight: 700; background: #f0f0f0; padding: 4px; border-radius: 4px; margin-bottom: 8px; letter-spacing: 1px; }
-    .secao-titulo { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin: 6px 0 2px; }
+    .logo-wrap img { max-width: 55mm; max-height: 22mm; object-fit: contain; }
+    .divisor { border: none; border-top: 1px dashed #888; margin: 8px 0; }
+    .divisor-solid { border: none; border-top: 2px solid #000; margin: 8px 0; }
+    .info-row { display: flex; justify-content: space-between; font-size: 11px; color: #222; margin-bottom: 3px; font-weight: 600; }
+    .cupom-num { text-align: center; font-size: 12px; font-weight: 900; background: #e8e8e8; padding: 6px; border-radius: 4px; margin-bottom: 8px; letter-spacing: 1px; color: #000; border: 1px solid #ccc; }
+    .secao-titulo { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: #000; margin: 6px 0 4px; }
     table { width: 100%; border-collapse: collapse; }
-    th { font-size: 10px; color: #999; text-align: left; padding-bottom: 4px; border-bottom: 1px solid #eee; }
+    th { font-size: 11px; color: #000; text-align: left; padding-bottom: 5px; border-bottom: 1.5px solid #000; font-weight: 900; }
     th:nth-child(2),th:nth-child(3),th:nth-child(4){ text-align:right }
-    .linha-total { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
-    .linha-total.grande { font-size: 16px; font-weight: 900; border-top: 2px solid #000; margin-top: 6px; padding-top: 6px; }
-    .rodape { text-align: center; font-size: 10px; color: #888; margin-top: 10px; line-height: 1.6; }
+    td { font-size: 12px; color: #000; font-weight: 600; }
+    .linha-total { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; color: #000; font-weight: 600; }
+    .linha-total.grande { font-size: 17px; font-weight: 900; border-top: 2px solid #000; margin-top: 6px; padding-top: 7px; color: #000; }
+    .rodape { text-align: center; font-size: 11px; color: #333; margin-top: 10px; line-height: 1.7; font-weight: 600; }
+    .endereco { text-align:center; font-size:11px; color:#222; line-height:1.7; margin-bottom:6px; font-weight:600; }
     .btn-imprimir { padding: 10px 28px; background: #22c55e; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
     @media print {
       body { background: none; padding: 0; }
@@ -1366,7 +1374,7 @@ function imprimirCupom(v, tipo='venda') {
       <div class="logo-wrap">
         <img src="https://i.postimg.cc/9XGzTyB1/c49300e3-118f-4dc2-8442-e4c4e06c91a8.jpg">
       </div>
-      <div style="text-align:center;font-size:10px;color:#555;line-height:1.6;margin-bottom:6px">
+      <div class="endereco">
         CNPJ: 46.982.791/0001-01<br>
         Av. Leonor Bolsone Marques da Silva, 45<br>
         Centro — Poá / SP
