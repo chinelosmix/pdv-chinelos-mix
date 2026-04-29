@@ -967,27 +967,151 @@ function toggleScannerProd() {
 
 // ETIQUETA
 function imprimirEtiqueta(codigo, nome, valor, cor='', numero='') {
-  const w = window.open('','','width=800,height=600');
+  // Formata o preço separando reais e centavos para exibição estilo R$ 89,90
+  const valorNum = Number(valor||0);
+  const partes = valorNum.toFixed(2).split('.');
+  const reais = partes[0];
+  const centavos = partes[1];
+
+  const etiquetaHTML = (id) => `
+  <div class="etiqueta">
+    <div class="logo-wrap">
+      <img src="https://i.postimg.cc/QdHGJbs2/5ec2d3be-9be2-4458-891d-cc7232a46959.jpg" class="logo-img">
+    </div>
+    <div class="barcode-area">
+      <div class="cod-num">${codigo}</div>
+      <svg id="${id}"></svg>
+    </div>
+    <div class="info-area">
+      <div class="prod-nome">${nome.toUpperCase()}</div>
+      <div class="prod-det"><span class="det-label">COR:</span> ${cor||'—'}</div>
+      <div class="prod-det"><span class="det-label">CÓD:</span> ${codigo}</div>
+      <div class="prod-det"><span class="det-label">TAM:</span> ${numero||'—'}</div>
+    </div>
+    <div class="preco-area">
+      <span class="preco-rs">R$</span>
+      <span class="preco-valor">${reais}<span class="preco-cents">,${centavos}</span></span>
+    </div>
+  </div>`;
+
+  const w = window.open('', '', 'width=900,height=700');
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
-  <style>@page{size:80mm auto;margin:0}body{margin:0;font-family:Arial}
-  .pagina{width:80mm;display:flex;gap:4mm;padding:2mm}
-  .etiqueta{width:40mm;height:60mm;border:2px solid #000;border-radius:6px;padding:3mm;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between}
-  .logo img{width:100%;height:16mm;object-fit:contain}.codigo{text-align:center;font-size:11px;font-weight:bold}
-  svg{width:100%;height:18mm}.info{font-size:10px;border-top:1px solid #000;padding-top:2px}
-  .preco{text-align:center;font-weight:bold;font-size:22px;margin-top:4px}</style></head><body>
-  <div class="pagina">${[1,2].map(n=>`
-  <div class="etiqueta">
-    <div class="logo"><img src="https://i.postimg.cc/QdHGJbs2/5ec2d3be-9be2-4458-891d-cc7232a46959.jpg"></div>
-    <div class="codigo">${codigo}</div><svg id="b${n}"></svg>
-    <div class="info"><strong>${nome}</strong><br>COR: ${cor}<br>TAM: ${numero}</div>
-    <div class="preco">R$ ${Number(valor||0).toFixed(2)}</div>
-  </div>`).join('')}</div>
-  <button onclick="window.print()" style="padding:10px;font-size:16px;margin:10px">IMPRIMIR</button>
-  <script>window.onload=function(){
-    JsBarcode('#b1','${codigo}',{format:'CODE128',width:2,height:40,displayValue:false});
-    JsBarcode('#b2','${codigo}',{format:'CODE128',width:2,height:40,displayValue:false});
-  }<\/script></body></html>`);
+  <style>
+    @page { size: 80mm 60mm; margin: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f0f0f0; display: flex; flex-direction: column; align-items: center; padding: 20px; gap: 16px; }
+    .controles { background: #fff; border-radius: 10px; padding: 14px 20px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .controles label { font-size: 13px; color: #555; font-weight: 600; }
+    .controles select, .controles input { padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
+    .btn-imprimir { padding: 10px 24px; background: #22c55e; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .btn-imprimir:hover { background: #16a34a; }
+    .preview-label { font-size: 12px; color: #888; margin-top: 4px; }
+
+    /* FOLHA DE IMPRESSÃO */
+    .folha { background: white; padding: 2mm; display: flex; flex-wrap: wrap; gap: 0; width: 80mm; }
+    .etiqueta {
+      width: 40mm; height: 60mm;
+      border: 1px solid #ccc;
+      display: flex; flex-direction: column;
+      overflow: hidden; position: relative;
+      page-break-inside: avoid;
+    }
+    .logo-wrap { width: 100%; height: 18mm; display: flex; align-items: center; justify-content: center; padding: 2mm 2mm 1mm; border-bottom: 1px solid #eee; }
+    .logo-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .barcode-area { padding: 1mm 2mm 0; }
+    .cod-num { text-align: center; font-size: 7px; letter-spacing: 2px; color: #333; margin-bottom: 1px; font-family: 'Courier New', monospace; }
+    .barcode-area svg { width: 100%; height: 12mm; display: block; }
+    .info-area { padding: 1.5mm 2mm; border-top: 1px solid #eee; flex: 1; }
+    .prod-nome { font-size: 8px; font-weight: 700; color: #111; margin-bottom: 1.5mm; line-height: 1.2; }
+    .prod-det { font-size: 7px; color: #333; line-height: 1.5; }
+    .det-label { font-weight: 700; }
+    .preco-area {
+      background: #111; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      gap: 2px; padding: 2mm; border-top: 1px solid #000;
+    }
+    .preco-rs { font-size: 9px; font-weight: 700; margin-top: 6px; align-self: flex-start; }
+    .preco-valor { font-size: 20px; font-weight: 900; line-height: 1; }
+    .preco-cents { font-size: 10px; font-weight: 700; vertical-align: super; }
+
+    /* TELA PREVIEW AMPLIADO */
+    .preview-wrap { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; }
+    .preview-inner { display: flex; gap: 0; transform-origin: top left; }
+    .preview-inner .etiqueta { transform: scale(2.5); transform-origin: top left; width: 40mm; height: 60mm; }
+    .preview-box { width: calc(40mm * 2.5); height: calc(60mm * 2.5); overflow: hidden; }
+
+    @media print {
+      body { background: none; padding: 0; gap: 0; }
+      .controles, .preview-label, .btn-imprimir, .preview-wrap { display: none !important; }
+      .folha { margin: 0; padding: 0; box-shadow: none; border: none; }
+      .etiqueta { border: 0.5px solid #999; }
+      @page { size: 80mm 60mm; margin: 0; }
+    }
+  </style></head><body>
+
+  <div class="controles">
+    <label>Qtd de etiquetas:</label>
+    <select id="qtdEtiq" onchange="renderizar()">
+      <option value="2">2 etiquetas</option>
+      <option value="4">4 etiquetas</option>
+      <option value="6">6 etiquetas</option>
+      <option value="8">8 etiquetas</option>
+      <option value="10">10 etiquetas</option>
+    </select>
+    <button class="btn-imprimir" onclick="window.print()">🖨️ IMPRIMIR</button>
+  </div>
+
+  <div class="preview-label">Pré-visualização (etiqueta 40mm × 60mm — 2 por linha)</div>
+
+  <div class="preview-wrap">
+    <div class="folha" id="folha"></div>
+  </div>
+
+  <script>
+  function gerarEtiqueta(sufixo){
+    return \`${etiquetaHTML('bc'+Date.now()+'_'+Math.random().toString(36).slice(2))}\`;
+  }
+
+  function renderizar(){
+    const qtd = Number(document.getElementById('qtdEtiq').value);
+    const folha = document.getElementById('folha');
+    folha.innerHTML = '';
+    const ids = [];
+    for(let i=0;i<qtd;i++){
+      const id = 'bc_'+i;
+      ids.push(id);
+      const div = document.createElement('div');
+      div.className = 'etiqueta';
+      div.innerHTML = \`
+        <div class="logo-wrap"><img src="https://i.postimg.cc/QdHGJbs2/5ec2d3be-9be2-4458-891d-cc7232a46959.jpg" class="logo-img"></div>
+        <div class="barcode-area">
+          <div class="cod-num">${codigo}</div>
+          <svg id="\${id}"></svg>
+        </div>
+        <div class="info-area">
+          <div class="prod-nome">${nome.toUpperCase()}</div>
+          <div class="prod-det"><span class="det-label">COR:</span> ${cor||'—'}</div>
+          <div class="prod-det"><span class="det-label">CÓD:</span> ${codigo}</div>
+          <div class="prod-det"><span class="det-label">TAM:</span> ${numero||'—'}</div>
+        </div>
+        <div class="preco-area">
+          <span class="preco-rs">R$</span>
+          <span class="preco-valor">${reais}<span class="preco-cents">,${centavos}</span></span>
+        </div>
+      \`;
+      folha.appendChild(div);
+    }
+    setTimeout(()=>{
+      ids.forEach(id=>{
+        JsBarcode('#'+id,'${codigo}',{format:'CODE128',width:1.5,height:35,displayValue:false,margin:0});
+      });
+    },100);
+  }
+
+  window.onload = renderizar;
+  <\/script>
+  </body></html>`);
   w.document.close();
 }
 
@@ -1103,28 +1227,137 @@ async function finalizarVenda() {
 }
 
 function montarTextoCupom(v) {
+  // Versão texto puro para WhatsApp
   const data = new Date().toLocaleString('pt-BR');
-  let c = `   ═══════════════════════\n`;
-  c += `        CHINELOS MIX\n`;
-  c += `   ═══════════════════════\n`;
-  c += `   ${data}\n`;
-  c += `   Vendedor: ${v.usuario}\n`;
-  c += `   ───────────────────────\n`;
-  v.itens.forEach(i => { c += `   ${i.nome}\n   ${i.qtd}x R$ ${i.valor.toFixed(2)} = R$ ${(i.valor*i.qtd).toFixed(2)}\n`; });
-  c += `   ───────────────────────\n`;
-  c += `   Subtotal: R$ ${(v.subtotal||v.total).toFixed(2)}\n`;
-  if (v.desconto) c += `   Desconto: R$ ${v.desconto.toFixed(2)}\n`;
-  c += `   TOTAL: R$ ${v.total.toFixed(2)}\n`;
-  c += `   Pagamento: ${v.forma}\n`;
-  c += `   ═══════════════════════\n`;
-  c += `     Obrigado pela visita!\n`;
+  let c = `CHINELOS MIX\n`;
+  c += `${data}\nVendedor: ${v.usuario}\n`;
+  c += `--------------------------------\n`;
+  (v.itens||[]).forEach(i => {
+    c += `${i.nome}\n${i.qtd}x R$ ${Number(i.valor).toFixed(2)} = R$ ${(Number(i.valor)*i.qtd).toFixed(2)}\n`;
+  });
+  c += `--------------------------------\n`;
+  c += `Subtotal: R$ ${Number(v.subtotal||v.total).toFixed(2)}\n`;
+  if (v.desconto) c += `Desconto: R$ ${Number(v.desconto).toFixed(2)}\n`;
+  c += `TOTAL: R$ ${Number(v.total).toFixed(2)}\n`;
+  c += `Pagamento: ${v.forma}\n`;
+  c += `--------------------------------\nObrigado pela preferência!`;
   return c;
 }
 
-function imprimirCupom(v) {
-  const cupom = montarTextoCupom(v);
-  const w = window.open('','','width=300,height=600');
-  w.document.write(`<html><head><style>body{font-family:monospace;font-size:13px;padding:10px;white-space:pre}</style></head><body>${cupom}<button onclick="window.print()" style="display:block;margin:10px auto;padding:8px 20px">Imprimir</button></body></html>`);
+function imprimirCupom(v, tipo='venda') {
+  const data = v.data ? new Date(v.data?.seconds ? v.data.seconds*1000 : v.data).toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR');
+  const itens = v.itens || [];
+  const subtotal = Number(v.subtotal || v.total || 0);
+  const desconto = Number(v.desconto || 0);
+  const total = Number(v.total || 0);
+  const numeroCupom = 'C' + Date.now().toString().slice(-6);
+
+  // Cupom de TROCA
+  const isTroca = tipo === 'troca';
+  const entradaItens = v.entrada || [];
+  const saidaItens = v.saida || [];
+  const totalEntrada = entradaItens.reduce((s,i)=>s+(i.qtd*i.preco),0);
+  const totalSaida = saidaItens.reduce((s,i)=>s+(i.qtd*i.preco),0);
+  const diferenca = totalSaida - totalEntrada;
+
+  const linhaItem = (nome, qtd, valor) => `
+    <tr>
+      <td style="padding:4px 0;font-size:12px;max-width:140px">${nome}</td>
+      <td style="padding:4px 0;font-size:12px;text-align:center">${qtd}x</td>
+      <td style="padding:4px 0;font-size:12px;text-align:right">R$ ${Number(valor).toFixed(2)}</td>
+      <td style="padding:4px 0;font-size:12px;text-align:right;font-weight:600">R$ ${(qtd*Number(valor)).toFixed(2)}</td>
+    </tr>`;
+
+  const itensHTML = isTroca ? `
+    <tr><td colspan="4" style="padding:6px 0 2px;font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.5px">Devolvido</td></tr>
+    ${entradaItens.map(i=>linhaItem(i.nome,i.qtd,i.preco)).join('')}
+    <tr><td colspan="4" style="padding:6px 0 2px;font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.5px">Produto Novo</td></tr>
+    ${saidaItens.map(i=>linhaItem(i.nome,i.qtd,i.preco)).join('')}
+  ` : itens.map(i=>linhaItem(i.nome,i.qtd,i.valor)).join('');
+
+  const totaisHTML = isTroca ? `
+    <div class="linha-total"><span>Total Devolvido</span><span>R$ ${totalEntrada.toFixed(2)}</span></div>
+    <div class="linha-total"><span>Total Novo</span><span>R$ ${totalSaida.toFixed(2)}</span></div>
+    <div class="linha-total grande">
+      <span>DIFERENÇA</span>
+      <span style="color:${diferenca>0?'#e53e3e':diferenca<0?'#2f855a':'#333'}">R$ ${Math.abs(diferenca).toFixed(2)}</span>
+    </div>
+    <div style="font-size:11px;text-align:center;color:#666;margin-top:4px">
+      ${diferenca>0?'Cliente paga diferença':diferenca<0?'Loja devolve diferença':'Troca sem diferença'}
+    </div>
+  ` : `
+    <div class="linha-total"><span>Subtotal</span><span>R$ ${subtotal.toFixed(2)}</span></div>
+    ${desconto ? `<div class="linha-total" style="color:#c53030"><span>Desconto</span><span>- R$ ${desconto.toFixed(2)}</span></div>` : ''}
+    <div class="linha-total grande"><span>TOTAL</span><span>R$ ${total.toFixed(2)}</span></div>
+    <div class="linha-total"><span>Pagamento</span><span>${v.forma||'—'}</span></div>
+    ${Number(v.troco||0)>0?`<div class="linha-total"><span>Troco</span><span>R$ ${Number(v.troco).toFixed(2)}</span></div>`:''}
+  `;
+
+  const w = window.open('','','width=380,height=700');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Cupom</title>
+  <style>
+    @page { size: 80mm auto; margin: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Courier New', monospace; background: #f5f5f5; display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 12px; }
+    .cupom {
+      width: 80mm; background: #fff;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      padding: 0; position: relative;
+    }
+    /* topo recortado */
+    .topo-zig { width: 100%; height: 10px; background: repeating-linear-gradient(90deg,#fff 0,#fff 7px,transparent 7px,transparent 10px); }
+    .corpo { padding: 12px 14px; }
+    .logo-wrap { text-align: center; margin-bottom: 8px; }
+    .logo-wrap img { max-width: 55mm; max-height: 20mm; object-fit: contain; }
+    .loja-nome { text-align: center; font-size: 16px; font-weight: 900; letter-spacing: 2px; margin-bottom: 2px; }
+    .loja-sub { text-align: center; font-size: 10px; color: #666; margin-bottom: 10px; }
+    .divisor { border: none; border-top: 1px dashed #bbb; margin: 8px 0; }
+    .info-row { display: flex; justify-content: space-between; font-size: 10px; color: #555; margin-bottom: 2px; }
+    .cupom-num { text-align: center; font-size: 11px; font-weight: 700; background: #f0f0f0; padding: 4px; border-radius: 4px; margin-bottom: 8px; letter-spacing: 1px; }
+    .secao-titulo { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin: 6px 0 2px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { font-size: 10px; color: #999; text-align: left; padding-bottom: 4px; border-bottom: 1px solid #eee; }
+    th:nth-child(2),th:nth-child(3),th:nth-child(4){ text-align:right }
+    .linha-total { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
+    .linha-total.grande { font-size: 16px; font-weight: 900; border-top: 2px solid #000; margin-top: 6px; padding-top: 6px; }
+    .rodape { text-align: center; font-size: 10px; color: #888; margin-top: 10px; line-height: 1.6; }
+    .btn-imprimir { padding: 10px 28px; background: #22c55e; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    @media print {
+      body { background: none; padding: 0; }
+      .btn-imprimir, .no-print { display: none !important; }
+      .cupom { box-shadow: none; width: 80mm; }
+    }
+  </style></head><body>
+
+  <div class="cupom">
+    <div class="corpo">
+      <div class="logo-wrap">
+        <img src="https://i.postimg.cc/QdHGJbs2/5ec2d3be-9be2-4458-891d-cc7232a46959.jpg">
+      </div>
+      <div class="divisor"></div>
+      <div class="cupom-num">${isTroca?'🔄 CUPOM DE TROCA':'🧾 CUPOM FISCAL'} · Nº ${numeroCupom}</div>
+      <div class="info-row"><span>Data:</span><span>${data}</span></div>
+      <div class="info-row"><span>Operador:</span><span>${v.usuario||'—'}</span></div>
+      <div class="divisor"></div>
+      <div class="secao-titulo">Itens</div>
+      <table>
+        <thead><tr><th>Produto</th><th style="text-align:center">Qtd</th><th style="text-align:right">Unit.</th><th style="text-align:right">Total</th></tr></thead>
+        <tbody>${itensHTML}</tbody>
+      </table>
+      <div class="divisor"></div>
+      ${totaisHTML}
+      <div class="divisor"></div>
+      <div class="rodape">
+        ✦ Obrigado pela preferência! ✦<br>
+        Chinelos Mix — Volte sempre!<br>
+        <span style="font-size:9px">Guarde este cupom para trocas</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-imprimir no-print" onclick="window.print()">🖨️ IMPRIMIR CUPOM</button>
+
+  </body></html>`);
   w.document.close();
 }
 
@@ -1440,9 +1673,12 @@ async function finalizarTroca() {
   if (!entrada.length && !saida.length) { toast('Adicione produtos!', 'error'); return; }
   const tE = entrada.reduce((s,i)=>s+i.qtd*i.preco,0);
   const tS = saida.reduce((s,i)=>s+i.qtd*i.preco,0);
-  await db.collection('trocas').add({ entrada, saida, totalEntrada:tE, totalSaida:tS, diferenca:tS-tE, forma:document.getElementById('pagTroca').value, usuario:usuario.nome, data:new Date() });
+  const forma = document.getElementById('pagTroca').value;
+  await db.collection('trocas').add({ entrada, saida, totalEntrada:tE, totalSaida:tS, diferenca:tS-tE, forma, usuario:usuario.nome, data:new Date() });
   for (const item of entrada) { const p=produtos.find(x=>x.codigo===item.codigo); if(p) await db.collection('produtos').doc(p.id).update({estoque:(p.estoque||0)+item.qtd}); }
   for (const item of saida) { const p=produtos.find(x=>x.codigo===item.codigo); if(p) await db.collection('produtos').doc(p.id).update({estoque:Math.max(0,(p.estoque||0)-item.qtd)}); }
+  // Imprimir cupom de troca profissional
+  imprimirCupom({ entrada:[...entrada], saida:[...saida], forma, usuario:usuario.nome, data:new Date() }, 'troca');
   toast('Troca finalizada!');
   entrada=[]; saida=[]; renderTroca();
 }
