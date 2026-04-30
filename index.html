@@ -77,7 +77,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 /* ── HEADER ── */
 .app-header {
   background: var(--bg2); border-bottom: 1px solid var(--border);
-  padding: 0 20px; height: 56px; display: flex; align-items: center;
+  padding: 0 20px; height: 50px; display: flex; align-items: center;
   justify-content: space-between; flex-shrink: 0; z-index: 100;
 }
 .header-logo { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; color: var(--accent); letter-spacing: 1px; }
@@ -93,21 +93,21 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 
 /* ── SIDEBAR ── */
 .sidebar {
-  width: 64px; background: var(--bg2); border-right: 1px solid var(--border);
-  display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 4px;
-  flex-shrink: 0; z-index: 50;
+  width: 80px; background: var(--bg2); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 2px;
+  flex-shrink: 0; z-index: 50; overflow-y: auto; overflow-x: hidden;
 }
 .nav-item {
-  width: 48px; height: 48px; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; border-radius: 12px; cursor: pointer; gap: 2px;
-  border: 1px solid transparent; transition: all 0.2s; position: relative;
+  width: 70px; min-height: 54px; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; border-radius: 12px; cursor: pointer; gap: 3px;
+  border: 1px solid transparent; transition: all 0.2s; padding: 6px 4px;
 }
 .nav-item:hover { background: var(--bg4); border-color: var(--border2); }
 .nav-item.active { background: var(--accent-dim); border-color: var(--accent); }
-.nav-icon { font-size: 18px; line-height: 1; }
-.nav-label { font-size: 9px; color: var(--text2); font-weight: 500; }
+.nav-icon { font-size: 20px; line-height: 1; }
+.nav-label { font-size: 10px; color: var(--text2); font-weight: 600; text-align: center; line-height: 1.2; }
 .nav-item.active .nav-label { color: var(--accent); }
-.nav-divider { width: 32px; height: 1px; background: var(--border); margin: 4px 0; }
+.nav-divider { width: 50px; height: 1px; background: var(--border); margin: 3px 0; }
 
 /* ── CONTEÚDO ── */
 .content { flex: 1; overflow-y: auto; padding: 20px; }
@@ -202,22 +202,28 @@ tr:hover td { background: var(--accent-dim2); }
 .badge-blue { background: var(--blue-dim); color: var(--blue); }
 
 /* ── VENDA LAYOUT ── */
-.venda-layout { display: grid; grid-template-columns: 1fr 340px; gap: 16px; height: calc(100vh - 120px); }
-.venda-left { display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
-.venda-right { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-.item-lista { overflow-y: auto; flex: 1; }
-.item-row { display: flex; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); gap: 10px; }
+.venda-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 12px;
+  height: calc(100vh - 110px);
+  min-height: 0;
+}
+.venda-left { display: flex; flex-direction: column; gap: 10px; overflow: hidden; min-height: 0; }
+.venda-right { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.item-lista { overflow-y: auto; flex: 1; min-height: 0; }
+.item-row { display: flex; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--border); gap: 8px; }
 .item-nome { flex: 1; font-size: 13px; }
-.item-qtd { width: 60px; }
-.item-qtd input { text-align: center; padding: 6px 4px; }
-.item-preco { width: 90px; text-align: right; color: var(--accent); font-weight: 600; font-size: 13px; }
-.total-bar { background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius2); padding: 16px; }
-.total-line { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.item-qtd { width: 56px; }
+.item-qtd input { text-align: center; padding: 5px 4px; font-size: 13px; }
+.item-preco { width: 86px; text-align: right; color: var(--accent); font-weight: 600; font-size: 13px; }
+.total-bar { background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius2); padding: 10px 12px; }
+.total-line { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
 .total-line:last-child { margin-bottom: 0; }
 .total-label { font-size: 12px; color: var(--text2); }
-.total-value { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; }
-.total-final { font-size: 26px; color: var(--accent); }
-.troco-value { color: var(--amber); font-size: 20px; }
+.total-value { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; }
+.total-final { font-size: 20px; color: var(--accent); }
+.troco-value { color: var(--amber); font-size: 18px; }
 
 /* ── CAIXA ── */
 .caixa-status { display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: var(--bg3); border-radius: var(--radius2); border: 1px solid var(--border); margin-bottom: 16px; }
@@ -275,51 +281,55 @@ tr:hover td { background: var(--accent-dim2); }
 .toast.error { border-color: var(--red); }
 
 /* ── RESPONSIVE — ajuste automático ── */
-html { height: 100%; overflow: hidden; }
-body { height: 100%; overflow: hidden; }
-#app { height: 100vh; max-height: 100vh; overflow: hidden; }
-.app-body { height: calc(100vh - 56px); overflow: hidden; }
-.content { height: 100%; overflow-y: auto; overflow-x: hidden; }
-.venda-layout { height: calc(100vh - 130px); }
+html, body { height: 100%; overflow: hidden; }
+#app { height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+#app.active { display: flex; }
+.app-header { height: 50px; flex-shrink: 0; }
+.app-body { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+.sidebar { overflow-y: auto; overflow-x: hidden; }
+.content { flex: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; padding: 14px; }
+.page-header { margin-bottom: 14px; }
 
-@media (max-width: 1100px) {
-  .venda-layout { grid-template-columns: 1fr 290px; }
+@media (max-width: 1200px) {
+  .venda-layout { grid-template-columns: 1fr 280px; }
 }
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .venda-layout { grid-template-columns: 1fr; height: auto; }
-  .venda-left { max-height: 55vh; }
-  .venda-right { overflow-y: visible; }
-  .row.c3 { grid-template-columns: 1fr 1fr; }
+  .venda-right { height: auto; max-height: none; }
   .summary-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 600px) {
-  .sidebar { width: 52px; }
-  .nav-item { width: 42px; height: 42px; }
-  .nav-label { font-size: 8px; }
+  .sidebar { width: 70px; }
+  .nav-item { width: 62px; }
   .content { padding: 8px; }
-  .app-header { padding: 0 10px; }
+  .app-header { padding: 0 8px; }
   .header-user { display: none; }
-  .row.c2 { grid-template-columns: 1fr; }
-  .row.c3 { grid-template-columns: 1fr 1fr; }
+  .row.c2, .row.c3 { grid-template-columns: 1fr; }
   .func-grid { grid-template-columns: 1fr; }
-  .page-title { font-size: 17px; }
-  .rel-tabs { flex-wrap: wrap; width: 100%; }
-  .rel-tab { padding: 6px 10px; font-size: 12px; }
+  .page-title { font-size: 16px; }
+  .rel-tabs { flex-wrap: wrap; }
 }
-@media (max-height: 650px) {
+@media (max-height: 680px) {
   .app-header { height: 44px; }
-  .app-body { height: calc(100vh - 44px); }
-  .venda-layout { height: calc(100vh - 110px); }
-  .panel-body { padding: 8px 12px; }
+  .venda-layout { height: calc(100vh - 100px); }
+  .panel-body { padding: 7px 12px; }
   .panel-header { padding: 8px 14px; }
-  .summary-card { padding: 10px 12px; }
-  .summary-value { font-size: 18px; }
-  .field { margin-bottom: 8px; }
-  input, select { padding: 7px 12px; font-size: 13px; }
+  .summary-card { padding: 9px 12px; }
+  .summary-value { font-size: 17px; }
+  .field { margin-bottom: 7px; }
+  input, select { padding: 7px 10px; font-size: 13px; }
+  .btn { padding: 8px 14px; font-size: 12px; }
+  .total-bar { padding: 8px 10px; }
+  .nav-item { min-height: 48px; }
 }
-@media (max-height: 550px) {
-  .nav-label { display: none; }
-  .nav-item { height: 38px; }
+@media (max-height: 560px) {
+  .venda-layout { height: calc(100vh - 90px); }
+  .panel-body { padding: 5px 10px; }
+  .field { margin-bottom: 4px; }
+  input, select { padding: 5px 8px; font-size: 12px; }
+  .nav-label { font-size: 8px; }
+  .nav-item { min-height: 40px; }
+  .summary-grid { grid-template-columns: 1fr 1fr; }
 }
 </style>
 </head>
@@ -435,11 +445,13 @@ body { height: 100%; overflow: hidden; }
             </div>
           </div>
 
-          <!-- DIREITA -->
+          <!-- DIREITA — painel único com scroll -->
           <div class="venda-right">
-            <div class="panel">
-              <div class="panel-header"><div class="panel-title">Resumo</div></div>
-              <div class="panel-body">
+            <div class="panel" style="flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden">
+              <div class="panel-header"><div class="panel-title">Resumo & Pagamento</div></div>
+              <div style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px">
+
+                <!-- TOTAIS -->
                 <div class="total-bar">
                   <div class="total-line">
                     <div class="total-label">Subtotal</div>
@@ -452,21 +464,17 @@ body { height: 100%; overflow: hidden; }
                       <span style="font-size:12px;color:var(--text2)">R$</span>
                     </div>
                   </div>
-                  <div style="border-top:1px solid var(--border);margin:10px 0"></div>
+                  <div style="border-top:1px solid var(--border);margin:8px 0"></div>
                   <div class="total-line">
-                    <div class="total-label" style="font-size:14px;font-weight:600">TOTAL</div>
+                    <div class="total-label" style="font-size:14px;font-weight:700">TOTAL</div>
                     <div class="total-value total-final">R$ <span id="vTotal">0,00</span></div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <div class="panel">
-              <div class="panel-header"><div class="panel-title">Pagamento</div></div>
-              <div class="panel-body">
-                <div class="field">
-                  <label>Forma de Pagamento</label>
-                  <select id="formaPgto">
+                <!-- PAGAMENTO -->
+                <div>
+                  <label style="margin-bottom:5px;display:block">Forma de Pagamento</label>
+                  <select id="formaPgto" style="margin-bottom:8px">
                     <option>Dinheiro</option>
                     <option>Pix</option>
                     <option>Débito</option>
@@ -475,23 +483,28 @@ body { height: 100%; overflow: hidden; }
                     <option>Crédito 3x</option>
                   </select>
                 </div>
-                <div class="field">
-                  <label>Valor Recebido</label>
-                  <input id="valorRecebido" type="number" step="0.01" placeholder="0,00" oninput="calcularTroco()">
+                <div>
+                  <label style="margin-bottom:5px;display:block">Valor Recebido</label>
+                  <input id="valorRecebido" type="number" step="0.01" placeholder="0,00" oninput="calcularTroco()" style="margin-bottom:8px">
                 </div>
-                <div class="total-bar" style="margin-bottom:12px">
+
+                <!-- TROCO -->
+                <div class="total-bar">
                   <div class="total-line">
-                    <div class="total-label">Troco</div>
+                    <div class="total-label" style="font-size:14px">Troco</div>
                     <div class="total-value troco-value">R$ <span id="vTroco">0,00</span></div>
                   </div>
                 </div>
-                <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:15px" onclick="finalizarVenda()">
+
+                <!-- BOTÕES — sempre visíveis no fim -->
+                <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:15px;letter-spacing:.5px;flex-shrink:0" onclick="finalizarVenda()">
                   ✅ FINALIZAR VENDA
                 </button>
-                <div class="btn-group" style="margin-top:8px">
+                <div style="display:flex;gap:8px;flex-shrink:0">
                   <button class="btn btn-secondary btn-sm" style="flex:1;justify-content:center" onclick="enviarWhats()">📲 WhatsApp</button>
                   <button class="btn btn-secondary btn-sm" style="flex:1;justify-content:center" onclick="imprimirUltimaCupom()">🖨️ Imprimir</button>
                 </div>
+
               </div>
             </div>
           </div>
@@ -640,6 +653,32 @@ body { height: 100%; overflow: hidden; }
           <div class="page-title">Equipe de <span>Funcionários</span></div>
           <button class="btn btn-primary" onclick="abrirModalFuncionario()">＋ Novo Funcionário</button>
         </div>
+
+        <!-- PONTO DO DIA -->
+        <div class="panel" style="margin-bottom:16px">
+          <div class="panel-header">
+            <div class="panel-title">⏱ Ponto do Dia — <span id="pontoData" style="color:var(--accent)"></span></div>
+          </div>
+          <div class="panel-body" style="padding-top:0">
+            <!-- Seletor de funcionário + botões de ponto -->
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:10px">
+              <select id="funcPontoSel" style="flex:1;min-width:160px;padding:8px 12px">
+                <option value="">— Selecionar funcionário —</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="registrarPontoTipo('entrada')" style="background:#22c55e">▶ Entrada</button>
+              <button class="btn btn-sm" style="background:#f59e0b;color:#000;border:none;border-radius:var(--radius);padding:8px 12px;cursor:pointer;font-weight:600" onclick="registrarPontoTipo('saida_almoco')">🍽 Saída Almoço</button>
+              <button class="btn btn-sm" style="background:#3b82f6;color:#fff;border:none;border-radius:var(--radius);padding:8px 12px;cursor:pointer;font-weight:600" onclick="registrarPontoTipo('volta_almoco')">↩ Volta Almoço</button>
+              <button class="btn btn-danger btn-sm" onclick="registrarPontoTipo('saida')">◼ Saída</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Funcionário</th><th>Tipo</th><th>Hora</th><th>Data</th></tr></thead>
+                <tbody id="tabelaPonto"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <div class="func-grid" id="listaFuncionarios"></div>
       </div>
 
@@ -747,37 +786,43 @@ body { height: 100%; overflow: hidden; }
 <div class="modal-overlay" id="modalFuncionario">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">Cadastro de Funcionário</div>
+      <div class="modal-title" id="modalFuncTitulo">Cadastro de Funcionário</div>
       <button class="modal-close" onclick="fecharModal('modalFuncionario')">×</button>
     </div>
     <div class="field"><label>Nome Completo</label><input id="fNome" placeholder="Nome do funcionário"></div>
     <div class="row c2">
-      <div class="field"><label>Cargo</label>
+      <div class="field"><label>Cargo (lista)</label>
         <select id="fCargo">
           <option>Vendedor(a)</option>
           <option>Gerente</option>
           <option>Caixa</option>
           <option>Estoquista</option>
           <option>Proprietário(a)</option>
+          <option>Outro</option>
         </select>
       </div>
-      <div class="field"><label>Turno</label>
-        <select id="fTurno"><option>Manhã</option><option>Tarde</option><option>Integral</option></select>
+      <div class="field"><label>Função (descrição livre)</label>
+        <input id="fFuncao" placeholder="Ex: Atendimento e vitrine">
       </div>
     </div>
     <div class="row c2">
+      <div class="field"><label>Turno</label>
+        <select id="fTurno"><option>Manhã</option><option>Tarde</option><option>Integral</option></select>
+      </div>
       <div class="field"><label>Telefone</label><input id="fTel" placeholder="(00) 00000-0000"></div>
+    </div>
+    <div class="row c2">
       <div class="field"><label>Senha de Acesso</label><input id="fSenha" type="password" placeholder="••••••"></div>
+      <div class="field">
+        <label>Permissão</label>
+        <select id="fPermissao">
+          <option value="operador">Operador (venda apenas)</option>
+          <option value="gerente">Gerente (venda + relatório)</option>
+          <option value="admin">Admin (acesso total)</option>
+        </select>
+      </div>
     </div>
-    <div class="field">
-      <label>Permissão</label>
-      <select id="fPermissao">
-        <option value="operador">Operador (venda apenas)</option>
-        <option value="gerente">Gerente (venda + relatório)</option>
-        <option value="admin">Admin (acesso total)</option>
-      </select>
-    </div>
-    <div class="btn-group" style="justify-content:flex-end;margin-top:8px">
+    <div class="btn-group" style="justify-content:flex-end;margin-top:12px">
       <button class="btn btn-secondary" onclick="fecharModal('modalFuncionario')">Cancelar</button>
       <button class="btn btn-primary" onclick="salvarFuncionario()">Salvar</button>
     </div>
@@ -903,6 +948,7 @@ function navegar(pagina) {
   document.getElementById('nav-' + pagina).classList.add('active');
   if (pagina === 'relatorio') carregarRelatorio();
   if (pagina === 'caixa') { verificarCaixa(); carregarMovCaixa(); }
+  if (pagina === 'funcionarios') carregarPontos();
 }
 
 // ══════════════════════════════════════════
@@ -1088,11 +1134,18 @@ function imprimirEtiqueta(codigo, nome, valor, cor='', numero='') {
       body { background:none; padding:0; gap:0; align-items:flex-start; }
       .ctrl, .info-label, .btn-p { display:none !important; }
       .folha { box-shadow:none; border-radius:0; width:80mm; }
-      .etq { width:40mm; height:60mm; border:0.5px solid #888; }
-      .etq-logo { height:25.4mm; }
-      .etq-barcode svg { height:12mm; }
-      .etq-preco { height:16mm; min-height:16mm; }
-      .etq-val { font-size:22px; }
+      .etq { width:40mm; height:60mm; border:0.5px solid #888; page-break-inside:avoid; }
+      .etq-logo { height:22mm; padding:3px 4px 2px; }
+      .etq-barcode { padding:1px 4px 0; }
+      .etq-barcode svg { height:10mm; }
+      .etq-codnum { font-size:6px; margin-bottom:0; }
+      .etq-info { padding:2px 5px 1px; }
+      .etq-nome { font-size:7px; margin-bottom:1px; }
+      .etq-det { font-size:6.5px; line-height:1.5; }
+      .etq-preco { height:16mm; min-height:16mm; flex-shrink:0; }
+      .etq-rs { font-size:9px; margin-top:8px; }
+      .etq-val { font-size:20px; }
+      .etq-cents { font-size:11px; }
       @page { size:80mm auto; margin:0; }
     }
   </style></head><body>
@@ -1638,47 +1691,170 @@ function exportarRelatorio() {
 // ══════════════════════════════════════════
 // FUNCIONÁRIOS
 // ══════════════════════════════════════════
-function abrirModalFuncionario() { abrirModal('modalFuncionario'); ['fNome','fTel','fSenha'].forEach(id=>document.getElementById(id).value=''); }
+let editandoFuncId = null;
+
+function abrirModalFuncionario(id = null) {
+  editandoFuncId = id;
+  document.getElementById('modalFuncTitulo').textContent = id ? 'Editar Funcionário' : 'Novo Funcionário';
+  if (id) {
+    const f = funcionarios.find(x => x.id === id);
+    if (!f) return;
+    document.getElementById('fNome').value = f.nome || '';
+    document.getElementById('fCargo').value = f.cargo || 'Vendedor(a)';
+    document.getElementById('fFuncao').value = f.funcao || '';
+    document.getElementById('fTurno').value = f.turno || 'Manhã';
+    document.getElementById('fTel').value = f.telefone || '';
+    document.getElementById('fSenha').value = '';
+    document.getElementById('fPermissao').value = f.permissao || 'operador';
+  } else {
+    ['fNome','fFuncao','fTel','fSenha'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('fCargo').value = 'Vendedor(a)';
+    document.getElementById('fTurno').value = 'Manhã';
+    document.getElementById('fPermissao').value = 'operador';
+  }
+  abrirModal('modalFuncionario');
+}
 
 async function salvarFuncionario() {
   const nome = document.getElementById('fNome').value.trim();
   if (!nome) { toast('Nome obrigatório', 'error'); return; }
-  await db.collection('funcionarios').add({
-    nome, cargo: document.getElementById('fCargo').value,
+  const dados = {
+    nome,
+    cargo: document.getElementById('fCargo').value,
+    funcao: document.getElementById('fFuncao').value.trim(),
     turno: document.getElementById('fTurno').value,
     telefone: document.getElementById('fTel').value,
-    senha: document.getElementById('fSenha').value,
     permissao: document.getElementById('fPermissao').value,
-    ativo: true, cadastro: new Date()
-  });
+    ativo: true
+  };
+  const senha = document.getElementById('fSenha').value;
+  if (senha) dados.senha = senha;
+
+  if (editandoFuncId) {
+    await db.collection('funcionarios').doc(editandoFuncId).update(dados);
+    toast('Funcionário atualizado!');
+  } else {
+    dados.cadastro = new Date();
+    await db.collection('funcionarios').add(dados);
+    toast('Funcionário cadastrado!');
+  }
+  editandoFuncId = null;
   fecharModal('modalFuncionario');
-  toast('Funcionário cadastrado!');
 }
 
 function renderFuncionarios() {
   const el = document.getElementById('listaFuncionarios');
-  if (!funcionarios.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">👥</div>Nenhum funcionário cadastrado</div>'; return; }
+  if (!funcionarios.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">👥</div>Nenhum funcionário cadastrado</div>';
+    return;
+  }
+  // Atualizar select do ponto
+  const sel = document.getElementById('funcPontoSel');
+  if (sel) {
+    const atual = sel.value;
+    sel.innerHTML = '<option value="">— Selecionar funcionário —</option>' +
+      funcionarios.map(f => `<option value="${f.id}|${f.nome}">${f.nome}</option>`).join('');
+    sel.value = atual;
+  }
+
   const cores = ['var(--accent)','var(--blue)','var(--amber)','var(--red)'];
-  el.innerHTML = funcionarios.map((f,i) => {
+  el.innerHTML = funcionarios.map((f, i) => {
     const iniciais = f.nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
     const cor = cores[i % cores.length];
     return `<div class="func-card">
       <div class="func-avatar" style="background:${cor}22;color:${cor}">${iniciais}</div>
       <div class="func-info">
         <div class="func-nome">${f.nome}</div>
-        <div class="func-cargo">${f.cargo} · ${f.turno||'—'}</div>
+        <div class="func-cargo">${f.cargo}${f.funcao ? ' · ' + f.funcao : ''} · ${f.turno||'—'}</div>
         ${f.telefone ? `<div style="font-size:11px;color:var(--text3);margin-top:2px">${f.telefone}</div>` : ''}
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
         <span class="badge badge-${f.permissao==='admin'?'red':f.permissao==='gerente'?'amber':'green'}">${f.permissao}</span>
-        <button class="btn btn-danger btn-icon btn-sm" onclick="excluirFuncionario('${f.id}')">🗑</button>
+        <div style="display:flex;gap:4px;margin-top:4px">
+          <button class="btn btn-blue btn-icon btn-sm" onclick="abrirModalFuncionario('${f.id}')" title="Editar">✏️</button>
+          <button class="btn btn-danger btn-icon btn-sm" onclick="excluirFuncionario('${f.id}')" title="Excluir">🗑</button>
+        </div>
       </div>
     </div>`;
   }).join('');
 }
 
 async function excluirFuncionario(id) {
-  if (confirm('Remover funcionário?')) { await db.collection('funcionarios').doc(id).delete(); toast('Removido'); }
+  if (confirm('Remover funcionário?')) {
+    await db.collection('funcionarios').doc(id).delete();
+    toast('Removido');
+  }
+}
+
+// ══════════════════════════════════════════
+// PONTO ELETRÔNICO — 4 tipos
+// ══════════════════════════════════════════
+async function registrarPontoTipo(tipo) {
+  const sel = document.getElementById('funcPontoSel');
+  const val = sel?.value;
+  if (!val) { toast('Selecione um funcionário!', 'error'); return; }
+  const [funcId, funcNome] = val.split('|');
+
+  const labels = {
+    entrada:      { label: '▶ Entrada',       cor: '#22c55e' },
+    saida_almoco: { label: '🍽 Saída Almoço',  cor: '#f59e0b' },
+    volta_almoco: { label: '↩ Volta Almoço',   cor: '#3b82f6' },
+    saida:        { label: '◼ Saída',          cor: '#ef4444' },
+  };
+
+  const agora = new Date();
+  await db.collection('pontos').add({
+    funcId, funcNome, tipo,
+    label: labels[tipo]?.label || tipo,
+    hora: agora.toLocaleTimeString('pt-BR'),
+    data: agora.toLocaleDateString('pt-BR'),
+    timestamp: agora,
+    registradoPor: usuario.nome
+  });
+  toast(`${labels[tipo]?.label} registrada para ${funcNome}!`);
+  carregarPontos();
+}
+
+async function registrarPonto(tipo) {
+  await registrarPontoTipo(tipo);
+}
+
+async function carregarPontos() {
+  const hoje = new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});
+  const el = document.getElementById('pontoData');
+  if (el) el.textContent = hoje;
+
+  // Atualizar select
+  const sel = document.getElementById('funcPontoSel');
+  if (sel && funcionarios.length && sel.options.length <= 1) {
+    sel.innerHTML = '<option value="">— Selecionar funcionário —</option>' +
+      funcionarios.map(f => `<option value="${f.id}|${f.nome}">${f.nome}</option>`).join('');
+  }
+
+  const inicioDia = new Date(); inicioDia.setHours(0,0,0,0);
+  const snap = await db.collection('pontos').orderBy('timestamp','desc').limit(100).get();
+  const pontos = snap.docs.map(d=>d.data()).filter(p => {
+    const t = p.timestamp?.seconds ? new Date(p.timestamp.seconds*1000) : new Date(p.timestamp);
+    return t >= inicioDia;
+  });
+
+  const cores = {
+    entrada:      'badge-green',
+    saida_almoco: 'badge-amber',
+    volta_almoco: 'badge-blue',
+    saida:        'badge-red',
+  };
+
+  const tabel = document.getElementById('tabelaPonto');
+  if (!tabel) return;
+  tabel.innerHTML = pontos.length ? pontos.map(p => `
+    <tr>
+      <td><strong>${p.funcNome}</strong></td>
+      <td><span class="badge ${cores[p.tipo]||'badge-blue'}">${p.label||p.tipo}</span></td>
+      <td style="font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;color:var(--accent)">${p.hora}</td>
+      <td style="font-size:12px;color:var(--text2)">${p.data}</td>
+    </tr>
+  `).join('') : '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text3)">Nenhum registro hoje</td></tr>';
 }
 
 // ══════════════════════════════════════════
