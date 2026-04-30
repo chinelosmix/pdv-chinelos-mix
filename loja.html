@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chinelos Mix</title>
+
+<link rel="manifest" href="manifest.json">
+
+<style>
+body{
+  font-family: Arial;
+  margin:0;
+  background:#f5f5f5;
+}
+
+header{
+  background:#0a8f3d;
+  color:white;
+  text-align:center;
+  padding:15px;
+}
+
+.logo{
+  width:120px;
+}
+
+.categorias{
+  display:flex;
+  gap:10px;
+  padding:10px;
+  overflow:auto;
+}
+
+.categorias button{
+  padding:10px;
+  border:none;
+  background:#0a8f3d;
+  color:white;
+  border-radius:8px;
+}
+
+.produtos{
+  display:grid;
+  grid-template-columns: repeat(2,1fr);
+  gap:10px;
+  padding:10px;
+}
+
+.produto{
+  background:white;
+  padding:10px;
+  border-radius:10px;
+}
+
+.produto img, video{
+  width:100%;
+  border-radius:10px;
+}
+
+button{
+  width:100%;
+  margin-top:5px;
+  padding:8px;
+  border:none;
+  background:#0a8f3d;
+  color:white;
+  border-radius:8px;
+}
+
+#carrinho{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:white;
+  padding:10px;
+  border-top:2px solid #ccc;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>Chinelos Mix</h2>
+  <p>Poá - SP</p>
+</header>
+
+<div class="categorias">
+  <button onclick="filtrar('havaianas')">Havaianas</button>
+  <button onclick="filtrar('ipanema')">Ipanema</button>
+  <button onclick="filtrar('azaleia')">Azaleia</button>
+</div>
+
+<div class="produtos" id="produtos"></div>
+
+<div id="carrinho">
+  Total: R$ <span id="total">0</span>
+  <button onclick="finalizar()">Finalizar Pedido</button>
+</div>
+
+<script>
+let carrinho = []
+let produtos = [
+  {nome:"Havaianas Top", preco:35, categoria:"havaianas", img:"https://via.placeholder.com/150"},
+  {nome:"Ipanema Slide", preco:40, categoria:"ipanema", img:"https://via.placeholder.com/150"},
+  {nome:"Azaleia Confort", preco:50, categoria:"azaleia", img:"https://via.placeholder.com/150"}
+]
+
+function mostrar(lista){
+  let html = ""
+  lista.forEach((p,i)=>{
+    html += `
+    <div class="produto">
+      <img src="${p.img}">
+      <h4>${p.nome}</h4>
+      <p>R$ ${p.preco}</p>
+      <button onclick="add(${i})">Comprar</button>
+    </div>
+    `
+  })
+  document.getElementById("produtos").innerHTML = html
+}
+
+function filtrar(cat){
+  let f = produtos.filter(p=>p.categoria==cat)
+  mostrar(f)
+}
+
+function add(i){
+  carrinho.push(produtos[i])
+  atualizar()
+}
+
+function atualizar(){
+  let total = carrinho.reduce((s,p)=>s+p.preco,0)
+  document.getElementById("total").innerText = total
+}
+
+function finalizar(){
+  let msg = "Pedido:%0A"
+  carrinho.forEach(p=>{
+    msg += p.nome+" - R$ "+p.preco+"%0A"
+  })
+  msg += "%0ATotal: R$ "+carrinho.reduce((s,p)=>s+p.preco,0)
+
+  window.open("https://wa.me/5511986382512?text="+msg)
+}
+
+mostrar(produtos)
+</script>
+
+</body>
+</html>
