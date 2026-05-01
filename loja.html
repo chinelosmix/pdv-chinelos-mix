@@ -565,17 +565,88 @@ function atualizarCarrinho() {
     </div>
   `).join('');
 
+  const frete = freteInfo ? freteInfo.valor : 0;
+  const totalComFrete = total + frete;
+
   document.getElementById('cartFooter').innerHTML = `
     <div class="cart-total">
-      <div class="cart-total-label">TOTAL DO PEDIDO</div>
-      <div class="cart-total-val">R$ ${total.toFixed(2)}</div>
+      <div class="cart-total-label">Subtotal</div>
+      <div class="cart-total-val" style="font-size:20px">R$ ${total.toFixed(2)}</div>
     </div>
-    <button class="btn-whats" onclick="enviarPedidoWhats()">
-      <span style="font-size:22px">📲</span> ENVIAR PEDIDO VIA WHATSAPP
+
+    <!-- ENTREGA -->
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px;margin:10px 0">
+      <div style="font-size:12px;font-weight:800;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">📦 Modo de Entrega</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button onclick="selecionarEntrega('retirada')" id="btn-retirada"
+          style="flex:1;padding:8px;border-radius:10px;border:2px solid var(--accent);background:var(--accent-dim);color:var(--accent);font-size:12px;font-weight:800;cursor:pointer">
+          🏪 Retirar na Loja<br><span style="font-size:10px;font-weight:600;color:var(--text2)">Grátis</span>
+        </button>
+        <button onclick="selecionarEntrega('entrega')" id="btn-entrega"
+          style="flex:1;padding:8px;border-radius:10px;border:2px solid var(--border);background:transparent;color:var(--text2);font-size:12px;font-weight:800;cursor:pointer">
+          🛵 Receber em Casa<br><span style="font-size:10px;font-weight:600">Calcular frete</span>
+        </button>
+      </div>
+
+      <div id="boxRetirada" style="font-size:12px;color:var(--text2);text-align:center;padding:6px 0">
+        📍 Av. Leonor Bolsone Marques da Silva, 45 — Centro, Poá/SP
+      </div>
+
+      <div id="boxEntrega" style="display:none">
+        <div style="display:flex;gap:6px">
+          <input id="inputCep" placeholder="Digite seu CEP" maxlength="9"
+            oninput="formatarCep(this)"
+            style="flex:1;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;outline:none">
+          <button onclick="calcularFrete()"
+            style="padding:9px 14px;background:var(--accent);border:none;border-radius:10px;color:#000;font-weight:800;font-size:13px;cursor:pointer">
+            Calcular
+          </button>
+        </div>
+        <div id="resultadoFrete" style="margin-top:8px;font-size:12px;color:var(--text2)"></div>
+      </div>
+    </div>
+
+    <!-- FRETE + TOTAL FINAL -->
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px">
+        <span>Frete</span><span id="freteLabel">${frete > 0 ? 'R$ '+frete.toFixed(2) : 'Grátis (retirada)'}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:900;color:var(--accent)">
+        <span>TOTAL</span><span>R$ ${totalComFrete.toFixed(2)}</span>
+      </div>
+    </div>
+
+    <!-- PAGAMENTO -->
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:10px">
+      <div style="font-size:12px;font-weight:800;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">💳 Forma de Pagamento</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <button onclick="selecionarPgto('pix',this)"
+          class="btn-pgto" style="padding:8px;border-radius:10px;border:2px solid var(--border);background:transparent;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer">
+          📱 Pix<br><span style="color:var(--accent);font-size:10px">Aprovação imediata</span>
+        </button>
+        <button onclick="selecionarPgto('credit_card_1x',this)"
+          class="btn-pgto" style="padding:8px;border-radius:10px;border:2px solid var(--border);background:transparent;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer">
+          💳 Crédito à Vista<br><span style="color:var(--text3);font-size:10px">R$ ${totalComFrete.toFixed(2)}</span>
+        </button>
+        <button onclick="selecionarPgto('credit_card_2x',this)"
+          class="btn-pgto" style="padding:8px;border-radius:10px;border:2px solid var(--border);background:transparent;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer">
+          💳 Crédito 2x<br><span style="color:var(--text3);font-size:10px">2x R$ ${(totalComFrete/2).toFixed(2)}</span>
+        </button>
+        <button onclick="selecionarPgto('credit_card_3x',this)"
+          class="btn-pgto" style="padding:8px;border-radius:10px;border:2px solid var(--border);background:transparent;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer">
+          💳 Crédito 3x<br><span style="color:var(--text3);font-size:10px">3x R$ ${(totalComFrete/3).toFixed(2)}</span>
+        </button>
+      </div>
+    </div>
+
+    <button onclick="finalizarPedido()"
+      style="width:100%;padding:16px;background:var(--accent);border:none;border-radius:14px;color:#000;font-size:16px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;letter-spacing:.5px">
+      ✅ FINALIZAR PEDIDO
     </button>
-    <div style="text-align:center;font-size:11px;color:var(--text3);margin-top:10px">
-      Após o envio, entraremos em contato para confirmar a retirada
-    </div>
+    <button onclick="enviarPedidoWhats()"
+      style="width:100%;padding:12px;margin-top:8px;background:#25d366;border:none;border-radius:14px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px">
+      📲 Enviar pedido pelo WhatsApp
+    </button>
   `;
 }
 
@@ -599,31 +670,249 @@ function fecharCarrinho() {
 }
 
 // ══════════════════════════════
+// ENTREGA
+// ══════════════════════════════
+let modoEntrega = 'retirada';
+let freteInfo = null;
+let pgtoSelecionado = null;
+
+function selecionarEntrega(modo) {
+  modoEntrega = modo;
+  const btnR = document.getElementById('btn-retirada');
+  const btnE = document.getElementById('btn-entrega');
+  const boxR = document.getElementById('boxRetirada');
+  const boxE = document.getElementById('boxEntrega');
+  if (!btnR) return;
+
+  if (modo === 'retirada') {
+    freteInfo = null;
+    btnR.style.borderColor = 'var(--accent)';
+    btnR.style.background = 'var(--accent-dim)';
+    btnR.style.color = 'var(--accent)';
+    btnE.style.borderColor = 'var(--border)';
+    btnE.style.background = 'transparent';
+    btnE.style.color = 'var(--text2)';
+    boxR.style.display = 'block';
+    boxE.style.display = 'none';
+  } else {
+    btnE.style.borderColor = 'var(--accent)';
+    btnE.style.background = 'var(--accent-dim)';
+    btnE.style.color = 'var(--accent)';
+    btnR.style.borderColor = 'var(--border)';
+    btnR.style.background = 'transparent';
+    btnR.style.color = 'var(--text2)';
+    boxE.style.display = 'block';
+    boxR.style.display = 'none';
+  }
+  atualizarCarrinho();
+}
+
+function formatarCep(el) {
+  let v = el.value.replace(/\D/g,'');
+  if (v.length > 5) v = v.slice(0,5) + '-' + v.slice(5,8);
+  el.value = v;
+}
+
+// Coordenadas da loja
+const LOJA_LAT = -23.5329;
+const LOJA_LNG = -46.3447;
+
+function calcularDistanciaKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function calcularValorFrete(km) {
+  if (km <= 5)  return { valor: 8.00,  prazo: '1-2 dias úteis' };
+  if (km <= 15) return { valor: 15.00, prazo: '2-3 dias úteis' };
+  if (km <= 30) return { valor: 22.00, prazo: '3-5 dias úteis' };
+  if (km <= 60) return { valor: 30.00, prazo: '5-7 dias úteis' };
+  return { valor: 45.00, prazo: '7-10 dias úteis' };
+}
+
+async function calcularFrete() {
+  const cepInput = document.getElementById('inputCep');
+  const resultado = document.getElementById('resultadoFrete');
+  const cep = (cepInput?.value || '').replace(/\D/g,'');
+
+  if (cep.length !== 8) { resultado.innerHTML = '<span style="color:var(--red)">CEP inválido. Digite os 8 números.</span>'; return; }
+
+  resultado.innerHTML = '⏳ Buscando endereço...';
+
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const dados = await res.json();
+
+    if (dados.erro) { resultado.innerHTML = '<span style="color:var(--red)">CEP não encontrado.</span>'; return; }
+
+    // Buscar coordenadas pelo endereço
+    const endereco = encodeURIComponent(`${dados.logradouro}, ${dados.localidade}, ${dados.uf}, Brasil`);
+    const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${endereco}&limit=1`);
+    const geoData = await geo.json();
+
+    let km = 0;
+    if (geoData.length > 0) {
+      km = calcularDistanciaKm(LOJA_LAT, LOJA_LNG, parseFloat(geoData[0].lat), parseFloat(geoData[0].lon));
+    } else {
+      km = 20; // distância padrão se não achar
+    }
+
+    const frete = calcularValorFrete(km);
+    freteInfo = frete;
+
+    resultado.innerHTML = `
+      <div style="background:var(--bg);border-radius:10px;padding:10px;margin-top:6px">
+        <div style="color:var(--text);font-weight:700;margin-bottom:4px">📍 ${dados.logradouro ? dados.logradouro+', ' : ''}${dados.bairro ? dados.bairro+' — ' : ''}${dados.localidade}/${dados.uf}</div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px">
+          <div>🛵 Distância: <strong style="color:var(--accent)">${km.toFixed(1)} km</strong></div>
+          <div>📅 Prazo: <strong style="color:var(--accent)">${frete.prazo}</strong></div>
+        </div>
+        <div style="font-size:16px;font-weight:900;color:var(--accent);margin-top:6px">Frete: R$ ${frete.valor.toFixed(2)}</div>
+      </div>
+    `;
+    atualizarCarrinho();
+  } catch(e) {
+    resultado.innerHTML = '<span style="color:var(--red)">Erro ao buscar CEP. Tente novamente.</span>';
+  }
+}
+
+// ══════════════════════════════
+// PAGAMENTO
+// ══════════════════════════════
+function selecionarPgto(tipo, el) {
+  pgtoSelecionado = tipo;
+  document.querySelectorAll('.btn-pgto').forEach(b => {
+    b.style.borderColor = 'var(--border)';
+    b.style.background = 'transparent';
+    b.style.color = 'var(--text2)';
+  });
+  el.style.borderColor = 'var(--accent)';
+  el.style.background = 'var(--accent-dim)';
+  el.style.color = 'var(--accent)';
+}
+
+async function finalizarPedido() {
+  if (!carrinho.length) { toast('Carrinho vazio!'); return; }
+  if (!pgtoSelecionado) { toast('⚠️ Selecione a forma de pagamento!'); return; }
+  if (modoEntrega === 'entrega' && !freteInfo) { toast('⚠️ Calcule o frete primeiro!'); return; }
+
+  const total = carrinho.reduce((s, i) => s + i.preco * i.qtd, 0);
+  const frete = freteInfo ? freteInfo.valor : 0;
+  const totalFinal = total + frete;
+  const parcelas = pgtoSelecionado === 'credit_card_2x' ? 2 : pgtoSelecionado === 'credit_card_3x' ? 3 : 1;
+  const metodo = pgtoSelecionado === 'pix' ? 'pix' : 'credit_card';
+
+  toast('⏳ Criando pagamento...');
+
+  try {
+    const payload = {
+      transaction_amount: totalFinal,
+      description: 'Chinelos Mix — Pedido Online',
+      payment_method_id: metodo,
+      installments: parcelas,
+      payer: { email: 'cliente@chinelosmix.com.br' },
+      metadata: {
+        itens: carrinho.map(i => `${i.nome} (Tam:${i.tam}) x${i.qtd}`).join(', '),
+        entrega: modoEntrega,
+        frete: frete
+      }
+    };
+
+    // Para PIX — criar preferência de pagamento via Mercado Pago
+    const prefPayload = {
+      items: carrinho.map(i => ({
+        title: `${i.nome} — Tam ${i.tam}`,
+        quantity: i.qtd,
+        unit_price: i.preco,
+        currency_id: 'BRL'
+      })),
+      payment_methods: {
+        excluded_payment_types: metodo === 'pix'
+          ? [{ id: 'credit_card' }, { id: 'debit_card' }, { id: 'ticket' }]
+          : [{ id: 'ticket' }],
+        installments: parcelas
+      },
+      back_urls: {
+        success: window.location.href,
+        failure: window.location.href,
+        pending: window.location.href
+      },
+      auto_return: 'approved',
+      statement_descriptor: 'CHINELOS MIX',
+      external_reference: 'pedido-' + Date.now()
+    };
+
+    if (frete > 0) {
+      prefPayload.shipments = {
+        cost: frete,
+        mode: 'not_specified'
+      };
+    }
+
+    const resp = await fetch('https://api.mercadopago.com/checkout/preferences', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer APP_USR-1082894639797282-043017-e6999cc5f0f5a3772fee3fdf7cf303b5-3370350`
+      },
+      body: JSON.stringify(prefPayload)
+    });
+
+    const data = await resp.json();
+
+    if (data.init_point) {
+      // Redireciona para o checkout do Mercado Pago
+      window.open(data.init_point, '_blank');
+      toast('✅ Redirecionando para pagamento!');
+      // Também notifica via WhatsApp
+      setTimeout(() => enviarPedidoWhats(), 1500);
+    } else {
+      console.error('MP erro:', data);
+      toast('Erro ao criar pagamento. Tente pelo WhatsApp!');
+      enviarPedidoWhats();
+    }
+  } catch(e) {
+    console.error(e);
+    toast('Erro de conexão. Enviando pelo WhatsApp...');
+    enviarPedidoWhats();
+  }
+}
+
+// ══════════════════════════════
 // ENVIAR PEDIDO WHATSAPP
 // ══════════════════════════════
 function enviarPedidoWhats() {
   if (!carrinho.length) { toast('Carrinho vazio!'); return; }
 
   const total = carrinho.reduce((s, i) => s + i.preco * i.qtd, 0);
+  const frete = freteInfo ? freteInfo.valor : 0;
+  const totalFinal = total + frete;
+  const pgtoLabel = {
+    pix: '📱 Pix',
+    credit_card_1x: '💳 Crédito à vista',
+    credit_card_2x: `💳 Crédito 2x de R$ ${(totalFinal/2).toFixed(2)}`,
+    credit_card_3x: `💳 Crédito 3x de R$ ${(totalFinal/3).toFixed(2)}`
+  }[pgtoSelecionado] || '—';
+
   let msg = '🛒 *PEDIDO — CHINELOS MIX*\n';
   msg += '━━━━━━━━━━━━━━━━━━━━\n\n';
-
   carrinho.forEach(item => {
     msg += `👟 *${item.nome}*\n`;
-    msg += `   Marca: ${marcaInfo[item.marca]?.nome || item.marca}\n`;
-    msg += `   Tamanho: ${item.tam}\n`;
-    msg += `   Qtd: ${item.qtd}x R$ ${item.preco.toFixed(2)}\n`;
+    msg += `   Tamanho: ${item.tam} | Qtd: ${item.qtd}x\n`;
     msg += `   Subtotal: R$ ${(item.preco * item.qtd).toFixed(2)}\n\n`;
   });
-
   msg += '━━━━━━━━━━━━━━━━━━━━\n';
-  msg += `💰 *TOTAL: R$ ${total.toFixed(2)}*\n`;
-  msg += '🏪 *Retirada na loja*\n';
-  msg += '📍 Av. Leonor Bolsone, 45 — Centro, Poá/SP\n\n';
-  msg += '_Aguardo confirmação do pedido!_ 😊';
+  msg += `📦 Entrega: ${modoEntrega === 'retirada' ? '🏪 Retirada na loja' : '🛵 Entrega em casa'}\n`;
+  if (frete > 0) msg += `🚚 Frete: R$ ${frete.toFixed(2)} (${freteInfo?.prazo})\n`;
+  msg += `💰 *TOTAL: R$ ${totalFinal.toFixed(2)}*\n`;
+  msg += `💳 Pagamento: ${pgtoLabel}\n\n`;
+  msg += '📍 Av. Leonor Bolsone, 45 — Centro, Poá/SP\n';
+  msg += '_Aguardo confirmação! 😊_';
 
-  const url = `https://wa.me/${WHATS}?text=${encodeURIComponent(msg)}`;
-  window.open(url, '_blank');
+  window.open(`https://wa.me/${WHATS}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
 // ══════════════════════════════
@@ -633,7 +922,7 @@ function toast(msg) {
   const el = document.getElementById('toastNotif');
   el.textContent = msg;
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2500);
+  setTimeout(() => el.classList.remove('show'), 3000);
 }
 
 // ══════════════════════════════
