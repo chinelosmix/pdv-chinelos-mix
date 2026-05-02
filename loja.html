@@ -823,12 +823,15 @@ async function finalizarPedido() {
   toast('⏳ Processando pagamento...');
 
   try {
-    // Chamar API serverless da Vercel
+    const itensList = carrinho.map(i => ({
+      nome: i.nome, tam: i.tam, qtd: i.qtd, preco: i.preco
+    }));
+
     const resp = await fetch('/api/criar-pagamento', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        itens: carrinho.map(i => ({ nome: i.nome, tam: i.tam, qtd: i.qtd, preco: i.preco })),
+        itens: itensList,
         frete: frete,
         freteInfo: freteInfo,
         modoEntrega: modoEntrega,
@@ -841,9 +844,7 @@ async function finalizarPedido() {
 
     if (data.init_point) {
       toast('✅ Redirecionando para pagamento seguro...');
-      // Notifica a loja pelo WhatsApp
       setTimeout(() => enviarPedidoWhats(), 500);
-      // Redireciona para checkout do Mercado Pago
       setTimeout(() => { window.location.href = data.init_point; }, 1200);
     } else {
       throw new Error(data.erro || 'Sem link de pagamento');
@@ -851,7 +852,6 @@ async function finalizarPedido() {
 
   } catch(e) {
     console.warn('Pagamento:', e.message);
-    // Fallback: modal manual
     mostrarModalPagamento(totalFinal, isPix, parcelas);
   }
 }
