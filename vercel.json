@@ -1,5 +1,17 @@
 {
-  "builds": [
-    { "src": "*.html", "use": "@vercel/static" }
+  "version": 2,
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/loja",
+      "dest": "/loja.html"
+    },
+    {
+      "src": "/",
+      "dest": "/index.html"
+    }
   ]
 }
