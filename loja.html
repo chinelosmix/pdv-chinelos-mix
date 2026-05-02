@@ -822,73 +822,69 @@ async function finalizarPedido() {
 
   toast('⏳ Conectando ao Mercado Pago...');
 
-  try {
-    const itensList = carrinho.map(function(i) {
-      return { nome: i.nome, tam: i.tam, qtd: i.qtd, preco: i.preco };
-    });
-
-    const TOKEN = 'APP_USR-1082894639797282-043017-e6999cc5f0f5a3772fee3fdf7cf303b5-3370350';
-
-    const mpItems = itensList.map(function(i) {
-      return {
-        title: i.nome + ' Tam ' + i.tam,
-        quantity: Number(i.qtd),
-        unit_price: Number(i.preco),
-        currency_id: 'BRL'
-      };
-    });
-
-    if (frete > 0) {
-      mpItems.push({
-        title: 'Frete',
-        quantity: 1,
-        unit_price: Number(frete),
-        currency_id: 'BRL'
-      });
-    }
-
-    const prefPayload = {
-      items: mpItems,
-      payment_methods: {
-        excluded_payment_types: isPix
-          ? [{ id: 'credit_card' }, { id: 'debit_card' }, { id: 'ticket' }]
-          : [{ id: 'ticket' }],
-        installments: parcelas
-      },
-      back_urls: {
-        success: 'https://pdv-chinelos-mix.vercel.app/loja.html?pg=ok',
-        failure: 'https://pdv-chinelos-mix.vercel.app/loja.html?pg=falha',
-        pending: 'https://pdv-chinelos-mix.vercel.app/loja.html?pg=pendente'
-      },
-      auto_return: 'approved',
-      statement_descriptor: 'CHINELOS MIX',
-      external_reference: 'pedido-' + Date.now()
+  const mpItems = carrinho.map(function(i) {
+    return {
+      title: i.nome + ' Tam ' + i.tam,
+      quantity: Number(i.qtd),
+      unit_price: Number(i.preco),
+      currency_id: 'BRL'
     };
+  });
 
+  if (frete > 0) {
+    mpItems.push({
+      title: 'Frete',
+      quantity: 1,
+      unit_price: Number(frete),
+      currency_id: 'BRL'
+    });
+  }
+
+  const prefPayload = {
+    items: mpItems,
+    payment_methods: {
+      excluded_payment_types: isPix
+        ? [{id:'credit_card'},{id:'debit_card'},{id:'ticket'}]
+        : [{id:'ticket'}],
+      installments: parcelas
+    },
+    back_urls: {
+      success: 'https://pdv-chinelos-mix.vercel.app/loja.html?pg=ok',
+      failure: 'https://pdv-chinelos-mix.vercel.app/loja.html?pg=falha',
+      pending: 'https://pdv-chinelos-mix.vercel.app/loja.html?pg=pendente'
+    },
+    auto_return: 'approved',
+    statement_descriptor: 'CHINELOS MIX',
+    external_reference: 'pedido-' + Date.now()
+  };
+
+  try {
     const mpResp = await fetch('https://api.mercadopago.com/checkout/preferences', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + TOKEN
+        'Authorization': 'Bearer APP_USR-1082894639797282-043017-e6999cc5f0f5a3772fee3fdf7cf303b5-3370350'
       },
       body: JSON.stringify(prefPayload)
     });
 
     const mpData = await mpResp.json();
+    console.log('MP resposta:', mpData);
 
     if (mpData.init_point) {
-      toast('✅ Redirecionando para pagamento...');
+      toast('✅ Redirecionando...');
       enviarPedidoWhats();
       setTimeout(function() {
         window.location.href = mpData.init_point;
-      }, 1000);
+      }, 800);
     } else {
-      throw new Error('MP erro: ' + JSON.stringify(mpData).slice(0, 200));
+      console.error('Erro MP:', mpData);
+      toast('❌ Erro: ' + (mpData.message || JSON.stringify(mpData).slice(0,100)));
+      mostrarModalPagamento(totalFinal, isPix, parcelas);
     }
-
   } catch(e) {
-    console.error('Erro pagamento:', e.message);
-    toast('❌ ' + e.message);
+    console.error('Erro:', e);
+    toast('❌ Erro de conexão');
     mostrarModalPagamento(totalFinal, isPix, parcelas);
   }
 }
