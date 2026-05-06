@@ -944,45 +944,21 @@ function mostrarModalPagamento(total, isPix, parcelas) {
 
 async function finalizarCompraMercadoPago(total) {
 
-  try {
+  const resposta = await fetch('/api/criar-pagamento', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ total })
+  });
 
-    const resposta = await fetch('/api/criar-pagamento', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        titulo: 'Compra Chinelos Mix',
-        preco: total
-      })
-    });
+  const data = await resposta.json();
 
-    const dados = await resposta.json();
-
-    if (dados.init_point) {
-
-      localStorage.setItem(
-        'pedidoWhatsapp',
-        JSON.stringify(carrinho)
-      );
-
-      window.location.href = dados.init_point;
-
-    } else {
-
-      alert('Erro ao gerar pagamento');
-
-    }
-
-  } catch (erro) {
-
-    console.error(erro);
-    alert('Erro no pagamento');
-
+  if (data.init_point) {
+    window.location.href = data.init_point;
   }
 
 }
-
 // ══════════════════════════════
 // ENVIAR PEDIDO WHATSAPP
 // ══════════════════════════════
