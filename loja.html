@@ -940,6 +940,48 @@ function mostrarModalPagamento(total, isPix, parcelas) {
   document.body.appendChild(overlay);
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 }
+}
+
+async function finalizarCompraMercadoPago(total) {
+
+  try {
+
+    const resposta = await fetch('/api/criar-pagamento', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        titulo: 'Compra Chinelos Mix',
+        preco: total
+      })
+    });
+
+    const dados = await resposta.json();
+
+    if (dados.init_point) {
+
+      localStorage.setItem(
+        'pedidoWhatsapp',
+        JSON.stringify(carrinho)
+      );
+
+      window.location.href = dados.init_point;
+
+    } else {
+
+      alert('Erro ao gerar pagamento');
+
+    }
+
+  } catch (erro) {
+
+    console.error(erro);
+    alert('Erro no pagamento');
+
+  }
+
+}
 
 // ══════════════════════════════
 // ENVIAR PEDIDO WHATSAPP
@@ -950,6 +992,9 @@ function enviarPedidoWhats() {
   const total = carrinho.reduce((s, i) => s + i.preco * i.qtd, 0);
   const frete = freteInfo ? freteInfo.valor : 0;
   const totalFinal = total + frete;
+
+finalizarCompraMercadoPago(totalFinal);
+return;
   const pgtoLabel = {
     pix: '📱 Pix',
     credit_card_1x: '💳 Crédito à vista',
@@ -969,7 +1014,7 @@ function enviarPedidoWhats() {
   if (frete > 0) msg += `🚚 Frete: R$ ${frete.toFixed(2)} (${freteInfo?.prazo})\n`;
   msg += `💰 *TOTAL: R$ ${totalFinal.toFixed(2)}*\n`;
   msg += `💳 Pagamento: ${pgtoLabel}\n\n`;
-  msg += '📍 Av. Leonor Bolsone, 45 — Centro, Poá/SP\n';
+  msg += '📍 Av. Leonor Bolsoni, 45 — Centro, Poá/SP\n';
   msg += '_Aguardo confirmação! 😊_';
 
   window.open(`https://wa.me/${WHATS}?text=${encodeURIComponent(msg)}`, '_blank');
