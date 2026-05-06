@@ -16,7 +16,11 @@
       "dest": "/api/$1"
     },
     {
-      "src": "/(.*)",
+      "src": "/loja",
+      "dest": "/loja.html"
+    },
+    {
+      "src": "/",
       "dest": "/index.html"
     }
   ]
