@@ -223,6 +223,109 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 /* ── SCROLL ── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.banner-slider{
+  position:relative;
+  width:100%;
+  height:220px;
+  overflow:hidden;
+  border-radius:18px;
+  margin:20px 0;
+}
+
+.slide{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  transition:1s;
+}
+
+.slide.active{
+  opacity:1;
+}
+
+.slide img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.slide-text{
+  position:absolute;
+  bottom:20px;
+  left:20px;
+  background:rgba(0,0,0,.6);
+  padding:10px 16px;
+  border-radius:12px;
+}
+
+.slide-text h2{
+  color:#00ff88;
+  margin:0;
+}
+
+.slide-text p{
+  color:#fff;
+  margin:4px 0 0;
+}
+
+.promo-box{
+  background:#00ff88;
+  color:#000;
+  font-size:24px;
+  font-weight:bold;
+  text-align:center;
+  padding:18px;
+  border-radius:18px;
+  margin:20px 0;
+}
+
+.mundo-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-top:20px;
+}
+
+.mundo-card{
+  background:#111;
+  border:2px solid #00ff88;
+  border-radius:18px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.mundo-card:hover{
+  transform:scale(1.02);
+}
+
+.mundo-card img{
+  width:100%;
+  height:140px;
+  object-fit:cover;
+}
+
+.mundo-card h3{
+  color:#00ff88;
+  text-align:center;
+  padding:12px;
+  margin:0;
+}
+
+.subcats{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:10px;
+}
+
+.subcats button{
+  background:#00ff88;
+  border:none;
+  padding:10px;
+  border-radius:10px;
+  font-weight:bold;
+}
 </style>
 </head>
 <body>
@@ -264,27 +367,85 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
     Após o pedido, entraremos em contato pelo WhatsApp para confirmar
   </div>
 </div>
-<!-- BANNER PROMOÇÃO -->
-<div style="margin:20px 16px; background:#111; border:2px solid #00ff88; border-radius:20px; overflow:hidden; text-align:center; padding:20px;">
+<!-- ========================= -->
+<!-- BANNER SLIDE -->
+<!-- ========================= -->
 
-  <img src="ChatGPT Image 6 de mai. de 2026, 19_46_24.png"
-       style="width:100%; max-width:300px; border-radius:16px; margin-bottom:15px;">
+<div class="banner-slider">
 
-  <h2 style="color:#00ff88; font-size:28px; margin-bottom:10px;">
-    KIT TIRAS BABY
-  </h2>
+  <div class="slide active">
+    <img src="ChatGPT Image 6 de mai. de 2026, 19_46_24.png">
+    <div class="slide-text">
+      <h2>KIT TIRAS BABY</h2>
+      <p>60 pares • R$ 215,99</p>
+    </div>
+  </div>
 
-  <p style="color:white; font-size:20px; margin:8px 0;">
-    60 PARES
-  </p>
+  <div class="slide">
+    <img src="https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=1200">
+    <div class="slide-text">
+      <h2>HAVAIANAS</h2>
+      <p>Modelos novos</p>
+    </div>
+  </div>
 
-  <p style="color:#00ff88; font-size:32px; font-weight:bold; margin:10px 0;">
-    R$ 215,99
-  </p>
+  <div class="slide">
+    <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1200">
+    <div class="slide-text">
+      <h2>PROMOÇÕES</h2>
+      <p>Ofertas do dia</p>
+    </div>
+  </div>
 
-  <p style="color:#ccc; font-size:18px;">
-    Estoque disponível: 20 kits
-  </p>
+</div>
+
+<!-- ========================= -->
+<!-- PROMOÇÃO -->
+<!-- ========================= -->
+
+<div class="promo-box">
+  🔥 PROMOÇÃO DO DIA 🔥
+</div>
+
+<!-- ========================= -->
+<!-- MUNDOS -->
+<!-- ========================= -->
+
+<div class="mundo-grid">
+
+  <div class="mundo-card" onclick="filtrarCategoria('havaianas')">
+    <img src="https://images.unsplash.com/photo-1603487742131-4160ec999306?q=80&w=600">
+    <h3>MUNDO HAVAIANAS</h3>
+
+    <div class="subcats">
+      <button onclick="event.stopPropagation();filtrarCategoria('havaianas_infantil')">
+        Infantil
+      </button>
+
+      <button onclick="event.stopPropagation();filtrarCategoria('havaianas_feminina')">
+        Feminino Adulto
+      </button>
+
+      <button onclick="event.stopPropagation();filtrarCategoria('havaianas_masculina')">
+        Masculino Adulto
+      </button>
+    </div>
+  </div>
+
+  <div class="mundo-card" onclick="filtrarCategoria('ipanema')">
+    <img src="https://images.unsplash.com/photo-1514996937319-344454492b37?q=80&w=600">
+    <h3>MUNDO IPANEMA</h3>
+  </div>
+
+  <div class="mundo-card" onclick="filtrarCategoria('grendene')">
+    <img src="https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=600">
+    <h3>MUNDO GRENDENE</h3>
+  </div>
+
+  <div class="mundo-card" onclick="filtrarCategoria('personalizados')">
+    <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600">
+    <h3>MUNDO PERSONALIZADOS</h3>
+  </div>
 
 </div>
 <!-- BUSCA -->
@@ -1060,6 +1221,44 @@ const manifestData = {name:"Chinelos Mix",short_name:"Chinelos Mix",start_url:"/
 const blob = new Blob([JSON.stringify(manifestData)], {type:"application/json"});
 document.getElementById("pwa-manifest").href = URL.createObjectURL(blob);
 </script>
+// SLIDER
+let slides = document.querySelectorAll('.slide');
+let currentSlide = 0;
 
+setInterval(() => {
+  slides[currentSlide].classList.remove('active');
+
+  currentSlide++;
+
+  if(currentSlide >= slides.length){
+    currentSlide = 0;
+  }
+
+  slides[currentSlide].classList.add('active');
+
+}, 3000);
+
+
+// FILTRO
+function filtrarCategoria(cat){
+
+  if(cat === 'havaianas'){
+    mudarMarca('havaianas');
+  }
+
+  if(cat === 'ipanema'){
+    mudarMarca('ipanema');
+  }
+
+  if(cat === 'grendene'){
+    mudarMarca('grendene');
+  }
+
+  if(cat === 'personalizados'){
+    mudarMarca('personalizados');
+  }
+
+  toast('Categoria: ' + cat);
+}
 </body>
 </html>
