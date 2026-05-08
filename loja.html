@@ -1264,11 +1264,7 @@ atualizarCarrinho();
 </div>
 
 <script>
-// PWA Manifest
-const manifestData = {name:"Chinelos Mix",short_name:"Chinelos Mix",start_url:"/loja.html",display:"standalone",background_color:"#0a0a0a",theme_color:"#00e676"};
-const blob = new Blob([JSON.stringify(manifestData)], {type:"application/json"});
-document.getElementById("pwa-manifest").href = URL.createObjectURL(blob);
-</script>
+
 // SLIDER
 let slides = document.querySelectorAll('.slide');
 let currentSlide = 0;
