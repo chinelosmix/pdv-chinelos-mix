@@ -1,0 +1,8 @@
+{
+  "name": "PDV CHINELOS MIX",
+  "short_name": "Chinelos Mix",
+  "start_url": "/loja.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#00ff88"
+}
