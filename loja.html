@@ -700,7 +700,11 @@ function navTo(destino) {
   document.getElementById('btnBack').classList.remove('show');
 
   // Atualizar navbar
-  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});
+ var botoes = document.querySelectorAll('.nav-btn');
+
+for(var i = 0; i < botoes.length; i++){
+    botoes[i].classList.remove('active');
+}
 
   telaAtualNav = destino;
   if(destino==='home'){
