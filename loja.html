@@ -947,7 +947,7 @@ function renderClube() {
   var rl = document.getElementById('recompensasLista');
   rl.innerHTML = RECOMPENSAS.map(function(r){
     var pode = pontos >= r.pontos;
-    return '<div class="recomp-card" style="' + (pode?'border-color:#7b2ff7;cursor:pointer':'opacity:.6') + '" onclick="' + (pode?'resgatar(\\''+r.id+'\\')':'') + '">' +
+   return `<div class="recomp-card" style="${pode?'border-color:#7b2ff7;cursor:pointer':'opacity:.6'}" onclick="${pode?`resgatar('${r.id}')`:''}">` +
       '<div style="font-size:32px;flex-shrink:0">' + r.emoji + '</div>' +
       '<div style="flex:1">' +
         '<div style="font-size:14px;font-weight:800">' + r.titulo + '</div>' +
