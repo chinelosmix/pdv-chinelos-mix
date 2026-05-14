@@ -93,7 +93,7 @@ body{padding-bottom:0}</style>
   </section>
   <footer class="foot">
     <img src="https://i.postimg.cc/9XGzTyB1/c49300e3-118f-4dc2-8442-e4c4e06c91a8.jpg" alt="Chinelos Mix">
-    <p>CNPJ: 46.982.791/0001-01<br>Av. Leonor Bolsone Marques da Silva, 45 — Centro, Poá/SP<br>© 2026 Chinelos Mix</p>
+    <p>CNPJ: 46.982.791/0001-01<br>Av. Leonor Bolsoni Marques da Silva, 45 — Centro, Poá/SP<br>© 2026 Chinelos Mix</p>
   </footer>
 </div>
 
@@ -718,7 +718,7 @@ function eWh(){
   msg+='📦 '+(ent==='r'?'Retirada na loja':'Entrega em casa')+'\n';
   if(fr>0)msg+='🚚 Frete: R$ '+fr.toFixed(2)+'\n';
   msg+='💰 *TOTAL: R$ '+(tot+fr).toFixed(2)+'*\n';
-  msg+='📍 Av. Leonor Bolsone, 45 — Poá/SP';
+  msg+='📍 Av. Leonor Bolsoni, 45 — Poá/SP';
   window.open('https://wa.me/5511978671458?text='+encodeURIComponent(msg),'_blank');
 }
 
@@ -1130,6 +1130,8 @@ window.addEventListener('resize', function() {
 
 rMundos();updC();
   
+<script>
+
 function carregarProdutos() {
 
   const produtos = JSON.parse(
@@ -1144,31 +1146,49 @@ function carregarProdutos() {
 
   produtos.forEach(produto => {
 
-    const card = `
-      <div class="produto">
+    container.innerHTML += `
+    
+      <div style="
+        background:#111;
+        border-radius:16px;
+        padding:15px;
+        margin:10px;
+        color:white;
+      ">
 
-        <div class="produto-img">
+        <div style="
+          font-size:50px;
+          text-align:center;
+        ">
           ${produto.e || '🩴'}
         </div>
 
-        <h3>${produto.n}</h3>
+        <h3 style="
+          margin-top:10px;
+          font-size:18px;
+        ">
+          ${produto.n}
+        </h3>
 
-        <p>
+        <p style="
+          color:#aaa;
+          font-size:14px;
+          margin:10px 0;
+        ">
           ${produto.d || ''}
         </p>
 
-        <div class="preco">
+        <div style="
+          color:#00ff88;
+          font-size:24px;
+          font-weight:bold;
+        ">
           R$ ${Number(produto.p).toFixed(2)}
         </div>
 
-        <button onclick="comprar('${produto.n}')">
-          Comprar
-        </button>
-
       </div>
-    `;
 
-    container.innerHTML += card;
+    `;
 
   });
 
@@ -1177,6 +1197,6 @@ function carregarProdutos() {
 carregarProdutos();
 
 </script>
-  <div id="listaProdutos"></div>
+  <div id="listaProdutos" class="produtos"></div>
 </body>
 </html>
