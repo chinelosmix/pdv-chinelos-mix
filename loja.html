@@ -1129,6 +1129,53 @@ window.addEventListener('resize', function() {
 });
 
 rMundos();updC();
+  
+function carregarProdutos() {
+
+  const produtos = JSON.parse(
+    localStorage.getItem('cmix_admin_produtos')
+  ) || [];
+
+  const container = document.getElementById('listaProdutos');
+
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  produtos.forEach(produto => {
+
+    const card = `
+      <div class="produto">
+
+        <div class="produto-img">
+          ${produto.e || '🩴'}
+        </div>
+
+        <h3>${produto.n}</h3>
+
+        <p>
+          ${produto.d || ''}
+        </p>
+
+        <div class="preco">
+          R$ ${Number(produto.p).toFixed(2)}
+        </div>
+
+        <button onclick="comprar('${produto.n}')">
+          Comprar
+        </button>
+
+      </div>
+    `;
+
+    container.innerHTML += card;
+
+  });
+
+}
+
+carregarProdutos();
+</script>
 </script>
 </body>
 </html>
