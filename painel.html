@@ -812,6 +812,29 @@ function salvarProd() {
       fUrl: document.getElementById('pFotoUrl').value || undefined,
       est: est
     });
+    produtos.push({
+  id: newId,
+  m: marca,
+  n: nome,
+  d: document.getElementById('pDesc').value,
+  p: preco,
+  e: document.getElementById('pEmoji').value || '🩴',
+  b: document.getElementById('pBadge').value || undefined,
+  fotoUrl: document.getElementById('pFotoUrl').value || undefined,
+  est: est
+});
+
+salvarProdutoFirebase({
+  id: newId,
+  m: marca,
+  n: nome,
+  d: document.getElementById('pDesc').value,
+  p: preco,
+  e: document.getElementById('pEmoji').value || '🩴',
+  b: document.getElementById('pBadge').value || undefined,
+  fotoUrl: document.getElementById('pFotoUrl').value || undefined,
+  est: est
+});
   }
 
   setDados('produtos', produtos);
