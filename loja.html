@@ -1196,7 +1196,124 @@ function carregarProdutos() {
 
 carregarProdutos();
 
+
+
 </script>
+
 <div id="listaProdutos" class="produtos"></div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCrvPuker6qeVSDtgE57RMPxgiWuUNeaFg",
+  authDomain: "pdv-chinelos-2.firebaseapp.com",
+  projectId: "pdv-chinelos-2",
+  storageBucket: "pdv-chinelos-2.firebasestorage.app",
+  messagingSenderId: "250035733532",
+  appId: "1:250035733532:web:cf73e5483f5137c8bd8bd9"
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
+
+const container = document.getElementById('listaProdutos');
+
+onSnapshot(collection(db, "produtos"), (snapshot) => {
+
+  container.innerHTML = '';
+
+  snapshot.forEach((doc) => {
+
+    const produto = doc.data();
+
+    container.innerHTML += `
+
+      <div style="
+        background:#111;
+        color:#fff;
+        padding:15px;
+        border-radius:16px;
+        margin:10px;
+      ">
+
+        <div style="
+          font-size:50px;
+          text-align:center;
+        ">
+          ${produto.e || '🩴'}
+        </div>
+
+        <h3>${produto.n}</h3>
+
+        <p>${produto.d || ''}</p>
+
+        <div style="
+          color:#00ff88;
+          font-size:24px;
+          font-weight:bold;
+        ">
+          R$ ${Number(produto.p).toFixed(2)}
+        </div>
+
+      </div>
+
+    `;
+
+  });
+
+});
+
+</script>
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  addDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCrvPuker6qeVSDtgE57RMPxgiWuUNeaFg",
+  authDomain: "pdv-chinelos-2.firebaseapp.com",
+  projectId: "pdv-chinelos-2",
+  storageBucket: "pdv-chinelos-2.firebasestorage.app",
+  messagingSenderId: "250035733532",
+  appId: "1:250035733532:web:cf73e5483f5137c8bd8bd9"
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
+
+window.salvarProdutoFirebase = async function(produto) {
+
+  try {
+
+    await addDoc(collection(db, "produtos"), produto);
+
+    alert("Produto salvo!");
+
+  } catch (e) {
+
+    console.error(e);
+
+    alert("Erro ao salvar");
+
+  }
+
+}
+
+</script>
 </body>
 </html>
