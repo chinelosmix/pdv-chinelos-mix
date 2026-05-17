@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Chinelos Mix">
 <title>Chinelos Mix — Loja Online</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>:root{--bg:#0a0a0a;--bg2:#141414;--bg3:#1c1c1c;--border:#2a2a2a;--accent:#00e676;--accent2:#00c853;--accent-dim:rgba(0,230,118,0.12);--red:#ff5252;--text:#f0f0f0;--text2:#888;--text3:#444;--r:14px}*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Nunito",sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}.tela{display:none}.tela.ativa{display:block}.hdr{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,10,10,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between}.hdr img{height:38px;object-fit:contain}.hdr-r{display:flex;align-items:center;gap:8px}.btn-back{background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text2);font-size:13px;font-weight:700;padding:7px 14px;cursor:pointer;font-family:"Nunito",sans-serif;display:none;align-items:center;gap:5px}.btn-back.show{display:flex}.cbtn{position:relative;width:42px;height:42px;background:var(--accent-dim);border:1px solid var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer}.cbadge{position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;font-size:10px;font-weight:900;width:18px;height:18px;border-radius:50%;display:none;align-items:center;justify-content:center}.hero{margin-top:62px;padding:28px 16px 20px;background:linear-gradient(135deg,#0a1a0f,#0a0a0a);text-align:center;position:relative;overflow:hidden}.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(0,230,118,.12),transparent 70%)}.htag{display:inline-block;background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent);font-size:11px;font-weight:800;padding:4px 12px;border-radius:20px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;position:relative;z-index:1}.htitle{font-family:"Bebas Neue",sans-serif;font-size:clamp(42px,10vw,74px);color:#fff;line-height:.9;margin-bottom:8px;position:relative;z-index:1}.htitle span{color:var(--accent)}.hsub{color:var(--text2);font-size:13px;margin-bottom:14px;position:relative;z-index:1}.hchips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}.chip{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--text2)}.chip span{color:var(--accent)}.msec{padding:20px 16px}.stitle{font-family:"Bebas Neue",sans-serif;font-size:24px;margin-bottom:4px}.ssub{font-size:12px;color:var(--text2);margin-bottom:16px}.mgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}@media(min-width:540px){.mgrid{grid-template-columns:repeat(3,1fr)}}.mcard{position:relative;border-radius:var(--r);overflow:hidden;cursor:pointer;aspect-ratio:1;border:1.5px solid var(--border);transition:all .25s}.mcard:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 8px 28px rgba(0,230,118,.2)}.mbg{position:absolute;inset:0;background-size:cover;background-position:center}.mov{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.1) 70%,transparent);display:flex;flex-direction:column;justify-content:flex-end;padding:14px}.memoji{font-size:28px;margin-bottom:4px}.mnome{font-family:"Bebas Neue",sans-serif;font-size:20px;color:#fff;letter-spacing:1px;line-height:1.1}.mqtd{font-size:11px;color:rgba(255,255,255,.6);font-weight:600;margin-top:2px}.mbadge{position:absolute;top:10px;right:10px;background:var(--accent);color:#000;font-size:10px;font-weight:900;padding:3px 8px;border-radius:6px}.mkhdr{margin-top:62px;padding:18px 16px 14px;border-bottom:1px solid var(--border);background:var(--bg2)}.mkhdr-in{display:flex;align-items:center;gap:14px}.mke{font-size:40px}.mkn{font-family:"Bebas Neue",sans-serif;font-size:28px;letter-spacing:1px}.mkd{font-size:12px;color:var(--text2);margin-top:2px}.swrap{padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border);position:relative}.swrap input{width:100%;padding:9px 16px 9px 38px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;outline:none;font-family:"Nunito",sans-serif}.swrap input:focus{border-color:var(--accent)}.si{position:absolute;left:26px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--text3)}.pcont{padding:14px}.pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}@media(min-width:540px){.pgrid{grid-template-columns:repeat(3,1fr)}}@media(min-width:760px){.pgrid{grid-template-columns:repeat(4,1fr)}}.pcard{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .25s}.pcard:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 6px 20px rgba(0,230,118,.15)}.pimg{width:100%;aspect-ratio:1;overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:48px;position:relative}.pimg img{width:100%;height:100%;object-fit:cover}.pbadge{position:absolute;top:8px;left:8px;background:var(--accent);color:#000;font-size:10px;font-weight:900;padding:3px 8px;border-radius:6px}.pesg{position:absolute;top:8px;right:8px;background:var(--red);color:#fff;font-size:10px;font-weight:900;padding:3px 8px;border-radius:6px}.pinfo{padding:10px 12px 12px}.pnome{font-size:13px;font-weight:700;line-height:1.3;margin-bottom:4px}.pest{font-size:11px;color:var(--text2);margin-bottom:6px}.pbot{display:flex;align-items:center;justify-content:space-between}.ppreco{font-family:"Bebas Neue",sans-serif;font-size:22px;color:var(--accent)}.badd{width:34px;height:34px;background:var(--accent);border:none;border-radius:10px;cursor:pointer;font-size:18px;color:#000;display:flex;align-items:center;justify-content:center;transition:all .2s}.badd:hover{background:var(--accent2);transform:scale(1.1)}.badd:disabled{background:var(--bg3);color:var(--text3);cursor:not-allowed;transform:none}.ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none}.ov.open{display:block}.cpanel{position:fixed;top:0;right:-100%;bottom:0;width:100%;max-width:400px;background:var(--bg2);z-index:201;transition:right .3s;display:flex;flex-direction:column;border-left:1px solid var(--border)}.cpanel.open{right:0}.cphdr{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}.cptitle{font-family:"Bebas Neue",sans-serif;font-size:22px}.bfc{width:34px;height:34px;background:var(--bg3);border:none;border-radius:10px;cursor:pointer;color:var(--text);font-size:18px}.citens{flex:1;overflow-y:auto;padding:10px}.ci{display:flex;gap:10px;padding:10px;background:var(--bg3);border-radius:12px;margin-bottom:8px}.ciimg{width:54px;height:54px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;overflow:hidden}.ciimg img{width:100%;height:100%;object-fit:cover}.ciinfo{flex:1}.cinome{font-size:13px;font-weight:700;margin-bottom:1px}.cidet{font-size:11px;color:var(--text2);margin-bottom:5px}.cibot{display:flex;align-items:center;justify-content:space-between}.cipreco{font-family:"Bebas Neue",sans-serif;font-size:18px;color:var(--accent)}.ciqtd{display:flex;align-items:center;gap:8px}.qb{width:26px;height:26px;background:var(--bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text);font-size:14px;font-weight:700}.cfoot{padding:12px;border-top:1px solid var(--border);flex-shrink:0}.rsub{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.lsub{font-size:12px;font-weight:700;color:var(--text2)}.vsub{font-family:"Bebas Neue",sans-serif;font-size:20px}.sc{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:11px;margin-bottom:10px}.st{font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}.er{display:flex;gap:8px;margin-bottom:8px}.bme{flex:1;padding:8px 4px;border-radius:10px;border:2px solid var(--border);background:transparent;color:var(--text2);font-size:11px;font-weight:800;cursor:pointer;line-height:1.4;font-family:"Nunito",sans-serif;transition:all .15s}.bme.at{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}.cr{display:flex;gap:6px}.cr input{flex:1;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;outline:none;font-family:"Nunito",sans-serif}.cr input:focus{border-color:var(--accent)}.bok{padding:8px 14px;background:var(--accent);border:none;border-radius:10px;color:#000;font-weight:800;font-size:13px;cursor:pointer}.pgrd{display:grid;grid-template-columns:1fr 1fr;gap:6px}.bpg{padding:9px 5px;border-radius:10px;border:2px solid var(--border);background:transparent;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;line-height:1.5;font-family:"Nunito",sans-serif;transition:all .15s}.bpg.at{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}.fl{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px}.tl{display:flex;justify-content:space-between;align-items:center}.tg{font-family:"Bebas Neue",sans-serif;font-size:26px;color:var(--accent)}.bfin{width:100%;padding:14px;background:var(--accent);border:none;border-radius:12px;color:#000;font-size:15px;font-weight:900;cursor:pointer;font-family:"Nunito",sans-serif;margin-bottom:8px}.bwh{width:100%;padding:12px;background:#25d366;border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:"Nunito",sans-serif;display:flex;align-items:center;justify-content:center;gap:8px}.modov{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;display:none;align-items:flex-end;justify-content:center}.modov.open{display:flex}.modbox{background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;animation:su .3s ease}@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}.modh{width:40px;height:4px;background:var(--border);border-radius:4px;margin:12px auto 0}.modimg{width:100%;height:240px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:72px;overflow:hidden}.modimg img{width:100%;height:100%;object-fit:cover}.modb{padding:18px}.modmarca{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}.modnome{font-family:"Bebas Neue",sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:4px;line-height:1}.moddesc{font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6}.modpreco{font-family:"Bebas Neue",sans-serif;font-size:32px;color:var(--accent);margin-bottom:16px}.ttit{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px}.tlista{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}.tbtn{padding:8px 13px;background:var(--bg3);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center;min-width:60px}.tbtn.sel{background:var(--accent);color:#000;border-color:var(--accent)}.tbtn.esg{opacity:.4;cursor:not-allowed;text-decoration:line-through}.test{font-size:10px;color:var(--text3);display:block;margin-top:2px}.modac{display:flex;gap:10px}.bmadd{flex:1;padding:13px;background:var(--accent);border:none;border-radius:12px;color:#000;font-size:15px;font-weight:800;cursor:pointer;font-family:"Nunito",sans-serif}.bmcl{width:50px;padding:13px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;cursor:pointer;color:var(--text);font-size:18px}.empty{text-align:center;padding:40px 20px;color:var(--text3)}.ei{font-size:42px;margin-bottom:10px}.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--accent);color:#000;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:800;z-index:999;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.foot{padding:24px 16px;text-align:center;border-top:1px solid var(--border);margin-top:16px}.foot img{height:32px;margin-bottom:8px}.foot p{font-size:11px;color:var(--text3);line-height:1.8}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:transparent;border:none;color:var(--text3);font-size:10px;font-weight:700;cursor:pointer;padding:4px;font-family:"Nunito",sans-serif;transition:all .2s}
@@ -93,7 +95,7 @@ body{padding-bottom:0}</style>
   </section>
   <footer class="foot">
     <img src="https://i.postimg.cc/9XGzTyB1/c49300e3-118f-4dc2-8442-e4c4e06c91a8.jpg" alt="Chinelos Mix">
-    <p>CNPJ: 46.982.791/0001-01<br>Av. Leonor Bolsoni Marques da Silva, 45 — Centro, Poá/SP<br>© 2026 Chinelos Mix</p>
+    <p>CNPJ: 46.982.791/0001-01<br>Av. Leonor Bolsone Marques da Silva, 45 — Centro, Poá/SP<br>© 2026 Chinelos Mix</p>
   </footer>
 </div>
 
@@ -414,7 +416,11 @@ var PR=[
 ];
 
 var cart=[],ma=null,pa=null,ta=null,ent='r',frI=null,pg=null;
-function imgP(p){return(p.f&&FOTOS[p.f])?'<img src="'+FOTOS[p.f]+'" alt="'+p.n+'">':p.e||'🩴';}
+function imgP(p){
+  if(p.imgs&&p.imgs.length) return '<img src="'+p.imgs[0]+'" alt="'+p.n+'" loading="lazy">';
+  if(p.f&&FOTOS[p.f]) return '<img src="'+FOTOS[p.f]+'" alt="'+p.n+'">';
+  return p.e||'🩴';
+}
 function eTot(p){return Object.values(p.est).reduce(function(s,v){return s+v;},0);}
 
 function rMundos(){
@@ -483,8 +489,21 @@ function openMod(id){
     var q=p.est[t],esg=q===0;
     return '<button class="tbtn'+(esg?' esg':'')+'" '+(esg?'disabled':'onclick="selT(\''+t+'\',this)"')+'>'+t+'<small class="test">'+(esg?'Esgotado':q+' un')+'</small></button>';
   }).join('');
-  document.getElementById('modc').innerHTML=
-    '<div class="modimg">'+imgP(p)+'</div>'+
+  // Miniaturas das fotos
+var minisHtml='';
+if(p.imgs&&p.imgs.length>1){
+  minisHtml='<div style="display:flex;gap:6px;padding:8px 14px;overflow-x:auto;background:var(--bg3)">'+
+    p.imgs.map(function(url,i){
+      return '<img src="'+url+'" onclick="trocaFoto(this,\''+url+'\')" style="width:56px;height:56px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid '+(i===0?'var(--accent)':'transparent')+';flex-shrink:0" loading="lazy">';
+    }).join('')+'</div>';
+}
+var vidHtml='';
+if(p.video){
+  vidHtml='<div style="padding:0 14px 8px"><video src="'+p.video+'" controls style="width:100%;border-radius:10px;background:#000;max-height:180px"></video></div>';
+}
+document.getElementById('modc').innerHTML=
+    '<div class="modimg" id="modImgP">'+imgP(p)+'</div>'+
+    minisHtml + vidHtml +
     '<div class="modb"><div class="modmarca" style="color:'+m.c+'">'+m.e+' '+m.n+'</div>'+
     '<div class="modnome">'+p.n+'</div><div class="moddesc">'+p.d+'</div>'+
     '<div class="modpreco">R$ '+p.p.toFixed(2)+'</div>'+
@@ -497,6 +516,12 @@ function openMod(id){
 }
 
 function selT(t,el){ta=t;document.querySelectorAll('.tbtn').forEach(function(b){b.classList.remove('sel');});el.classList.add('sel');}
+function trocaFoto(el,url){
+  var p=document.getElementById('modImgP');
+  if(p)p.innerHTML='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover">';
+  document.querySelectorAll('[onclick^="trocaFoto"]').forEach(function(img){img.style.border='2px solid transparent';});
+  el.style.border='2px solid var(--accent)';
+}
 function closeMod(){document.getElementById('modov').classList.remove('open');document.body.style.overflow='';pa=null;ta=null;}
 
 function addC(){
@@ -663,49 +688,31 @@ async function fin(){
 }
 
 function montarMsgWhats(tot,fr){
+  var msg='🛒 *PEDIDO — CHINELOS MIX*
+━━━━━━━━━━━━━━━━━━━━
 
-var msg = `🛒 *PEDIDO — CHINELOS MIX*
-____________________________
+';
+  cart.forEach(function(i){msg+='👟 *'+i.n+'*
+Tam: '+i.tam+' | '+i.qtd+'x R$ '+i.p.toFixed(2)+'
 
-`;
+';});
+  msg+='━━━━━━━━━━━━━━━━━━━━
+';
+  msg+='📦 '+(ent==='r'?'Retirada na loja':'Entrega em casa')+'
+';
+  if(fr>0)msg+='🚚 Frete: R$ '+fr.toFixed(2)+'
+';
+  else if(ent==='e')msg+='🎉 Frete: GRÁTIS
+';
+  msg+='💰 *TOTAL: R$ '+(tot+fr).toFixed(2)+'*
+';
+  msg+='💳 Pagamento: '+(pg==='pix'?'Pix':pg==='cv2'?'Cartão 2x':'Cartão 3x')+'
 
-cart.forEach(function(i){
-
-msg += `🩴 *${i.n}*
-Tam: ${i.tam} | ${i.qtd}x R$ ${i.p.toFixed(2)}
-
-`;
-
-});
-
-msg += `____________________________
-
-`;
-
-msg += `📦 ${ent==='r'?'Retirada na loja':'Entrega em casa'}
-
-`;
-
-if(fr>0){
-
-msg += `🚚 Frete: R$ ${fr.toFixed(2)}
-
-`;
-
-}else if(ent==='e'){
-
-msg += `🎉 Frete: GRÁTIS
-
-`;
-
-}
-
-msg += `💰 *TOTAL: R$ ${(tot+fr).toFixed(2)}*
-
-`;
-
-return encodeURIComponent(msg);
-
+';
+  msg+='✅ *PAGAMENTO REALIZADO!*
+';
+  msg+='📍 Av. Leonor Bolsone, 45 — Poá/SP';
+  return msg;
 }
 
 function eWh(){
@@ -718,7 +725,7 @@ function eWh(){
   msg+='📦 '+(ent==='r'?'Retirada na loja':'Entrega em casa')+'\n';
   if(fr>0)msg+='🚚 Frete: R$ '+fr.toFixed(2)+'\n';
   msg+='💰 *TOTAL: R$ '+(tot+fr).toFixed(2)+'*\n';
-  msg+='📍 Av. Leonor Bolsoni, 45 — Poá/SP';
+  msg+='📍 Av. Leonor Bolsone, 45 — Poá/SP';
   window.open('https://wa.me/5511978671458?text='+encodeURIComponent(msg),'_blank');
 }
 
@@ -947,7 +954,7 @@ function renderClube() {
   var rl = document.getElementById('recompensasLista');
   rl.innerHTML = RECOMPENSAS.map(function(r){
     var pode = pontos >= r.pontos;
-   return `<div class="recomp-card" style="${pode?'border-color:#7b2ff7;cursor:pointer':'opacity:.6'}" onclick="${pode?`resgatar('${r.id}')`:''}">` +
+    return '<div class="recomp-card" style="' + (pode?'border-color:#7b2ff7;cursor:pointer':'opacity:.6') + '" onclick="' + (pode?'resgatar(\\''+r.id+'\\')':'') + '">' +
       '<div style="font-size:32px;flex-shrink:0">' + r.emoji + '</div>' +
       '<div style="flex:1">' +
         '<div style="font-size:14px;font-weight:800">' + r.titulo + '</div>' +
@@ -1128,152 +1135,37 @@ window.addEventListener('resize', function() {
   initBanners();
 });
 
-rMundos();updC();
-  
 
-
-function carregarProdutos() {
-
-  const produtos = JSON.parse(
-    localStorage.getItem('cmix_admin_produtos')
-  ) || [];
-
-  const container = document.getElementById('listaProdutos');
-
-  if (!container) return;
-
-  container.innerHTML = '';
-
-  produtos.forEach(produto => {
-
-    container.innerHTML += `
-    
-      <div style="
-        background:#111;
-        border-radius:16px;
-        padding:15px;
-        margin:10px;
-        color:white;
-      ">
-
-        <div style="
-          font-size:50px;
-          text-align:center;
-        ">
-          ${produto.e || '🩴'}
-        </div>
-
-        <h3 style="
-          margin-top:10px;
-          font-size:18px;
-        ">
-          ${produto.n}
-        </h3>
-
-        <p style="
-          color:#aaa;
-          font-size:14px;
-          margin:10px 0;
-        ">
-          ${produto.d || ''}
-        </p>
-
-        <div style="
-          color:#00ff88;
-          font-size:24px;
-          font-weight:bold;
-        ">
-          R$ ${Number(produto.p).toFixed(2)}
-        </div>
-
-      </div>
-
-    `;
-
-  });
-
+// ══════ FIREBASE — carrega dados em tempo real ══════
+if(typeof firebase !== 'undefined') {
+  try {
+    firebase.initializeApp({
+      apiKey:"AIzaSyARpePSrPuvzOwLP6v9gzmhWfzdo0JZJK4",
+      authDomain:"pdv-chinelos-2.firebaseapp.com",
+      projectId:"pdv-chinelos-2",
+      storageBucket:"pdv-chinelos-2.appspot.com",
+      messagingSenderId:"856741202914",
+      appId:"1:856741202914:web:chinelosmix001"
+    });
+  } catch(e) {}
+  var db = firebase.firestore();
+  db.collection('mundos').onSnapshot(function(snap) {
+    if(!snap.empty){ snap.forEach(function(doc){ MK[doc.id]=doc.data(); }); }
+    db.collection('produtos').orderBy('criadoEm','desc').onSnapshot(function(snapP) {
+      if(!snapP.empty){
+        PR=[];
+        snapP.forEach(function(doc){
+          var d=doc.data();
+          PR.push({id:doc.id,m:d.m,n:d.n,d:d.d||'',p:Number(d.p),e:d.e||'🩴',est:d.est||{},imgs:d.imgs||[],video:d.video||null,b:d.b||undefined});
+        });
+      }
+      rMundos();updC();
+    }, function(){ rMundos();updC(); });
+  }, function(){ rMundos();updC(); });
+} else {
+  rMundos();updC();
 }
 
-carregarProdutos();
-
-
-
 </script>
-
-<div id="listaProdutos" class="produtos"></div>
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-  getFirestore,
-  collection,
-  onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCrvPuker6qeVSDtgE57RMPxgiWuUNeaFg",
-  authDomain: "pdv-chinelos-2.firebaseapp.com",
-  projectId: "pdv-chinelos-2",
-  storageBucket: "pdv-chinelos-2.firebasestorage.app",
-  messagingSenderId: "250035733532",
-  appId: "1:250035733532:web:cf73e5483f5137c8bd8bd9"
-};
-
-const app = initializeApp(firebaseConfig);
-
-const db = getFirestore(app);
-
-const container = document.getElementById('listaProdutos');
-
-onSnapshot(collection(db, "produtos"), (snapshot) => {
-
-  container.innerHTML = '';
-
-  snapshot.forEach((doc) => {
-
-    const produto = doc.data();
-
-    container.innerHTML += `
-
-      <div style="
-        background:#111;
-        color:#fff;
-        padding:15px;
-        border-radius:16px;
-        margin:10px;
-      ">
-
-        <div style="
-          font-size:50px;
-          text-align:center;
-        ">
-          ${produto.e || '🩴'}
-        </div>
-
-        <h3>${produto.n}</h3>
-
-        <p>${produto.d || ''}</p>
-
-        <div style="
-          color:#00ff88;
-          font-size:24px;
-          font-weight:bold;
-        ">
-          R$ ${Number(produto.p).toFixed(2)}
-        </div>
-
-      </div>
-
-    `;
-
-  });
-
-});
-
-
-</script>
-<div id="listaProdutos" class="produtos"></div>
 </body>
 </html>
