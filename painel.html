@@ -304,7 +304,7 @@ function uploadImgs(files){
     if(file.size>10*1024*1024){toast2('⚠️ Foto máx 10MB','');total--;return;}
     var fd=new FormData();
     fd.append('file',file);
-    fd.append('upload_preset','ml_padrao');
+    fd.append('upload_preset','ml_default');
     fd.append('folder','chinelos-mix');
     var xhr=new XMLHttpRequest();
     xhr.open('POST','https://api.cloudinary.com/v1_1/dzemihjvp/image/upload');
@@ -334,7 +334,7 @@ function uploadVid(file){
   toast2('⏳ Enviando vídeo...','info');
   var fd=new FormData();
   fd.append('file',file);
-  fd.append('upload_preset','ml_padrao');
+  fd.append('upload_preset','ml_default');
   fd.append('folder','chinelos-mix/videos');
   fd.append('resource_type','video');
   var xhr=new XMLHttpRequest();
