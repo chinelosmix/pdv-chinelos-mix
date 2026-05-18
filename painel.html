@@ -7,7 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <style>
 :root{--bg:#0a0a0a;--bg2:#111;--bg3:#1a1a1a;--bg4:#222;--border:#2a2a2a;--border2:#333;--accent:#7c3aed;--accent2:#9d5cff;--accent-dim:rgba(124,58,237,.15);--green:#00e676;--green-dim:rgba(0,230,118,.12);--red:#ff4757;--amber:#ffab40;--text:#f0f0f0;--text2:#888;--text3:#444;--r:14px}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -280,7 +279,7 @@ body{font-family:"Nunito",sans-serif;background:var(--bg);color:var(--text);min-
 </div>
 <script>
 firebase.initializeApp({apiKey:"AIzaSyARpePSrPuvzOwLP6v9gzmhWfzdo0JZJK4",authDomain:"pdv-chinelos-2.firebaseapp.com",projectId:"pdv-chinelos-2",storageBucket:"pdv-chinelos-2.appspot.com",messagingSenderId:"856741202914",appId:"1:856741202914:web:chinelosmix001"});
-var db=firebase.firestore(),storage=firebase.storage();
+var db=firebase.firestore();
 var CRED={u:'admin',s:'chinelos2026'};
 var produtos=[],mundos={},prodEditId=null,imgsSel=[],videoUrl=null,mFiltro='todos';
 var MDEFS={havaianas:{n:"Mundo Havaianas",e:"🩴",c:"#ff6b35",d:"A marca brasileira mais amada"},ipanema:{n:"Mundo Ipanema",e:"🌊",c:"#00b4d8",d:"Moda, conforto e brasilidade"},personalizados:{n:"Mundo Personalizados",e:"✨",c:"#f72585",d:"Únicos como você",b:"Presente"},azaleia:{n:"Mundo Azaleia",e:"🌸",c:"#ff85a1",d:"Elegância e conforto feminino"},rider:{n:"Mundo Rider",e:"🏄",c:"#0077b6",d:"Conforto masculino"},infantil:{n:"Mundo Infantil",e:"👶",c:"#06d6a0",d:"Para os pequenos"},tiras:{n:"Mundo Tiras",e:"🔗",c:"#ffab40",d:"Tiras e peças de reposição"}};
@@ -293,8 +292,73 @@ function setSyncErr(){var p=document.getElementById('syncPill');p.className='syn
 function carregarMundos(){db.collection('mundos').onSnapshot(function(snap){if(snap.empty){var b=db.batch();Object.keys(MDEFS).forEach(function(id){b.set(db.collection('mundos').doc(id),MDEFS[id]);});b.commit();mundos=Object.assign({},MDEFS);}else{mundos={};snap.forEach(function(doc){mundos[doc.id]=doc.data();});}document.getElementById('kM').textContent=Object.keys(mundos).length;renderFM();},function(){mundos=Object.assign({},MDEFS);setSyncErr();});}
 function carregarProdutos(){db.collection('produtos').orderBy('criadoEm','desc').onSnapshot(function(snap){produtos=[];snap.forEach(function(doc){produtos.push(Object.assign({id:doc.id},doc.data()));});if(produtos.length===0)importarPadrao();atualizarKPIs();renderP();renderEst();renderDash();setSyncOk();},function(){setSyncErr();toast2('❌ Sem conexão com Firebase','err');});}
 function importarPadrao(){var b=db.batch(),ts=firebase.firestore.FieldValue.serverTimestamp();PDEFS.forEach(function(p){b.set(db.collection('produtos').doc(),Object.assign({},p,{criadoEm:ts,atualizadoEm:ts}));});b.commit().catch(function(){});}
-function uploadImgs(files){if(!files||!files.length)return;var max=5-imgsSel.length;if(max<=0){toast2('Máximo 5 fotos!','');return;}var arr=Array.from(files).slice(0,max),ip=document.getElementById('iProg'),ifil=document.getElementById('iFill');ip.style.display='block';var done=0;arr.forEach(function(file){if(file.size>5*1024*1024){toast2('⚠️ Foto muito grande (máx 5MB)','');return;}var ref=storage.ref('produtos/'+Date.now()+'_'+Math.random().toString(36).slice(2)+'.jpg');ref.put(file).on('state_changed',function(s){ifil.style.width=(s.bytesTransferred/s.totalBytes*100)+'%';},function(e){toast2('❌ '+e.message,'err');},function(){ref.getDownloadURL().then(function(url){imgsSel.push(url);done++;if(done===arr.length){ip.style.display='none';ifil.style.width='0%';renderIG();toast2('✅ '+done+' foto(s) adicionada(s)!','ok');document.getElementById('fImg').value='';}});});});}
-function uploadVid(file){if(!file)return;if(file.size>30*1024*1024){toast2('❌ Vídeo máx 30MB!','err');return;}var vp=document.getElementById('vProg'),vf=document.getElementById('vFill');vp.style.display='block';toast2('⏳ Enviando vídeo...','info');var ref=storage.ref('videos/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9.]/g,'_'));ref.put(file).on('state_changed',function(s){vf.style.width=(s.bytesTransferred/s.totalBytes*100)+'%';},function(e){toast2('❌ '+e.message,'err');vp.style.display='none';},function(){ref.getDownloadURL().then(function(url){videoUrl=url;vp.style.display='none';vf.style.width='0%';var v=document.getElementById('vPrev');v.src=url;v.style.display='block';document.getElementById('vArea').style.display='none';document.getElementById('btnRV').style.display='block';toast2('✅ Vídeo adicionado!','ok');document.getElementById('fVid').value='';});});}
+function uploadImgs(files){
+  if(!files||!files.length)return;
+  var max=5-imgsSel.length;
+  if(max<=0){toast2('Máximo 5 fotos!','');return;}
+  var arr=Array.from(files).slice(0,max);
+  var ip=document.getElementById('iProg'),ifil=document.getElementById('iFill');
+  ip.style.display='block';
+  var done=0,total=arr.length;
+  arr.forEach(function(file){
+    if(file.size>10*1024*1024){toast2('⚠️ Foto máx 10MB','');total--;return;}
+    var fd=new FormData();
+    fd.append('file',file);
+    fd.append('upload_preset','ml_padrao');
+    fd.append('folder','chinelos-mix');
+    var xhr=new XMLHttpRequest();
+    xhr.open('POST','https://api.cloudinary.com/v1_1/dzemihjvp/image/upload');
+    xhr.upload.onprogress=function(e){if(e.lengthComputable)ifil.style.width=(e.loaded/e.total*100)+'%';};
+    xhr.onload=function(){
+      if(xhr.status===200){
+        var res=JSON.parse(xhr.responseText);
+        imgsSel.push(res.secure_url);
+        done++;
+        if(done===total){
+          ip.style.display='none';ifil.style.width='0%';
+          renderIG();
+          toast2('✅ '+done+' foto(s) adicionada(s)!','ok');
+          document.getElementById('fImg').value='';
+        }
+      }else{toast2('❌ Erro no upload da foto','err');}
+    };
+    xhr.onerror=function(){toast2('❌ Erro de conexão','err');};
+    xhr.send(fd);
+  });
+}
+function uploadVid(file){
+  if(!file)return;
+  if(file.size>100*1024*1024){toast2('❌ Vídeo máx 100MB!','err');return;}
+  var vp=document.getElementById('vProg'),vf=document.getElementById('vFill');
+  vp.style.display='block';
+  toast2('⏳ Enviando vídeo...','info');
+  var fd=new FormData();
+  fd.append('file',file);
+  fd.append('upload_preset','ml_padrao');
+  fd.append('folder','chinelos-mix/videos');
+  fd.append('resource_type','video');
+  var xhr=new XMLHttpRequest();
+  xhr.open('POST','https://api.cloudinary.com/v1_1/dzemihjvp/video/upload');
+  xhr.upload.onprogress=function(e){if(e.lengthComputable)vf.style.width=(e.loaded/e.total*100)+'%';};
+  xhr.onload=function(){
+    if(xhr.status===200){
+      var res=JSON.parse(xhr.responseText);
+      videoUrl=res.secure_url;
+      vp.style.display='none';vf.style.width='0%';
+      var v=document.getElementById('vPrev');
+      v.src=videoUrl;v.style.display='block';
+      document.getElementById('vArea').style.display='none';
+      document.getElementById('btnRV').style.display='block';
+      toast2('✅ Vídeo adicionado!','ok');
+      document.getElementById('fVid').value='';
+    }else{
+      toast2('❌ Erro no upload do vídeo','err');
+      vp.style.display='none';
+    }
+  };
+  xhr.onerror=function(){toast2('❌ Erro de conexão','err');vp.style.display='none';};
+  xhr.send(fd);
+}
 function remVid(){videoUrl=null;document.getElementById('vPrev').src='';document.getElementById('vPrev').style.display='none';document.getElementById('vArea').style.display='block';document.getElementById('btnRV').style.display='none';}
 function renderIG(){var g=document.getElementById('iGrid');g.innerHTML='';for(var i=0;i<5;i++){var d=document.createElement('div');d.className='img-slot';if(imgsSel[i]){var idx=i;d.innerHTML='<img src="'+imgsSel[idx]+'" loading="lazy">'+(i===0?'<span class="capa-badge">Capa</span>':'')+'<button class="del-img" onclick="event.stopPropagation();remImg('+idx+')">✕</button>';}else{d.innerHTML='<span class="add-ico">+</span>';d.onclick=function(){document.getElementById('fImg').click();};}g.appendChild(d);}}
 function remImg(i){imgsSel.splice(i,1);renderIG();}
