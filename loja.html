@@ -1050,7 +1050,7 @@ function initBanners() {
     if(!cont || !slides) return;
 
     // Calcular largura
-    var w = window.innerWidth;
+   var w = cont.parentElement.offsetWidth;
 
     // Criar slides
     cont.innerHTML = slides.map(function(src, i) {
@@ -1074,7 +1074,7 @@ function goSlide(n, idx) {
   var slides = BANNERS['b' + n];
   if(!slides) return;
   slidesAtual[n] = idx;
-  var w = window.innerWidth;
+ var w = cont.parentElement.offsetWidth;
   var cont = document.getElementById('slides' + n);
   if(cont) cont.style.transform = 'translateX(-' + (idx * w) + 'px)';
 
