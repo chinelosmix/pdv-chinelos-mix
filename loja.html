@@ -688,32 +688,33 @@ async function fin(){
 }
 
 function montarMsgWhats(tot,fr){
+  var msg='🛒 *PEDIDO — CHINELOS MIX*
+━━━━━━━━━━━━━━━━━━━━
 
-  var msg='🛒 *PEDIDO — CHINELOS MIX*\\n\\n';
+';
+  cart.forEach(function(i){msg+='👟 *'+i.n+'*
+Tam: '+i.tam+' | '+i.qtd+'x R$ '+i.p.toFixed(2)+'
 
-  cart.forEach(function(i){
+';});
+  msg+='━━━━━━━━━━━━━━━━━━━━
+';
+  msg+='📦 '+(ent==='r'?'Retirada na loja':'Entrega em casa')+'
+';
+  if(fr>0)msg+='🚚 Frete: R$ '+fr.toFixed(2)+'
+';
+  else if(ent==='e')msg+='🎉 Frete: GRÁTIS
+';
+  msg+='💰 *TOTAL: R$ '+(tot+fr).toFixed(2)+'*
+';
+  msg+='💳 Pagamento: '+(pg==='pix'?'Pix':pg==='cv2'?'Cartão 2x':'Cartão 3x')+'
 
-    msg+='👟 *'+i.n+'*\\n'+
-    'Tam: '+i.tam+' | '+i.qtd+'x R$ '+i.p.toFixed(2)+'\\n\\n';
-
-  });
-
-  msg+='────────────────\\n';
-
-  msg+='📦 '+(ent==='r'
-    ? 'Retirada na loja'
-    : 'Entrega em casa')+'\\n';
-
-  if(fr>0){
-    msg+='🚚 Frete: R$ '+fr.toFixed(2)+'\\n';
-  }else if(ent==='e'){
-    msg+='🎉 Frete: GRÁTIS\\n';
-  }
-
-  msg+='\\n💰 Total: R$ '+tot.toFixed(2);
-
+';
+  msg+='✅ *PAGAMENTO REALIZADO!*
+';
+  msg+='📍 Av. Leonor Bolsone, 45 — Poá/SP';
   return msg;
 }
+
 function eWh(){
   if(!cart.length)return;
   var tot=cart.reduce(function(s,i){return s+i.p*i.qtd;},0);
@@ -953,7 +954,7 @@ function renderClube() {
   var rl = document.getElementById('recompensasLista');
   rl.innerHTML = RECOMPENSAS.map(function(r){
     var pode = pontos >= r.pontos;
-    return '<div class=\"recomp-card\" style=\"'+(pode?'border-color:#7b2ff7;cursor:pointer':'opacity:.6')+'\" onclick=\"'+(pode?'resgatar('+r.pontos+')':'')+'\">' +
+    return '<div class="recomp-card" style="' + (pode?'border-color:#7b2ff7;cursor:pointer':'opacity:.6') + '" onclick="' + (pode?'resgatar(\\''+r.id+'\\')':'') + '">' +
       '<div style="font-size:32px;flex-shrink:0">' + r.emoji + '</div>' +
       '<div style="flex:1">' +
         '<div style="font-size:14px;font-weight:800">' + r.titulo + '</div>' +
