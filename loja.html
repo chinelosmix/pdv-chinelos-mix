@@ -688,31 +688,33 @@ async function fin(){
 }
 
 function montarMsgWhats(tot,fr){
-  var msg='🛒 *PEDIDO — CHINELOS MIX*
-━━━━━━━━━━━━━━━━━━━━
 
-';
-  cart.forEach(function(i){msg+='👟 *'+i.n+'*
-Tam: '+i.tam+' | '+i.qtd+'x R$ '+i.p.toFixed(2)+'
+  var msg = '🛒 *PEDIDO — CHINELOS MIX*\\n\\n';
 
-';});
-  msg+='━━━━━━━━━━━━━━━━━━━━
-';
-  msg+='📦 '+(ent==='r'?'Retirada na loja':'Entrega em casa')+'
-';
-  if(fr>0)msg+='🚚 Frete: R$ '+fr.toFixed(2)+'
-';
-  else if(ent==='e')msg+='🎉 Frete: GRÁTIS
-';
-  msg+='💰 *TOTAL: R$ '+(tot+fr).toFixed(2)+'*
-';
-  msg+='💳 Pagamento: '+(pg==='pix'?'Pix':pg==='cv2'?'Cartão 2x':'Cartão 3x')+'
+  cart.forEach(function(i){
 
-';
-  msg+='✅ *PAGAMENTO REALIZADO!*
-';
-  msg+='📍 Av. Leonor Bolsone, 45 — Poá/SP';
+    msg += '👟 *'+i.n+'*\\n';
+    msg += 'Tam: '+i.tam+' | ';
+    msg += i.qtd+'x R$ '+i.p.toFixed(2)+'\\n\\n';
+
+  });
+
+  msg += '────────────────\\n';
+
+  if(ent === 'r'){
+    msg += '📦 Retirada na loja\\n';
+  }else{
+    msg += '🚚 Entrega em casa\\n';
+  }
+
+  if(fr > 0){
+    msg += 'Frete: R$ '+fr.toFixed(2)+'\\n';
+  }
+
+  msg += '\\n💰 Total: R$ '+tot.toFixed(2);
+
   return msg;
+
 }
 
 function eWh(){
