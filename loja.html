@@ -469,7 +469,7 @@ function rProds(){
   g.innerHTML=pr.map(function(p){
     var tot=eTot(p),esg=tot===0;
     var tams=Object.keys(p.est).slice(0,3).join(' · ')+(Object.keys(p.est).length>3?'...':'');
-    return '<div class="pcard" onclick="openMod('+p.id+')">'+
+   return '<div class="pcard" onclick="abrirProduto('+p.id+')">'
       '<div class="pimg">'+imgP(p)+(p.b?'<div class="pbadge">'+p.b+'</div>':'')+(esg?'<div class="pesg">Esgotado</div>':'')+'</div>'+
       '<div class="pinfo"><div class="pnome">'+p.n+'</div>'+
       '<div class="pest">Tam: '+tams+' · '+(esg?'<span style="color:var(--red)">Esgotado</span>':'<span style="color:var(--accent)">'+tot+' disp.</span>')+'</div>'+
