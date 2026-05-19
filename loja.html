@@ -1167,7 +1167,174 @@ if(typeof firebase !== 'undefined') {
 } else {
   rMundos();updC();
 }
+function abrirProduto(id){
 
+var p = PRODUTOS.find(x => x.id == id);
+
+if(!p) return;
+
+document.getElementById('modalProduto').style.display='block';
+
+var midia='';
+
+if(p.video){
+midia += `
+<video controls style="
+width:100%;
+border-radius:16px;
+margin-bottom:10px;
+">
+<source src="${p.video}">
+</video>
+`;
+}
+
+if(p.fotos){
+
+p.fotos.forEach(function(f){
+
+midia += `
+<img src="${f}" style="
+width:100%;
+border-radius:16px;
+margin-bottom:10px;
+">
+`;
+
+});
+
+}
+
+document.getElementById('produtoMidia').innerHTML = midia;
+
+document.getElementById('produtoNome').innerHTML = p.nome;
+
+document.getElementById('produtoPreco').innerHTML =
+'R$ ' + Number(p.preco).toFixed(2);
+
+document.getElementById('produtoDesc').innerHTML =
+p.desc || '';
+
+var htmlTam='';
+
+if(p.tamanhos){
+
+p.tamanhos.forEach(function(t){
+
+htmlTam += `
+<div style="
+padding:10px 16px;
+background:#222;
+border-radius:12px;
+font-weight:700;
+">
+${t.tam}
+</div>
+`;
+
+});
+
+}
+
+document.getElementById('produtoTamanhos').innerHTML = htmlTam;
+
+document.getElementById('btnCarrinho').onclick=function(){
+
+cart.push({
+id:p.id,
+n:p.nome,
+p:p.preco,
+img:p.fotos ? p.fotos[0] : '',
+qtd:1
+});
+
+localStorage.setItem('cart',JSON.stringify(cart));
+
+updCart();
+
+alert('Produto adicionado ao carrinho');
+
+};
+
+}
+
+function fecharProduto(){
+document.getElementById('modalProduto').style.display='none';
+}
 </script>
+
+<div id="modalProduto" style="
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.8);
+display:none;
+z-index:9999;
+overflow:auto;
+padding:20px;
+">
+
+<div style="
+max-width:700px;
+margin:auto;
+background:#111;
+border-radius:20px;
+padding:18px;
+position:relative;
+">
+
+<button onclick="fecharProduto()" style="
+position:absolute;
+right:10px;
+top:10px;
+background:red;
+color:#fff;
+border:none;
+width:35px;
+height:35px;
+border-radius:50%;
+cursor:pointer;
+">
+X
+</button>
+
+<div id="produtoMidia"></div>
+
+<h2 id="produtoNome"></h2>
+
+<div id="produtoPreco" style="
+font-size:32px;
+font-weight:800;
+color:#00ff88;
+margin:10px 0;
+"></div>
+
+<div id="produtoDesc"></div>
+
+<h3>Tamanhos</h3>
+
+<div id="produtoTamanhos" style="
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+margin-bottom:20px;
+"></div>
+
+<button id="btnCarrinho" style="
+width:100%;
+padding:16px;
+border:none;
+border-radius:14px;
+background:#00ff88;
+color:#000;
+font-size:18px;
+font-weight:800;
+cursor:pointer;
+">
+Adicionar ao carrinho
+</button>
+
+</div>
+</div>
+
 </body>
 </html>
