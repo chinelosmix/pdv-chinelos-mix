@@ -1070,13 +1070,29 @@ function initBanners() {
   });
 }
 
-function goSlide(n, idx) {
-  var slides = BANNERS['b' + n];
-  if(!slides) return;
-  slidesAtual[n] = idx;
- var w = cont.parentElement.offsetWidth;
-  var cont = document.getElementById('slides' + n);
-  if(cont) cont.style.transform = 'translateX(-' + (idx * w) + 'px)';
+function goSlide(i,n){
+
+var s=document.getElementById('slides'+i);
+
+if(!s) return;
+
+var b=s.parentElement;
+
+if(!b) return;
+
+var total=s.children.length;
+
+if(total===0) return;
+
+if(n>=total) n=0;
+
+if(n<0) n=total-1;
+
+s.style.transform='translateX(-'+(n*100)+'%)';
+
+window['slide'+i]=n;
+
+}
 
   // Atualizar dots
   slides.forEach(function(_, i) {
