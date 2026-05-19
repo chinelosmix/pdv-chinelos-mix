@@ -1070,27 +1070,38 @@ function initBanners() {
   });
 }
 
-function goSlide(i,n){
+function goSlide(n, idx) {
 
-var s=document.getElementById('slides'+i);
+var slides = BANNERS['b' + n];
 
-if(!s) return;
+if(!slides) return;
 
-var b=s.parentElement;
+var el = document.getElementById('slides' + n);
 
-if(!b) return;
+if(!el) return;
 
-var total=s.children.length;
+el.style.transform =
+'translateX(-' + (idx * 100) + '%)';
 
-if(total===0) return;
+slidesAtual[n] = idx;
 
-if(n>=total) n=0;
+// Atualizar dots
+slides.forEach(function(_, i) {
 
-if(n<0) n=total-1;
+var dot = document.getElementById('dot' + n + '_' + i);
 
-s.style.transform='translateX(-'+(n*100)+'%)';
+if(dot) {
 
-window['slide'+i]=n;
+dot.style.width = i===idx ? '20px' : '8px';
+
+dot.style.background =
+i===idx
+? 'var(--accent)'
+: 'rgba(255,255,255,.4)';
+
+}
+
+});
 
 }
 
