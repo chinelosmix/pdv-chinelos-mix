@@ -1059,10 +1059,18 @@ function initBanners() {
       '</div>';
     }).join('');
 
-    // Dots
-    dots.innerHTML = slides.map(function(_, i) {
-      return '<div style="width:' + (i===0?'20px':'8px') + ';height:8px;border-radius:20px;background:' + (i===0?'var(--accent)':'rgba(255,255,255,.4)') + ';transition:all .3s" id="dot' + n + '_' + i + '"></div>';
-    }).join('');
+   // Dots
+dots.innerHTML = slides.map(function(_, i) {
+
+return '<div id="dot' + n + '_' + i + '" style="' +
+'width:' + (i===0 ? '20px' : '8px') + ';' +
+'height:8px;' +
+'border-radius:20px;' +
+'background:' + (i===0 ? 'var(--accent)' : 'rgba(255,255,255,.4)') + ';' +
+'transition:.3s;' +
+'"></div>';
+
+}).join('');
 
     // Auto-play
     clearInterval(slideTimers[n]);
