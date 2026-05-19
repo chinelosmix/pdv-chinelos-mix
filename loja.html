@@ -1088,8 +1088,15 @@ var el = document.getElementById('slides' + n);
 
 if(!el) return;
 
-el.style.transform =
-'translateX(-' + (idx * 100) + '%)';
+var total = slides.length;
+
+if(total===0) return;
+
+if(idx >= total) idx = 0;
+
+if(idx < 0) idx = total - 1;
+
+el.style.transform = 'translateX(-' + (idx * 100) + '%)';
 
 slidesAtual[n] = idx;
 
@@ -1099,14 +1106,10 @@ slides.forEach(function(_, i) {
 var dot = document.getElementById('dot' + n + '_' + i);
 
 if(dot) {
-
 dot.style.width = i===idx ? '20px' : '8px';
-
-dot.style.background =
-i===idx
+dot.style.background = i===idx
 ? 'var(--accent)'
 : 'rgba(255,255,255,.4)';
-
 }
 
 });
