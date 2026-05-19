@@ -1116,16 +1116,7 @@ dot.style.background = i===idx
 
 }
 
-  // Atualizar dots
-  slides.forEach(function(_, i) {
-    var dot = document.getElementById('dot' + n + '_' + i);
-    if(dot) {
-      dot.style.width = i===idx ? '20px' : '8px';
-      dot.style.background = i===idx ? 'var(--accent)' : 'rgba(255,255,255,.4)';
-    }
-  });
-
-
+ 
 function nextSlide(n) {
   var slides = BANNERS['b' + n];
   if(!slides) return;
