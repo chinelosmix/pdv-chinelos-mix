@@ -1,0 +1,26 @@
+{
+  "name": "Painel Chinelos Mix",
+  "short_name": "Painel CM",
+  "id": "/painel.html",
+  "description": "Painel administrativo Chinelos Mix",
+  "start_url": "/painel.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a0a2e",
+  "theme_color": "#7c3aed",
+  "icons": [
+    {
+      "src": "/icon-painel-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-painel-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
