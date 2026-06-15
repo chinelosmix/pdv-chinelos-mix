@@ -978,54 +978,43 @@ document.getElementById('vendaData').textContent = new Date().toLocaleDateString
 // ══════════════════════════════════════════
 // LOGIN
 // ══════════════════════════════════════════
-async function fazerLogin() {
+function fazerLogin() {
   const nome = document.getElementById('loginNome').value.trim();
   const senha = document.getElementById('loginSenha').value.trim();
+
   if (!nome) { toast('Digite seu nome', 'error'); return; }
+  if (!senha) { toast('Digite a senha', 'error'); return; }
 
-  // Senha master do proprietário
-  const SENHA_MASTER = '1718';
-  const NOME_MASTER = 'rosano';
-
-  // Verifica se é o proprietário (case-insensitive)
-  if (nome.toLowerCase() === NOME_MASTER && senha === SENHA_MASTER) {
-    usuario = { nome: 'Rosano', cargo: 'Proprietário(a)', permissao: 'admin' };
-    document.getElementById('headerNome').textContent = usuario.nome;
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('app').classList.add('active');
-    iniciar();
+  // Verificar senha: aceita qualquer nome + senha 1718
+  if (senha !== '1718') {
+    toast('Senha incorreta', 'error');
     return;
   }
 
-  // Verifica funcionário no Firestore
-  try {
-    const snap = await db.collection('funcionarios').where('nome','==',nome).get();
-    let func = null;
-    if (!snap.empty) {
-      const doc = snap.docs[0];
-      const data = doc.data();
-      if (data.senha && data.senha !== senha) { toast('Senha incorreta', 'error'); return; }
-      func = { id: doc.id, ...data };
-    } else {
-      toast('Usuário não encontrado', 'error'); return;
-    }
-    usuario = func;
-    document.getElementById('headerNome').textContent = usuario.nome;
+  // Login aprovado
+  function entrar(cargo, permissao) {
+    usuario = { nome: nome, cargo: cargo, permissao: permissao };
+    document.getElementById('headerNome').textContent = nome;
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('app').classList.add('active');
     iniciar();
-  } catch(e) {
-    // Fallback offline: aceita nome + senha master
-    if (senha === SENHA_MASTER) {
-      usuario = { nome: nome, cargo: 'Operador', permissao: 'admin' };
-      document.getElementById('headerNome').textContent = usuario.nome;
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('app').classList.add('active');
-      iniciar();
-    } else {
-      toast('Erro de conexão. Use a senha master.', 'error');
-    }
   }
+
+  // Buscar no Firestore para pegar cargo/permissão, mas não bloquear
+  db.collection('funcionarios').where('nome','==',nome).get()
+    .then(function(snap) {
+      if (!snap.empty) {
+        const d = snap.docs[0].data();
+        entrar(d.cargo || 'Operador', d.permissao || 'vendas');
+      } else {
+        // Nome não cadastrado mas senha correta = entra como admin
+        entrar('Proprietário(a)', 'admin');
+      }
+    })
+    .catch(function() {
+      // Sem internet = entra mesmo assim
+      entrar('Proprietário(a)', 'admin');
+    });
 }
 
 function sair() {
