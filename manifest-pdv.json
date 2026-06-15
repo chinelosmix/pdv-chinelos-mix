@@ -1,0 +1,26 @@
+{
+  "name": "PDV Chinelos Mix",
+  "short_name": "PDV CM",
+  "id": "/index.html",
+  "description": "Ponto de Venda Chinelos Mix",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080c14",
+  "theme_color": "#ff6d00",
+  "icons": [
+    {
+      "src": "/icon-pdv-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-pdv-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
