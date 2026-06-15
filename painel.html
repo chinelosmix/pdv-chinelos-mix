@@ -549,38 +549,45 @@ document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.get
   if(ios&&!navigator.standalone&&bar)bar.style.display='flex';
 })();
 </script>
-<!-- PWA Install -->
-<div id="pwa-install-Painel" style="display:none;position:fixed;bottom:20px;left:12px;right:12px;z-index:99999;background:#7c3aed;color:#fff;border-radius:16px;padding:14px 16px;display:none;align-items:center;justify-content:space-between;box-shadow:0 8px 24px rgba(0,0,0,.5);cursor:pointer" onclick="pwaInstallPainel()">
+
+<!-- PWA Instalar Painel -->
+<div id="pwa-float-painel" style="position:fixed;bottom:20px;left:12px;right:12px;z-index:99999;background:#7c3aed;color:#fff;border-radius:16px;padding:14px 16px;align-items:center;justify-content:space-between;box-shadow:0 8px 24px rgba(0,0,0,.5);cursor:pointer;display:none" onclick="pwaPainelInstalar()">
   <div style="display:flex;align-items:center;gap:12px">
     <span style="font-size:26px">📲</span>
     <div>
-      <div style="font-size:14px;font-weight:800;letter-spacing:.3px">Baixar como aplicativo</div>
+      <div style="font-size:14px;font-weight:800">Baixar Painel como app</div>
       <div style="font-size:11px;opacity:.8;margin-top:2px">Instalar na tela inicial do celular</div>
     </div>
   </div>
   <div style="background:rgba(255,255,255,.2);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:800">INSTALAR</div>
 </div>
-<div id="pwa-hint-Painel" style="display:none;position:fixed;bottom:16px;left:12px;right:12px;z-index:99999;background:#111;border:2px solid #7c3aed;border-radius:14px;padding:14px;font-size:13px;color:#fff;text-align:center;line-height:1.8"></div>
+<div id="pwa-hint-painel" style="display:none;position:fixed;bottom:16px;left:12px;right:12px;z-index:99999;background:#111;border:2px solid #7c3aed;border-radius:14px;padding:14px;font-size:13px;color:#fff;text-align:center;line-height:1.8"></div>
 <script>
-(function(){{
-  var bar=document.getElementById('pwa-install-Painel');
-  var hint=document.getElementById('pwa-hint-Painel');
-  var dp=null;
+(function(){
   if(window.matchMedia('(display-mode:standalone)').matches||navigator.standalone)return;
-  window.addEventListener('beforeinstallprompt',function(e){{
-    e.preventDefault();dp=e;
+  var bar=document.getElementById('pwa-float-painel');
+  var hint=document.getElementById('pwa-hint-painel');
+  var dp=null;
+  window.addEventListener('beforeinstallprompt',function(e){
+    e.preventDefault(); dp=e;
     bar.style.display='flex';
-  }});
-  window.addEventListener('appinstalled',function(){{bar.style.display='none';}});
-  window.pwaInstallPainel=function(){{
-    if(dp){{dp.prompt();dp.userChoice.finally(function(){{dp=null;bar.style.display='none';}})}}
-    else{{
+  });
+  window.addEventListener('appinstalled',function(){ bar.style.display='none'; });
+  window.pwaPainelInstalar=function(){
+    if(dp){ dp.prompt(); dp.userChoice.finally(function(){ dp=null; bar.style.display='none'; }); }
+    else{
       hint.innerHTML='📱 Toque no <b>menu ⋮</b> do Chrome → <b>Instalar aplicativo</b><br>ou <b>Adicionar à tela inicial</b>';
-      hint.style.display='block';bar.style.display='none';
-      setTimeout(function(){{hint.style.display='none';bar.style.display='flex';}},7000);
-    }}
-  }};
-}})();
+      hint.style.display='block'; bar.style.display='none';
+      setTimeout(function(){ hint.style.display='none'; bar.style.display='flex'; }, 7000);
+    }
+  };
+  // Mostrar após 3 segundos se não veio o evento
+  setTimeout(function(){
+    if(dp===null && bar.style.display==='none'){
+      bar.style.display='flex';
+    }
+  }, 3000);
+})();
 </script>
 </body>
 </html>
