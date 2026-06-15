@@ -2,6 +2,15 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Loja CM">
+<meta name="theme-color" content="#00781e">
+<link rel="manifest" href="/manifest-loja.json">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-loja-192.png">
+<link rel="apple-touch-icon" href="/icon-loja-192.png">
+<script>if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('/sw-loja.js').catch(function(){});});</script>
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Loja Chinelos Mix</title>
 
@@ -1574,5 +1583,38 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     <button class="btn-cad-skip" onclick="pularCad()">Continuar sem cadastro</button>
   </div>
 </div>
+<!-- PWA Install -->
+<div id="pwa-install-Loja" style="display:none;position:fixed;bottom:20px;left:12px;right:12px;z-index:99999;background:#00c853;color:#fff;border-radius:16px;padding:14px 16px;display:none;align-items:center;justify-content:space-between;box-shadow:0 8px 24px rgba(0,0,0,.5);cursor:pointer" onclick="pwaInstallLoja()">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span style="font-size:26px">📲</span>
+    <div>
+      <div style="font-size:14px;font-weight:800;letter-spacing:.3px">Baixar como aplicativo</div>
+      <div style="font-size:11px;opacity:.8;margin-top:2px">Instalar na tela inicial do celular</div>
+    </div>
+  </div>
+  <div style="background:rgba(255,255,255,.2);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:800">INSTALAR</div>
+</div>
+<div id="pwa-hint-Loja" style="display:none;position:fixed;bottom:16px;left:12px;right:12px;z-index:99999;background:#111;border:2px solid #00c853;border-radius:14px;padding:14px;font-size:13px;color:#fff;text-align:center;line-height:1.8"></div>
+<script>
+(function(){{
+  var bar=document.getElementById('pwa-install-Loja');
+  var hint=document.getElementById('pwa-hint-Loja');
+  var dp=null;
+  if(window.matchMedia('(display-mode:standalone)').matches||navigator.standalone)return;
+  window.addEventListener('beforeinstallprompt',function(e){{
+    e.preventDefault();dp=e;
+    bar.style.display='flex';
+  }});
+  window.addEventListener('appinstalled',function(){{bar.style.display='none';}});
+  window.pwaInstallLoja=function(){{
+    if(dp){{dp.prompt();dp.userChoice.finally(function(){{dp=null;bar.style.display='none';}})}}
+    else{{
+      hint.innerHTML='📱 Toque no <b>menu ⋮</b> do Chrome → <b>Instalar aplicativo</b><br>ou <b>Adicionar à tela inicial</b>';
+      hint.style.display='block';bar.style.display='none';
+      setTimeout(function(){{hint.style.display='none';bar.style.display='flex';}},7000);
+    }}
+  }};
+}})();
+</script>
 </body>
 </html>
