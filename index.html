@@ -332,6 +332,39 @@ html, body { height: 100%; overflow: hidden; }
   .summary-grid { grid-template-columns: 1fr 1fr; }
 }
 </style>
+
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PDV CM">
+<link rel="manifest" id="manifest-pdv-cm">
+<script>
+(function(){
+  var svg = '<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 192 192\"><rect width=\"192\" height=\"192\" rx=\"32\" fill=\"#ff6d00\"/><text x=\"96\" y=\"130\" font-size=\"100\" text-anchor=\"middle\" font-family=\"Arial\">🛒</text></svg>';
+  var icon = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  var m = {
+    name: "PDV Chinelos Mix",
+    short_name: "PDV CM",
+    id: "pdv-cm",
+    start_url: "/index.html",
+    scope: "/",
+    display: "standalone",
+    background_color: "#0a0a0a",
+    theme_color: "#ff6d00",
+    icons: [
+      { src: icon, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
+      { src: icon, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+    ]
+  };
+  var el = document.getElementById('manifest-pdv-cm');
+  el.href = URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('/sw-pdv.js').catch(function(){});
+    });
+  }
+})();
+</script>
 </head>
 <body>
 
@@ -1205,7 +1238,46 @@ function imprimirEtiqueta(codigo, nome, valor, cor='', numero='') {
   }
   window.onload = render;
   <\/script>
-  </body></html>`);
+  
+<div id="pwa-bar-pdv-cm" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;background:#ff6d00;color:#fff;border-radius:30px;padding:14px 28px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 24px rgba(0,0,0,.4);white-space:nowrap;align-items:center;gap:8px" onclick="pwaInstall_pdv-cm()">
+  ⬇️ Instalar PDV
+</div>
+<div id="pwa-hint-pdv-cm" style="display:none;position:fixed;bottom:16px;left:16px;right:16px;z-index:99999;background:#1a1a1a;border:2px solid #ff6d00;border-radius:14px;padding:16px;font-size:13px;color:#fff;text-align:center;line-height:1.6"></div>
+<script>
+(function(){
+  var _dp = null;
+  window.addEventListener('beforeinstallprompt',function(e){
+    e.preventDefault(); _dp=e;
+    var b=document.getElementById('pwa-bar-pdv-cm');
+    if(b)b.style.display='flex';
+  });
+  window.addEventListener('appinstalled',function(){
+    var b=document.getElementById('pwa-bar-pdv-cm'); if(b)b.style.display='none';
+  });
+  window.pwaInstall_pdv-cm=function(){
+    if(_dp){
+      _dp.prompt();
+      _dp.userChoice.finally(function(){_dp=null;});
+    }else{
+      var h=document.getElementById('pwa-hint-pdv-cm');
+      if(!h)return;
+      var ios=/iPhone|iPad|iPod/.test(navigator.userAgent)&&!window.MSStream;
+      h.innerHTML=ios
+        ?'📱 Toque em <b>Compartilhar ⬆️</b> e depois em <b>Adicionar à Tela de Início</b>'
+        :'📱 Toque no <b>menu ⋮</b> do Chrome e escolha <b>Instalar aplicativo</b>';
+      h.style.display='block';
+      setTimeout(function(){h.style.display='none';},6000);
+    }
+  };
+  // iOS sem prompt nativo
+  var ios=/iPhone|iPad|iPod/.test(navigator.userAgent)&&!window.MSStream;
+  var standalone=window.matchMedia('(display-mode:standalone)').matches||navigator.standalone;
+  if(ios&&!standalone){
+    var b=document.getElementById('pwa-bar-pdv-cm'); if(b)b.style.display='flex';
+  }
+})();
+</script>
+</body></html>`);
   w.document.close();
 }
 
