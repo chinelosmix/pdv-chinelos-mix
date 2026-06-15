@@ -980,27 +980,52 @@ document.getElementById('vendaData').textContent = new Date().toLocaleDateString
 // ══════════════════════════════════════════
 async function fazerLogin() {
   const nome = document.getElementById('loginNome').value.trim();
-  const senha = document.getElementById('loginSenha').value;
+  const senha = document.getElementById('loginSenha').value.trim();
   if (!nome) { toast('Digite seu nome', 'error'); return; }
 
-  // Verifica funcionário no Firestore
-  const snap = await db.collection('funcionarios').where('nome','==',nome).get();
-  let func = null;
-  if (!snap.empty) {
-    const doc = snap.docs[0];
-    const data = doc.data();
-    if (data.senha && data.senha !== senha) { toast('Senha incorreta', 'error'); return; }
-    func = { id: doc.id, ...data };
-  } else {
-    // Primeiro acesso — cria como admin
-    func = { nome, cargo: 'Proprietário(a)', permissao: 'admin' };
+  // Senha master do proprietário
+  const SENHA_MASTER = '1718';
+  const NOME_MASTER = 'rosano';
+
+  // Verifica se é o proprietário (case-insensitive)
+  if (nome.toLowerCase() === NOME_MASTER && senha === SENHA_MASTER) {
+    usuario = { nome: 'Rosano', cargo: 'Proprietário(a)', permissao: 'admin' };
+    document.getElementById('headerNome').textContent = usuario.nome;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').classList.add('active');
+    iniciar();
+    return;
   }
 
-  usuario = func;
-  document.getElementById('headerNome').textContent = usuario.nome;
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('app').classList.add('active');
-  iniciar();
+  // Verifica funcionário no Firestore
+  try {
+    const snap = await db.collection('funcionarios').where('nome','==',nome).get();
+    let func = null;
+    if (!snap.empty) {
+      const doc = snap.docs[0];
+      const data = doc.data();
+      if (data.senha && data.senha !== senha) { toast('Senha incorreta', 'error'); return; }
+      func = { id: doc.id, ...data };
+    } else {
+      toast('Usuário não encontrado', 'error'); return;
+    }
+    usuario = func;
+    document.getElementById('headerNome').textContent = usuario.nome;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').classList.add('active');
+    iniciar();
+  } catch(e) {
+    // Fallback offline: aceita nome + senha master
+    if (senha === SENHA_MASTER) {
+      usuario = { nome: nome, cargo: 'Operador', permissao: 'admin' };
+      document.getElementById('headerNome').textContent = usuario.nome;
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').classList.add('active');
+      iniciar();
+    } else {
+      toast('Erro de conexão. Use a senha master.', 'error');
+    }
+  }
 }
 
 function sair() {
