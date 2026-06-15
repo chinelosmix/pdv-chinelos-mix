@@ -116,6 +116,39 @@ body{font-family:"Nunito",sans-serif;background:var(--bg);color:var(--text);min-
 .toast.info{background:var(--accent);color:#fff}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 </style>
+
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Painel CM">
+<link rel="manifest" id="manifest-painel-cm">
+<script>
+(function(){
+  var svg = '<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 192 192\"><rect width=\"192\" height=\"192\" rx=\"32\" fill=\"#7c3aed\"/><text x=\"96\" y=\"130\" font-size=\"100\" text-anchor=\"middle\" font-family=\"Arial\">⚙️</text></svg>';
+  var icon = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  var m = {
+    name: "Painel Chinelos Mix",
+    short_name: "Painel CM",
+    id: "painel-cm",
+    start_url: "/painel.html",
+    scope: "/",
+    display: "standalone",
+    background_color: "#0a0a0a",
+    theme_color: "#7c3aed",
+    icons: [
+      { src: icon, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
+      { src: icon, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+    ]
+  };
+  var el = document.getElementById('manifest-painel-cm');
+  el.href = URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('/sw-painel.js').catch(function(){});
+    });
+  }
+})();
+</script>
 </head>
 <body>
 <div class="toast" id="toast"></div>
@@ -383,6 +416,45 @@ function irTab(id){document.querySelectorAll('.tela').forEach(function(t){t.clas
 function fm(id){document.getElementById(id).classList.remove('open');}
 function toast2(msg,tipo){var el=document.getElementById('toast');el.textContent=msg;el.className='toast show '+(tipo||'info');clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove('show');},3000);}
 document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.getElementById('loginWrap').style.display!=='none')login();if(e.key==='Escape')document.querySelectorAll('.modal-ov.open').forEach(function(m){m.classList.remove('open');});});
+</script>
+
+<div id="pwa-bar-painel-cm" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;background:#7c3aed;color:#fff;border-radius:30px;padding:14px 28px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 24px rgba(0,0,0,.4);white-space:nowrap;align-items:center;gap:8px" onclick="pwaInstall_painel-cm()">
+  ⬇️ Instalar Painel
+</div>
+<div id="pwa-hint-painel-cm" style="display:none;position:fixed;bottom:16px;left:16px;right:16px;z-index:99999;background:#1a1a1a;border:2px solid #7c3aed;border-radius:14px;padding:16px;font-size:13px;color:#fff;text-align:center;line-height:1.6"></div>
+<script>
+(function(){
+  var _dp = null;
+  window.addEventListener('beforeinstallprompt',function(e){
+    e.preventDefault(); _dp=e;
+    var b=document.getElementById('pwa-bar-painel-cm');
+    if(b)b.style.display='flex';
+  });
+  window.addEventListener('appinstalled',function(){
+    var b=document.getElementById('pwa-bar-painel-cm'); if(b)b.style.display='none';
+  });
+  window.pwaInstall_painel-cm=function(){
+    if(_dp){
+      _dp.prompt();
+      _dp.userChoice.finally(function(){_dp=null;});
+    }else{
+      var h=document.getElementById('pwa-hint-painel-cm');
+      if(!h)return;
+      var ios=/iPhone|iPad|iPod/.test(navigator.userAgent)&&!window.MSStream;
+      h.innerHTML=ios
+        ?'📱 Toque em <b>Compartilhar ⬆️</b> e depois em <b>Adicionar à Tela de Início</b>'
+        :'📱 Toque no <b>menu ⋮</b> do Chrome e escolha <b>Instalar aplicativo</b>';
+      h.style.display='block';
+      setTimeout(function(){h.style.display='none';},6000);
+    }
+  };
+  // iOS sem prompt nativo
+  var ios=/iPhone|iPad|iPod/.test(navigator.userAgent)&&!window.MSStream;
+  var standalone=window.matchMedia('(display-mode:standalone)').matches||navigator.standalone;
+  if(ios&&!standalone){
+    var b=document.getElementById('pwa-bar-painel-cm'); if(b)b.style.display='flex';
+  }
+})();
 </script>
 </body>
 </html>
