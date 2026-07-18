@@ -939,8 +939,6 @@ function _mostrarBotoesInstall(show) {
 }
 const _isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-// Navegador embutido de apps (WhatsApp, Instagram, Facebook) não permite instalar PWA
-const _isInAppBrowser = /FBAN|FBAV|Instagram|Line\/|WhatsApp|; wv\)/i.test(navigator.userAgent);
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
@@ -957,10 +955,6 @@ if (!_isStandalone) {
   window.addEventListener('load', () => _mostrarBotoesInstall(true));
 }
 async function instalarApp() {
-  if (_isInAppBrowser) {
-    alert('Este link foi aberto dentro de outro app (WhatsApp/Instagram/Facebook) e por isso o Android não deixa instalar por aqui.\n\nToque nos 3 pontinhos (⋮) no canto superior direito e escolha "Abrir no Chrome" (ou "Abrir no navegador"). Depois, no Chrome, toque em ⋮ → "Instalar app".');
-    return;
-  }
   if (_deferredInstall) {
     _deferredInstall.prompt();
     const choice = await _deferredInstall.userChoice;
